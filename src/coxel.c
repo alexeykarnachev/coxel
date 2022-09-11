@@ -1,11 +1,5 @@
-#include <glad/glad.h>
+#include "includes.h"
 
-#include <GLFW/glfw3.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "utils.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void process_input(GLFWwindow *window);
@@ -31,7 +25,7 @@ GLFWwindow *create_window() {
 
     GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Coxel", NULL, NULL);
     if (window == NULL) {
-        printf("Failed to create GLFW window");
+        printf("ERROR: failed to create GLFW window");
         glfwTerminate();
         exit(-1);
     }
@@ -39,34 +33,63 @@ GLFWwindow *create_window() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        printf("Failed to initialize GLAD");
+        printf("ERROR: failed to initialize GLAD");
         exit(-1);
     }
 
     return window;
 }
 
-int _main(void) {
+int main(void) {
     GLFWwindow *window = create_window();
+
+    GLuint program = glCreateProgram();
+    bool is_linked = link_program_files(
+        "./shaders/shader.vert",
+        "./shaders/shader.tesc",
+        "./shaders/shader.tese",
+        "./shaders/shader.frag",
+        program
+    );
+    if (!is_linked) {
+        fprintf(stderr, "ERROR: failed to link program files\n");
+        return 1;
+    }
+
+    GLint max_patch_vertices = 0;
+    glGetIntegerv(GL_MAX_PATCH_VERTICES, &max_patch_vertices);
+    printf("GL_MAX_PATCH_VERTICES: %d\n", max_patch_vertices);
+    glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+    glUseProgram(program);
+    GLint vao = 0;
+    glCreateVertexArrays(1, &vao);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(1.0);
+
+    GLint u_view_loc = glGetUniformLocation(program, "u_view");
+    GLint u_proj_loc = glGetUniformLocation(program, "u_proj");
+
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
+
+        Mat4 u_view = get_view();
+        Mat4 u_proj = get_perspective_projection();
+
+        glUniformMatrix4fv(u_view_loc, 1, GL_TRUE, (float*)&u_view);
+        glUniformMatrix4fv(u_proj_loc, 1, GL_TRUE, (float*)&u_proj);
+
+        glUseProgram(program);
+        glBindVertexArray(vao);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glDrawArrays(GL_PATCHES, 0, 4);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
     glfwTerminate();
-    return 0;
 }
 
-int main(void) {
-    char* vert_shader_src = read_text_file("./shaders/shader.vert");
-    char* frag_shader_src = read_text_file("./shaders/shader.frag");
-    printf("%s", vert_shader_src);
-
-    free(vert_shader_src);
-    printf("FREED!\n");
-}

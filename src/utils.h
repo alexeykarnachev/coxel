@@ -1,33 +1,38 @@
-#include <stdio.h>
-#include <assert.h>
+char* read_cstr_file(const char* restrict file_path) {
+    FILE* file = NULL;
+    char* content = NULL;
 
+    file = fopen(file_path, "r");
+    if (file == NULL) goto fail;
+    if (fseek(file, 0, SEEK_END) < 0) goto fail;
 
-char* read_text_file(const char* restrict file_path) {
-    FILE* file = fopen(file_path, "r");
-    if (file == NULL) {
-        perror(file_path);
-        exit(1);
-    }
-
-    fseek(file, 0, SEEK_END);
     long size = ftell(file);
-    fseek(file, 0, SEEK_SET);
+    if (size < 0) goto fail;
+    if (fseek(file, 0, SEEK_SET) < 0) goto fail;
 
-    char* content = malloc(size + 1);
-    if (fread(content, 1, size, file) != size) {
-        perror(file_path);
-        exit(1);
-    }
+    content = malloc(size + 1);
+    if (content == NULL) goto fail;
 
-    fclose(file);
+    fread(content, 1, size, file);
+    if (ferror(file)) goto fail;
+
     content[size] = '\0';
-
+    if (file) {
+        fclose(file);
+        errno = 0;
+    }
+    
     return content;
+
+fail:
+    if (file) {
+        int e = errno;
+        fclose(file);
+        errno = e;
+    }
+    if (content) {
+        free(content);
+    }
+    return NULL;
 }
-
-
-
-
-
-
 
