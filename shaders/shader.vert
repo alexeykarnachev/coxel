@@ -19,4 +19,5 @@ void main() {
     }
 
     v_ndc = u_proj * u_view * ndc;
+    gl_Position = v_ndc;
 }

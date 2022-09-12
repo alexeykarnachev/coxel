@@ -1,20 +1,49 @@
 #include "includes.h"
 
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void process_input(GLFWwindow *window);
+static unsigned int SCR_WIDTH = 800;
+static unsigned int SCR_HEIGHT = 600;
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+static float CURSOR_X;
+static float CURSOR_Y;
+static bool MMB_PRESSED;
+static bool LMB_PRESSED;
 
-void process_input(GLFWwindow *window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
+static Mat4 VIEW;
+static Mat4 PROJ;
+
+static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    SCR_WIDTH = width;
+    SCR_HEIGHT = height;
+    glViewport(0, 0, width, height);
+}
+
+static void cam_update() {
+    VIEW = cam_get_view();
+    PROJ = cam_get_perspective_projection();
+}
+
+static void cursor_position_callback(GLFWwindow* window, double x, double y) {
+    float xd = (CURSOR_X - x) / SCR_WIDTH;
+    float yd = (y - CURSOR_Y) / SCR_HEIGHT;
+    CURSOR_X = x;
+    CURSOR_Y = y;
+    
+    if (MMB_PRESSED) {
+        cam_move(xd, yd);
+        cam_update();
+    } else if (LMB_PRESSED) {
+        cam_rotate(yd, -xd);
+        cam_update();
     }
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    glViewport(0, 0, width, height);
+static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+        MMB_PRESSED = action == GLFW_PRESS;
+    } else if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        LMB_PRESSED = action == GLFW_PRESS;
+    }
 }
 
 GLFWwindow *create_window() {
@@ -29,8 +58,11 @@ GLFWwindow *create_window() {
         glfwTerminate();
         exit(-1);
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         printf("ERROR: failed to initialize GLAD");
@@ -46,8 +78,8 @@ int main(void) {
     GLuint program = glCreateProgram();
     bool is_linked = link_program_files(
         "./shaders/shader.vert",
-        "./shaders/shader.tesc",
-        "./shaders/shader.tese",
+        NULL, // "./shaders/shader.tesc",
+        NULL, // "./shaders/shader.tese",
         "./shaders/shader.frag",
         program
     );
@@ -56,28 +88,24 @@ int main(void) {
         return 1;
     }
 
-    GLint max_patch_vertices = 0;
-    glGetIntegerv(GL_MAX_PATCH_VERTICES, &max_patch_vertices);
-    printf("GL_MAX_PATCH_VERTICES: %d\n", max_patch_vertices);
-    glPatchParameteri(GL_PATCH_VERTICES, 4);
+    // GLint max_patch_vertices = 0;
+    // glGetIntegerv(GL_MAX_PATCH_VERTICES, &max_patch_vertices);
+    // glPatchParameteri(GL_PATCH_VERTICES, 4);
 
     glUseProgram(program);
     GLint vao = 0;
     glCreateVertexArrays(1, &vao);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(1.0);
 
     GLint u_view_loc = glGetUniformLocation(program, "u_view");
     GLint u_proj_loc = glGetUniformLocation(program, "u_proj");
 
+    cam_update();
+
     while (!glfwWindowShouldClose(window)) {
-        process_input(window);
-
-        Mat4 u_view = get_view();
-        Mat4 u_proj = get_perspective_projection();
-
-        glUniformMatrix4fv(u_view_loc, 1, GL_TRUE, (float*)&u_view);
-        glUniformMatrix4fv(u_proj_loc, 1, GL_TRUE, (float*)&u_proj);
+        glUniformMatrix4fv(u_view_loc, 1, GL_TRUE, (float*)&VIEW);
+        glUniformMatrix4fv(u_proj_loc, 1, GL_TRUE, (float*)&PROJ);
 
         glUseProgram(program);
         glBindVertexArray(vao);
@@ -85,7 +113,8 @@ int main(void) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glDrawArrays(GL_PATCHES, 0, 4);
+        // glDrawArrays(GL_PATCHES, 0, 4);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

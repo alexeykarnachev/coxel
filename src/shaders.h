@@ -47,19 +47,24 @@ bool link_program_files(
 
     bool is_compiled = true;
     is_compiled &= compile_shader_file(vert_file_path, GL_VERTEX_SHADER, &vert_shader);
-    is_compiled &= compile_shader_file(tesc_file_path, GL_TESS_CONTROL_SHADER, &tesc_shader);
-    is_compiled &= compile_shader_file(tese_file_path, GL_TESS_EVALUATION_SHADER, &tese_shader);
+    glAttachShader(program, vert_shader);
+
     is_compiled &= compile_shader_file(frag_file_path, GL_FRAGMENT_SHADER, &frag_shader);
+    glAttachShader(program, frag_shader);
+
+    if (tesc_file_path != NULL) {
+        is_compiled &= compile_shader_file(tesc_file_path, GL_TESS_CONTROL_SHADER, &tesc_shader);
+        glAttachShader(program, tesc_shader);
+    }
+    if (tese_file_path != NULL) {
+        is_compiled &= compile_shader_file(tese_file_path, GL_TESS_EVALUATION_SHADER, &tese_shader);
+        glAttachShader(program, tese_shader);
+    }
 
     if (!is_compiled) {
         fprintf(stderr, "ERROR: failed to compile some shader files\n");
         return false;
     }
-
-    glAttachShader(program, vert_shader);
-    glAttachShader(program, tesc_shader);
-    glAttachShader(program, tese_shader);
-    glAttachShader(program, frag_shader);
 
     glLinkProgram(program);
 
