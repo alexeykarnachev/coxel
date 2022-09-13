@@ -20,7 +20,7 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 static void cam_update() {
     VIEW = cam_get_view();
-    PROJ = cam_get_perspective_projection();
+    PROJ = cam_get_perspective_projection(SCR_WIDTH, SCR_HEIGHT);
 }
 
 static void cursor_position_callback(GLFWwindow* window, double x, double y) {
@@ -30,9 +30,11 @@ static void cursor_position_callback(GLFWwindow* window, double x, double y) {
     CURSOR_Y = y;
     
     if (MMB_PRESSED) {
-        cam_move(xd, yd);
+        cam_move_side(xd, yd);
         cam_update();
-    } else if (LMB_PRESSED) {
+    } 
+
+    if (LMB_PRESSED) {
         cam_rotate(yd, -xd);
         cam_update();
     }
@@ -44,6 +46,11 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
     } else if (button == GLFW_MOUSE_BUTTON_LEFT) {
         LMB_PRESSED = action == GLFW_PRESS;
     }
+}
+
+void scroll_callback(GLFWwindow* window, double x, double y) {
+    cam_move_forward(-y);
+    cam_update();
 }
 
 GLFWwindow *create_window() {
@@ -63,6 +70,7 @@ GLFWwindow *create_window() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         printf("ERROR: failed to initialize GLAD");
@@ -78,8 +86,8 @@ int main(void) {
     GLuint program = glCreateProgram();
     bool is_linked = link_program_files(
         "./shaders/shader.vert",
-        NULL, // "./shaders/shader.tesc",
-        NULL, // "./shaders/shader.tese",
+        "./shaders/shader.tesc",
+        "./shaders/shader.tese",
         "./shaders/shader.frag",
         program
     );
@@ -88,14 +96,12 @@ int main(void) {
         return 1;
     }
 
-    // GLint max_patch_vertices = 0;
-    // glGetIntegerv(GL_MAX_PATCH_VERTICES, &max_patch_vertices);
-    // glPatchParameteri(GL_PATCH_VERTICES, 4);
+    glPatchParameteri(GL_PATCH_VERTICES, 4);
 
     glUseProgram(program);
     GLint vao = 0;
     glCreateVertexArrays(1, &vao);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(1.0);
 
     GLint u_view_loc = glGetUniformLocation(program, "u_view");
@@ -113,8 +119,7 @@ int main(void) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // glDrawArrays(GL_PATCHES, 0, 4);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glDrawArrays(GL_PATCHES, 0, 4);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
