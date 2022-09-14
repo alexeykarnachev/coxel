@@ -13,7 +13,30 @@ typedef struct Sphere {
     GLuint u_light_pos_loc;
 } Sphere;
 
-bool create_sphere(Sphere* sphere) {
+void sphere_draw(
+        Sphere* sphere,
+        float* mv,
+        float* proj,
+        float tess_lvl_inner,
+        float tess_lvl_outer,
+        float* center_pos,
+        float* light_pos
+) {
+    glUseProgram(sphere->program);
+    
+    glUniformMatrix4fv(sphere->u_mv_loc, 1, GL_TRUE, mv);
+    glUniformMatrix4fv(sphere->u_proj_loc, 1, GL_TRUE, proj);
+    glUniform1f(sphere->u_tess_lvl_inner_loc, tess_lvl_inner);
+    glUniform1f(sphere->u_tess_lvl_outer_loc, tess_lvl_outer);
+    glUniform3fv(sphere->u_center_pos_loc, 1, center_pos);
+    glUniform3fv(sphere->u_light_pos_loc, 1, light_pos);
+
+    glBindVertexArray(sphere->vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->ebo);
+    glDrawElements(GL_PATCHES, sizeof(ICOSAHEDRON_FACES) / sizeof(ICOSAHEDRON_FACES[0]),  GL_UNSIGNED_BYTE, 0);
+}
+
+bool sphere_create(Sphere* sphere) {
     GLuint program = glCreateProgram();
     bool is_linked = link_program_files(
         "./shaders/sphere/sphere.vert",

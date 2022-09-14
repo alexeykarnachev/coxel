@@ -9,8 +9,12 @@ static float CURSOR_Y;
 static bool MMB_PRESSED;
 static bool LMB_PRESSED;
 
-static Mat4 VIEW;
+static Mat4 MV;
 static Mat4 PROJ;
+static float TESS_LVL_INNER = 6.0;
+static float TESS_LVL_OUTER = 6.0;
+static Vec3 CENTER_POS = { {0.0, 0.0, 0.0} };
+static Vec3 LIGHT_POS = { {0.0, 0.0, 100.0} };
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     SCR_WIDTH = width;
@@ -19,7 +23,7 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 }
 
 static void cam_update() {
-    VIEW = cam_get_view();
+    MV = cam_get_view();
     PROJ = cam_get_perspective_projection(SCR_WIDTH, SCR_HEIGHT);
 }
 
@@ -93,7 +97,7 @@ int main(void) {
     glEnable(GL_CULL_FACE);
 
     Sphere sphere;
-    if (!create_sphere(&sphere)) {
+    if (!sphere_create(&sphere)) {
         printf("ERROR: failed to create sphere\n");
         glfwTerminate();
         exit(-1);
@@ -105,17 +109,9 @@ int main(void) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(sphere.program);
-        glUniformMatrix4fv(sphere.u_mv_loc, 1, GL_TRUE, (float*)&VIEW);
-        glUniformMatrix4fv(sphere.u_proj_loc, 1, GL_TRUE, (float*)&PROJ);
-        glUniform1f(sphere.u_tess_lvl_inner_loc, 6.0f);
-        glUniform1f(sphere.u_tess_lvl_outer_loc, 6.0f);
-        glUniform3f(sphere.u_center_pos_loc, 0.0, 0.0, 0.0);
-        glUniform3f(sphere.u_light_pos_loc, 0.0, 5.0, 0.0);
-
-        glBindVertexArray(sphere.vao);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere.ebo);
-        glDrawElements(GL_PATCHES, sizeof(ICOSAHEDRON_FACES) / sizeof(ICOSAHEDRON_FACES[0]),  GL_UNSIGNED_BYTE, 0);
+        Vec3 center_pos = mat4_vec3_mul(&MV, &CENTER_POS);
+        Vec3 light_pos = mat4_vec3_mul(&MV, &LIGHT_POS);
+        sphere_draw(&sphere, (float*)&MV, (float*)&PROJ, TESS_LVL_INNER, TESS_LVL_OUTER, (float*)&center_pos, (float*)&light_pos);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

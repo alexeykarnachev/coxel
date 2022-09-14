@@ -231,13 +231,45 @@ Mat3 mat3_rotation(float xa, float ya, float za) {
     return m;
 }
 
-Vec3 mat3_vecmul(Mat3* m, Vec3* v) {
+Vec3 mat3_vec3_mul(Mat3* m, Vec3* v) {
     Vec3 res;
     
     for (size_t i = 0; i < 3; ++i) {
         float val = 0.0f;
         for (size_t j = 0; j < 3; ++j) {
             val += m->data[i * 3 + j] * v->data[j];
+        }
+        res.data[i] = val;
+    }
+
+    return res;
+}
+
+Vec3 mat4_vec3_mul(Mat4* m, Vec3* v) {
+    Vec3 res;
+    
+    for (size_t i = 0; i < 3; ++i) {
+        float val = 0.0f;
+        for (size_t j = 0; j < 4; ++j) {
+            if (j == 3) {
+                val += m->data[i * 4 + j];
+            } else {
+                val += m->data[i * 4 + j] * v->data[j];
+            }
+        }
+        res.data[i] = val;
+    }
+
+    return res;
+}
+
+Vec4 mat4_vec4_mul(Mat4* m, Vec4* v) {
+    Vec4 res;
+    
+    for (size_t i = 0; i < 4; ++i) {
+        float val = 0.0f;
+        for (size_t j = 0; j < 4; ++j) {
+            val += m->data[i * 4 + j] * v->data[j];
         }
         res.data[i] = val;
     }

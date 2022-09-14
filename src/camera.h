@@ -57,7 +57,7 @@ void cam_rotate(float pitch, float yaw) {
     YAW = ROTATE_SENS * (YAW + yaw);
 
     Mat3 r = mat3_rotation(PITCH, YAW, 0.0f);
-    VIEW_DIR = mat3_vecmul(&r, &INITIAL_VIEW_DIR);
+    VIEW_DIR = mat3_vec3_mul(&r, &INITIAL_VIEW_DIR);
 }
 
 Mat4 cam_get_view() {
