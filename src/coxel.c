@@ -111,18 +111,18 @@ int main(void) {
     GLuint icos_vbo;
     glCreateBuffers(1, &icos_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, icos_vbo);
-    glBufferData(GL_ARRAY_BUFFER, ICOSAHEDRON_N_VERTS_BYTES, ICOSAHEDRON_VERTS, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(ICOSAHEDRON_VERTS), ICOSAHEDRON_VERTS, GL_STATIC_DRAW);
 
     GLuint icos_vao;
     glCreateVertexArrays(1, &icos_vao);
     glBindVertexArray(icos_vao);
     glEnableVertexAttribArray(vs_in_pos);
-    glVertexAttribPointer(vs_in_pos, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(vs_in_pos, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 
     GLuint icos_ebo;
     glCreateBuffers(1, &icos_ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, icos_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ICOSAHEDRON_N_FACES_BYTES, ICOSAHEDRON_FACES, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ICOSAHEDRON_FACES), ICOSAHEDRON_FACES, GL_STATIC_DRAW);
 
     glUseProgram(program);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -137,7 +137,7 @@ int main(void) {
         glUniformMatrix4fv(u_proj, 1, GL_TRUE, (float*)&PROJ);
 
         glBindVertexArray(icos_vao);
-        glDrawElements(GL_TRIANGLES, ICOSAHEDRON_N_FACES * 3, GL_UNSIGNED_BYTE, 0);
+        glDrawElements(GL_TRIANGLES, sizeof(ICOSAHEDRON_FACES) / sizeof(ICOSAHEDRON_FACES[0]), GL_UNSIGNED_BYTE, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
