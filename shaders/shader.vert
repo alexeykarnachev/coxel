@@ -1,16 +1,13 @@
 #version 460 core
 
-out vec4 v_ndc;
+layout (location=0) in vec3 vs_in_pos;
+
+uniform mat4 u_mv;
+uniform mat4 u_proj;
+
+out vec3 vs_out_pos;
 
 void main() {
-    float z = -0.5;
-    if (gl_VertexID == 0) {
-        v_ndc = vec4(-0.9, -0.9, z, 1);
-    } else if (gl_VertexID == 1) {
-        v_ndc = vec4(-0.9, 0.9, z, 1);
-    } else if (gl_VertexID == 2) {
-        v_ndc = vec4(0.9, 0.9, z, 1);
-    } else if (gl_VertexID == 3) {
-        v_ndc = vec4(0.9, -0.9, z, 1);
-    }
+    // vs_out_pos = vs_in_pos;
+    gl_Position = u_proj * u_mv * vec4(vs_in_pos, 1.0);
 }

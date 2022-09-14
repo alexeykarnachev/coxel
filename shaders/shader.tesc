@@ -1,10 +1,10 @@
 #version 460 core
 
-layout(vertices = 4) out;
+layout(vertices = 3) out;
 
-in vec4 v_ndc[];
+in vec3 vs_out_pos[];
 
-out vec4 c_ndc[];
+out vec3 cs_out_pos[];
 
 void main(void) {
     float level = 24.0;
@@ -15,5 +15,5 @@ void main(void) {
     gl_TessLevelInner[0] = level;
     gl_TessLevelInner[1] = level;
 
-    c_ndc[gl_InvocationID] = v_ndc[gl_InvocationID];
+    cs_out_pos[gl_InvocationID] = vs_out_pos[gl_InvocationID];
 }
