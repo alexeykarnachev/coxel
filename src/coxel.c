@@ -13,8 +13,6 @@ static Mat4 MV;
 static Mat4 PROJ;
 static float TESS_LVL_INNER = 6.0;
 static float TESS_LVL_OUTER = 6.0;
-static Vec3 CENTER_POS = { {0.0, 0.0, 0.0} };
-static Vec3 LIGHT_POS = { {0.0, 0.0, 100.0} };
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     SCR_WIDTH = width;
@@ -103,15 +101,14 @@ int main(void) {
         exit(-1);
     }
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Vec3 center_pos = mat4_vec3_mul(&MV, &CENTER_POS);
-        Vec3 light_pos = mat4_vec3_mul(&MV, &LIGHT_POS);
-        sphere_draw(&sphere, (float*)&MV, (float*)&PROJ, TESS_LVL_INNER, TESS_LVL_OUTER, (float*)&center_pos, (float*)&light_pos);
+        sphere_draw(&sphere, (float*)&MV, (float*)&PROJ, TESS_LVL_INNER, TESS_LVL_OUTER);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

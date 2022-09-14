@@ -9,8 +9,6 @@ typedef struct Sphere {
     GLuint u_proj_loc;
     GLuint u_tess_lvl_inner_loc;
     GLuint u_tess_lvl_outer_loc;
-    GLuint u_center_pos_loc;
-    GLuint u_light_pos_loc;
 } Sphere;
 
 void sphere_draw(
@@ -18,9 +16,7 @@ void sphere_draw(
         float* mv,
         float* proj,
         float tess_lvl_inner,
-        float tess_lvl_outer,
-        float* center_pos,
-        float* light_pos
+        float tess_lvl_outer
 ) {
     glUseProgram(sphere->program);
     
@@ -28,8 +24,6 @@ void sphere_draw(
     glUniformMatrix4fv(sphere->u_proj_loc, 1, GL_TRUE, proj);
     glUniform1f(sphere->u_tess_lvl_inner_loc, tess_lvl_inner);
     glUniform1f(sphere->u_tess_lvl_outer_loc, tess_lvl_outer);
-    glUniform3fv(sphere->u_center_pos_loc, 1, center_pos);
-    glUniform3fv(sphere->u_light_pos_loc, 1, light_pos);
 
     glBindVertexArray(sphere->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->ebo);
@@ -55,8 +49,6 @@ bool sphere_create(Sphere* sphere) {
     sphere->u_proj_loc = glGetUniformLocation(program, "u_proj");
     sphere->u_tess_lvl_inner_loc = glGetUniformLocation(program, "u_tess_lvl_inner");
     sphere->u_tess_lvl_outer_loc = glGetUniformLocation(program, "u_tess_lvl_outer");
-    sphere->u_center_pos_loc = glGetUniformLocation(program, "u_center_pos");
-    sphere->u_light_pos_loc = glGetUniformLocation(program, "u_light_pos");
 
     GLuint vbo;
     glCreateBuffers(1, &vbo);
@@ -81,31 +73,4 @@ bool sphere_create(Sphere* sphere) {
 
     return true;
 }
-
-
-// int main(void) {
-//     glPatchParameteri(GL_PATCH_VERTICES, 3);
-//     glUseProgram(program);
-// 
-//     while (!glfwWindowShouldClose(window)) {
-//         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-//         glClear(GL_COLOR_BUFFER_BIT);
-// 
-//         glUseProgram(program);
-//         glUniformMatrix4fv(u_mv, 1, GL_TRUE, (float*)&VIEW);
-//         glUniformMatrix4fv(u_proj, 1, GL_TRUE, (float*)&PROJ);
-//         glUniform1f(u_tess_lvl_inner, 6.0f);
-//         glUniform1f(u_tess_lvl_outer, 6.0f);
-//         glUniform3f(u_center_pos, 0.0, 0.0, 0.0);
-//         glUniform3f(u_light_pos, 0.0, 5.0, 0.0);
-// 
-//         glBindVertexArray(icos_vao);
-//         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, icos_ebo);
-//         glDrawElements(GL_PATCHES, sizeof(ICOSAHEDRON_FACES) / sizeof(ICOSAHEDRON_FACES[0]),  GL_UNSIGNED_BYTE, 0);
-// 
-//         glfwSwapBuffers(window);
-//         glfwPollEvents();
-//     }
-//     glfwTerminate();
-// }
 

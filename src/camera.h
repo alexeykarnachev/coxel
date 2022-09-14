@@ -1,6 +1,6 @@
 static Vec3 VIEW_DIR = { {0.0f, 0.0f, -1.0f} };
 static Vec3 INITIAL_VIEW_DIR = { {0.0f, 0.0f, -1.0f} };
-static Vec3 POSITION = { {0.0f, 0.0f, 2.0f} };
+static Vec3 POSITION = { {0.0f, 0.0f, 3.0f} };
 static Vec3 UP = { {0.0f, 1.0f, 0.0f} };
 
 static float FOV = 45.0f;
