@@ -94,8 +94,8 @@ int main(void) {
     GLuint program = glCreateProgram();
     bool is_linked = link_program_files(
         "./shaders/shader.vert",
-        NULL,// "./shaders/shader.tesc",
-        NULL,// "./shaders/shader.tese",
+        "./shaders/shader.tesc",
+        "./shaders/shader.tese",
         "./shaders/shader.frag",
         program
     );
@@ -107,6 +107,10 @@ int main(void) {
     GLint vs_in_pos = glGetAttribLocation(program, "vs_in_pos");
     GLint u_mv = glGetUniformLocation(program, "u_mv");
     GLint u_proj = glGetUniformLocation(program, "u_proj");
+    GLint u_tess_lvl_inner = glGetUniformLocation(program, "u_tess_lvl_inner");
+    GLint u_tess_lvl_outer = glGetUniformLocation(program, "u_tess_lvl_outer");
+
+    glPatchParameteri(GL_PATCH_VERTICES, 3);
 
     GLuint icos_vbo;
     glCreateBuffers(1, &icos_vbo);
@@ -135,9 +139,12 @@ int main(void) {
         glUseProgram(program);
         glUniformMatrix4fv(u_mv, 1, GL_TRUE, (float*)&VIEW);
         glUniformMatrix4fv(u_proj, 1, GL_TRUE, (float*)&PROJ);
+        glUniform1f(u_tess_lvl_inner, 4.0f);
+        glUniform1f(u_tess_lvl_outer, 4.0f);
 
         glBindVertexArray(icos_vao);
-        glDrawElements(GL_TRIANGLES, sizeof(ICOSAHEDRON_FACES) / sizeof(ICOSAHEDRON_FACES[0]), GL_UNSIGNED_BYTE, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, icos_ebo);
+        glDrawElements(GL_PATCHES, sizeof(ICOSAHEDRON_FACES) / sizeof(ICOSAHEDRON_FACES[0]),  GL_UNSIGNED_BYTE, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
