@@ -59,7 +59,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 }
 
-GLFWwindow *create_window() {
+GLFWwindow* create_window() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -88,62 +88,33 @@ GLFWwindow *create_window() {
 }
 
 int main(void) {
-    GLFWwindow *window = create_window();
     cam_update();
+    GLFWwindow *window = create_window();
+    glEnable(GL_CULL_FACE);
 
-    GLuint program = glCreateProgram();
-    bool is_linked = link_program_files(
-        "./shaders/shader.vert",
-        "./shaders/shader.tesc",
-        "./shaders/shader.tese",
-        "./shaders/shader.frag",
-        program
-    );
-    if (!is_linked) {
-        fprintf(stderr, "ERROR: failed to link program files\n");
-        return 1;
+    Sphere sphere;
+    if (!create_sphere(&sphere)) {
+        printf("ERROR: failed to create sphere\n");
+        glfwTerminate();
+        exit(-1);
     }
 
-    GLint vs_in_pos = glGetAttribLocation(program, "vs_in_pos");
-    GLint u_mv = glGetUniformLocation(program, "u_mv");
-    GLint u_proj = glGetUniformLocation(program, "u_proj");
-    GLint u_tess_lvl_inner = glGetUniformLocation(program, "u_tess_lvl_inner");
-    GLint u_tess_lvl_outer = glGetUniformLocation(program, "u_tess_lvl_outer");
-
     glPatchParameteri(GL_PATCH_VERTICES, 3);
-
-    GLuint icos_vbo;
-    glCreateBuffers(1, &icos_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, icos_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(ICOSAHEDRON_VERTS), ICOSAHEDRON_VERTS, GL_STATIC_DRAW);
-
-    GLuint icos_vao;
-    glCreateVertexArrays(1, &icos_vao);
-    glBindVertexArray(icos_vao);
-    glEnableVertexAttribArray(vs_in_pos);
-    glVertexAttribPointer(vs_in_pos, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-
-    GLuint icos_ebo;
-    glCreateBuffers(1, &icos_ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, icos_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ICOSAHEDRON_FACES), ICOSAHEDRON_FACES, GL_STATIC_DRAW);
-
-    glUseProgram(program);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glLineWidth(4.0);
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(program);
-        glUniformMatrix4fv(u_mv, 1, GL_TRUE, (float*)&VIEW);
-        glUniformMatrix4fv(u_proj, 1, GL_TRUE, (float*)&PROJ);
-        glUniform1f(u_tess_lvl_inner, 4.0f);
-        glUniform1f(u_tess_lvl_outer, 4.0f);
+        glUseProgram(sphere.program);
+        glUniformMatrix4fv(sphere.u_mv_loc, 1, GL_TRUE, (float*)&VIEW);
+        glUniformMatrix4fv(sphere.u_proj_loc, 1, GL_TRUE, (float*)&PROJ);
+        glUniform1f(sphere.u_tess_lvl_inner_loc, 6.0f);
+        glUniform1f(sphere.u_tess_lvl_outer_loc, 6.0f);
+        glUniform3f(sphere.u_center_pos_loc, 0.0, 0.0, 0.0);
+        glUniform3f(sphere.u_light_pos_loc, 0.0, 5.0, 0.0);
 
-        glBindVertexArray(icos_vao);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, icos_ebo);
+        glBindVertexArray(sphere.vao);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere.ebo);
         glDrawElements(GL_PATCHES, sizeof(ICOSAHEDRON_FACES) / sizeof(ICOSAHEDRON_FACES[0]),  GL_UNSIGNED_BYTE, 0);
 
         glfwSwapBuffers(window);
