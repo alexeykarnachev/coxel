@@ -115,3 +115,25 @@ bool link_program_files(
     return true;
 }
 
+bool get_attrib_location(GLuint* loc, GLuint program, const char* name) {
+    GLuint _loc = glGetAttribLocation(program, name);
+    if (_loc == -1) {
+        fprintf(stderr, "ERROR: failed to get the location of the attribute `%s`\n", name);
+        return false;
+    }
+
+    *loc = _loc;
+    return true;
+}
+
+bool get_uniform_location(GLuint* loc, GLuint program, const char* name) {
+    GLuint _loc = glGetUniformLocation(program, name);
+    if (_loc == -1) {
+        fprintf(stderr, "ERROR: failed to get the location of the uniform `%s`\n", name);
+        return false;
+    }
+
+    *loc = _loc;
+    return true;
+}
+
