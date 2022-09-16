@@ -21,12 +21,13 @@ static Camera CAMERA;
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     SCR_WIDTH = width;
     SCR_HEIGHT = height;
+    CAMERA.aspect = (float)SCR_WIDTH / (float)SCR_HEIGHT;
     glViewport(0, 0, width, height);
 }
 
 static void cam_update() {
     MV = cam_get_view(&CAMERA);
-    PROJ = cam_get_perspective_projection(&CAMERA, SCR_WIDTH, SCR_HEIGHT);
+    PROJ = cam_get_perspective_projection(&CAMERA);
 }
 
 static void cursor_position_callback(GLFWwindow* window, double x, double y) {
@@ -113,7 +114,7 @@ int main(void) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        sphere_draw(&sphere, &CAMERA, (float*)&MV, (float*)&PROJ, TESS_LVL_INNER, TESS_LVL_OUTER);
+        sphere_draw(&sphere, &CAMERA);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

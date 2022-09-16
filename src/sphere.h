@@ -11,20 +11,30 @@ typedef struct Sphere {
     GLuint u_tess_lvl_outer;
 } Sphere;
 
-void sphere_draw(
-        Sphere* sphere,
-        Camera* camera,
-        float* mv,
-        float* proj,
-        float tess_lvl_inner,
-        float tess_lvl_outer
-) {
+static Mat4 sphere_get_model(Sphere* sphere) {
+    Mat4 mat = {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
+
+    return mat;
+}
+
+void sphere_draw(Sphere* sphere, Camera* camera) {
     glUseProgram(sphere->program);
+
+    Mat4 view = cam_get_view(camera);
+    Mat4 model = sphere_get_model(sphere);
+    Mat4 mv = mat4_matmul(&view, &model);
+
+    Mat4 proj = cam_get_perspective_projection(camera);
     
-    glUniformMatrix4fv(sphere->u_mv, 1, GL_TRUE, mv);
-    glUniformMatrix4fv(sphere->u_proj, 1, GL_TRUE, proj);
-    glUniform1f(sphere->u_tess_lvl_inner, tess_lvl_inner);
-    glUniform1f(sphere->u_tess_lvl_outer, tess_lvl_outer);
+    glUniformMatrix4fv(sphere->u_mv, 1, GL_TRUE, mv.data);
+    glUniformMatrix4fv(sphere->u_proj, 1, GL_TRUE, proj.data);
+    glUniform1f(sphere->u_tess_lvl_inner, 8.0f);
+    glUniform1f(sphere->u_tess_lvl_outer, 8.0f);
 
     glBindVertexArray(sphere->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->ebo);
@@ -79,4 +89,3 @@ bool sphere_create(Sphere* sphere) {
 
     return true;
 }
-

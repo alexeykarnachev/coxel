@@ -2,6 +2,7 @@ typedef struct Camera {
     float fov;
     float near;
     float far;
+    float aspect;
     Vec3 rotation;
     Vec3 translation;
 
@@ -18,8 +19,9 @@ bool cam_create(Camera* cam) {
     Vec3 pos = { {0.0f, 0.0f, 0.0f} };
     
     cam->fov = 45.0f;
-    cam->near = 0.1;
-    cam->far = 1000;
+    cam->near = 0.1f;
+    cam->far = 1000.0f;
+    cam->aspect = 1.777f;
     cam->rotation = rotation;
     cam->translation = translation;
     cam->up = up;
@@ -91,14 +93,13 @@ Mat4 cam_get_view(Camera* cam) {
     return view;
 }
 
-Mat4 cam_get_perspective_projection(Camera* cam, float scr_width, float scr_height) {
+Mat4 cam_get_perspective_projection(Camera* cam) {
     float f = 1.0f / tan(cam->fov / 2.0f);
     float rng_inv = 1.0f / (cam->near - cam->far);
-    float aspect = scr_width / scr_height;
-
+    
     Mat4 proj = {
         {
-            f / aspect, 0.0f, 0.0f, 0.0f,
+            f / cam->aspect, 0.0f, 0.0f, 0.0f,
             0.0f, f, 0.0f, 0.0f,
             0.0f, 0.0f, (cam->near + cam->far) * rng_inv, cam->near * cam->far * rng_inv * 2.0f,
             0.0f, 0.0f, -1.0f, 0.0f
