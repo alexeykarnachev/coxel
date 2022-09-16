@@ -21,6 +21,13 @@ void sphere_translate(Sphere* sphere, float xd, float yd, float zd) {
     sphere->translation.data[2] += zd;
 }
 
+void sphere_rotate(Sphere* sphere, float xa, float ya, float za) {
+    // TODO: mod by PI:
+    sphere->rotation.data[0] += xa;
+    sphere->rotation.data[1] += ya;
+    sphere->rotation.data[2] += za;
+}
+
 static Mat4 sphere_get_model_mat(Sphere* sphere) {
     Mat3 scale_mat = {{
         sphere->scale.data[0], 0.0, 0.0,
