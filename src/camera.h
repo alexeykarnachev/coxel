@@ -1,22 +1,39 @@
-static Vec3 VIEW_DIR = { {0.0f, 0.0f, -1.0f} };
-static Vec3 INITIAL_VIEW_DIR = { {0.0f, 0.0f, -1.0f} };
-static Vec3 POSITION = { {0.0f, 0.0f, 3.0f} };
-static Vec3 UP = { {0.0f, 1.0f, 0.0f} };
+typedef struct Camera {
+    float fov;
+    float near;
+    float far;
+    Vec3 rotation;
+    Vec3 translation;
 
-static float FOV = 45.0f;
-static float NEAR = 0.1f;
-static float FAR = 100.0f;
-static float PITCH = 0.0f;
-static float YAW = 0.0f;
+    Vec3 up;
+    Vec3 view_dir;
+    Vec3 pos;
+} Camera;
 
-static float ROTATE_SENS = 1.0f;
-static float MOVE_SIDE_SENS = 5.0f;
-static float MOVE_FORWARD_SENS = 0.2f;
+bool cam_create(Camera* cam) {
+    Vec3 rotation = { {0.0f, 0.0f, 0.0f} };
+    Vec3 translation = { {0.0f, 0.0f, 0.0f} };
+    Vec3 up = { {0.0, 1.0, 0.0} };
+    Vec3 view_dir = { {0.0, 0.0, -1.0} };
+    Vec3 pos = { {0.0f, 0.0f, 0.0f} };
+    
+    cam->fov = 45.0f;
+    cam->near = 0.1;
+    cam->far = 1000;
+    cam->rotation = rotation;
+    cam->translation = translation;
+    cam->up = up;
+    cam->view_dir = view_dir;
+    cam->pos = pos;
+}
 
-static Mat3 cam_get_basis() {
-    Vec3 z = vec3_norm(&VIEW_DIR);
 
-    Vec3 x = vec3_cross(&z, &UP);
+static Mat3 cam_get_basis(Camera* cam) {
+    Mat3 rotation = mat3_rotation(cam->rotation.data[0], cam->rotation.data[1], 0.0f);
+    Vec3 view_dir = mat3_vec3_mul(&rotation, &cam->view_dir);
+    Vec3 z = vec3_norm(&view_dir);
+
+    Vec3 x = vec3_cross(&z, &cam->up);
     x = vec3_norm(&x);
 
     Vec3 y = vec3_cross(&x, &z);
@@ -29,46 +46,44 @@ static Mat3 cam_get_basis() {
     return basis;
 }
 
-void cam_move_side(float xd, float yd) {
-    Mat3 basis = cam_get_basis();
+void cam_translate(Camera* cam, float xd, float yd, float zd) {
+    Mat3 basis = cam_get_basis(cam);
 
     Vec3 x = mat3_get_row(&basis, 0);
-    x = vec3_scale(&x, xd * MOVE_SIDE_SENS);
+    x = vec3_scale(&x, xd);
 
     Vec3 y = mat3_get_row(&basis, 1);
-    y = vec3_scale(&y, yd * MOVE_SIDE_SENS);
+    y = vec3_scale(&y, yd);
 
-    POSITION.data[0] += x.data[0] + y.data[0];
-    POSITION.data[1] += x.data[1] + y.data[1];
-    POSITION.data[2] += x.data[2] + y.data[2];
+    Vec3 z = mat3_get_row(&basis, 2);
+    z = vec3_scale(&z, zd);
+
+    cam->translation.data[0] += x.data[0] + y.data[0] - z.data[0];
+    cam->translation.data[1] += x.data[1] + y.data[1] - z.data[1];
+    cam->translation.data[2] += x.data[2] + y.data[2] - z.data[2];
 }
 
-void cam_move_forward(float d) {
-    Vec3 z = vec3_norm(&VIEW_DIR);
-    z = vec3_scale(&z, d * MOVE_FORWARD_SENS);
-    POSITION.data[0] -= z.data[0];
-    POSITION.data[1] -= z.data[1];
-    POSITION.data[2] -= z.data[2];
-}
-
-void cam_rotate(float pitch, float yaw) {
+void cam_rotate(Camera* cam, float pitch, float yaw) {
     // TODO: mod by PI
-    PITCH = ROTATE_SENS * (PITCH + pitch);
-    YAW = ROTATE_SENS * (YAW + yaw);
-
-    Mat3 r = mat3_rotation(PITCH, YAW, 0.0f);
-    VIEW_DIR = mat3_vec3_mul(&r, &INITIAL_VIEW_DIR);
+    cam->rotation.data[0] += pitch;
+    cam->rotation.data[1] += yaw;
 }
 
-Mat4 cam_get_view() {
-    Mat3 basis = cam_get_basis();
+Mat4 cam_get_view(Camera* cam) {
+    Mat3 basis = cam_get_basis(cam);
     Vec3 x = mat3_get_row(&basis, 0);
     Vec3 y = mat3_get_row(&basis, 1);
     Vec3 z = mat3_get_row(&basis, 2);
 
-    Vec4 row0 = vec3_append(&x, -vec3_dot(&x, &POSITION)); 
-    Vec4 row1 = vec3_append(&y, -vec3_dot(&y, &POSITION));
-    Vec4 row2 = vec3_append(&z, -vec3_dot(&z, &POSITION));
+    Vec3 pos = { {
+        cam->pos.data[0] + cam->translation.data[0],
+        cam->pos.data[1] + cam->translation.data[1],
+        cam->pos.data[2] + cam->translation.data[2]
+    } };
+
+    Vec4 row0 = vec3_append(&x, -vec3_dot(&x, &pos)); 
+    Vec4 row1 = vec3_append(&y, -vec3_dot(&y, &pos));
+    Vec4 row2 = vec3_append(&z, -vec3_dot(&z, &pos));
     Vec4 row3 = {0.0f, 0.0f, 0.0f, 1.0f};
 
     Mat4 view = mat4_from_rows(&row0, &row1, &row2, &row3);
@@ -76,18 +91,20 @@ Mat4 cam_get_view() {
     return view;
 }
 
-Mat4 cam_get_perspective_projection(float scr_width, float scr_height) {
-    float f = 1.0f / tan(FOV / 2.0f);
-    float rng_inv = 1.0f / (NEAR - FAR);
+Mat4 cam_get_perspective_projection(Camera* cam, float scr_width, float scr_height) {
+    float f = 1.0f / tan(cam->fov / 2.0f);
+    float rng_inv = 1.0f / (cam->near - cam->far);
     float aspect = scr_width / scr_height;
+
     Mat4 proj = {
         {
             f / aspect, 0.0f, 0.0f, 0.0f,
             0.0f, f, 0.0f, 0.0f,
-            0.0f, 0.0f, (NEAR + FAR) * rng_inv, NEAR * FAR * rng_inv * 2.0f,
+            0.0f, 0.0f, (cam->near + cam->far) * rng_inv, cam->near * cam->far * rng_inv * 2.0f,
             0.0f, 0.0f, -1.0f, 0.0f
         }
     };
+
     return proj;
 }
 

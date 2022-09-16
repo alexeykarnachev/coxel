@@ -4,15 +4,16 @@ typedef struct Sphere {
     GLuint vao;
     GLuint ebo;
 
-    GLuint a_pos_loc;
-    GLuint u_mv_loc;
-    GLuint u_proj_loc;
-    GLuint u_tess_lvl_inner_loc;
-    GLuint u_tess_lvl_outer_loc;
+    GLuint a_pos;
+    GLuint u_mv;
+    GLuint u_proj;
+    GLuint u_tess_lvl_inner;
+    GLuint u_tess_lvl_outer;
 } Sphere;
 
 void sphere_draw(
         Sphere* sphere,
+        Camera* camera,
         float* mv,
         float* proj,
         float tess_lvl_inner,
@@ -20,10 +21,10 @@ void sphere_draw(
 ) {
     glUseProgram(sphere->program);
     
-    glUniformMatrix4fv(sphere->u_mv_loc, 1, GL_TRUE, mv);
-    glUniformMatrix4fv(sphere->u_proj_loc, 1, GL_TRUE, proj);
-    glUniform1f(sphere->u_tess_lvl_inner_loc, tess_lvl_inner);
-    glUniform1f(sphere->u_tess_lvl_outer_loc, tess_lvl_outer);
+    glUniformMatrix4fv(sphere->u_mv, 1, GL_TRUE, mv);
+    glUniformMatrix4fv(sphere->u_proj, 1, GL_TRUE, proj);
+    glUniform1f(sphere->u_tess_lvl_inner, tess_lvl_inner);
+    glUniform1f(sphere->u_tess_lvl_outer, tess_lvl_outer);
 
     glBindVertexArray(sphere->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->ebo);
@@ -45,11 +46,11 @@ bool sphere_create(Sphere* sphere) {
     }
 
     bool ok = true;
-    ok &= get_attrib_location(&(sphere->a_pos_loc), program, "a_pos");
-    ok &= get_uniform_location(&(sphere->u_mv_loc), program, "u_mv");
-    ok &= get_uniform_location(&(sphere->u_proj_loc), program, "u_proj");
-    ok &= get_uniform_location(&(sphere->u_tess_lvl_inner_loc), program, "u_tess_lvl_inner");
-    ok &= get_uniform_location(&(sphere->u_tess_lvl_outer_loc), program, "u_tess_lvl_outer");
+    ok &= get_attrib_location(&(sphere->a_pos), program, "a_pos");
+    ok &= get_uniform_location(&(sphere->u_mv), program, "u_mv");
+    ok &= get_uniform_location(&(sphere->u_proj), program, "u_proj");
+    ok &= get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner");
+    ok &= get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer");
     if (!ok) {
         fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the shader program\n");
         return false;
@@ -63,8 +64,8 @@ bool sphere_create(Sphere* sphere) {
     GLuint vao;
     glCreateVertexArrays(1, &vao);
     glBindVertexArray(vao);
-    glEnableVertexAttribArray(sphere->a_pos_loc);
-    glVertexAttribPointer(sphere->a_pos_loc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+    glEnableVertexAttribArray(sphere->a_pos);
+    glVertexAttribPointer(sphere->a_pos, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
 
     GLuint ebo;
     glCreateBuffers(1, &ebo);
