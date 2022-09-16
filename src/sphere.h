@@ -15,6 +15,12 @@ typedef struct Sphere {
     GLuint u_tess_lvl_outer;
 } Sphere;
 
+void sphere_scale(Sphere* sphere, float xd, float yd, float zd) {
+    sphere->scale.data[0] += xd;
+    sphere->scale.data[1] += yd;
+    sphere->scale.data[2] += zd;
+}
+
 void sphere_translate(Sphere* sphere, float xd, float yd, float zd) {
     sphere->translation.data[0] += xd;
     sphere->translation.data[1] += yd;
