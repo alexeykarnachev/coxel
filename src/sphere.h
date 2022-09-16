@@ -1,4 +1,8 @@
 typedef struct Sphere {
+    Vec3 rotation;
+    Vec3 translation;
+    Vec3 scale;
+
     GLuint program;
     GLuint vbo;
     GLuint vao;
@@ -11,25 +15,39 @@ typedef struct Sphere {
     GLuint u_tess_lvl_outer;
 } Sphere;
 
-static Mat4 sphere_get_model(Sphere* sphere) {
-    Mat4 mat = {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    };
+void sphere_translate(Sphere* sphere, float xd, float yd, float zd) {
+    sphere->translation.data[0] += xd;
+    sphere->translation.data[1] += yd;
+    sphere->translation.data[2] += zd;
+}
 
-    return mat;
+static Mat4 sphere_get_model_mat(Sphere* sphere) {
+    Mat3 scale_mat = {{
+        sphere->scale.data[0], 0.0, 0.0,
+        0.0, sphere->scale.data[1], 0.0,
+        0.0, 0.0, sphere->scale.data[2]
+    }};
+
+    Mat3 rotation_mat = mat3_rotation(sphere->rotation.data[0], sphere->rotation.data[1], sphere->rotation.data[2]);
+    Mat3 rs_mat = mat3_matmul(&scale_mat, &rotation_mat);
+    Mat4 model_mat = {{
+        rs_mat.data[0], rs_mat.data[1], rs_mat.data[2], sphere->translation.data[0],
+        rs_mat.data[3], rs_mat.data[4], rs_mat.data[5], sphere->translation.data[1],
+        rs_mat.data[6], rs_mat.data[7], rs_mat.data[8], sphere->translation.data[2],
+        0.0f, 0.0f, 0.0f, 1.0f
+    }};
+
+    return model_mat;
 }
 
 void sphere_draw(Sphere* sphere, Camera* camera) {
     glUseProgram(sphere->program);
 
-    Mat4 view = cam_get_view(camera);
-    Mat4 model = sphere_get_model(sphere);
+    Mat4 view = cam_get_view_mat(camera);
+    Mat4 model = sphere_get_model_mat(sphere);
     Mat4 mv = mat4_matmul(&view, &model);
 
-    Mat4 proj = cam_get_perspective_projection(camera);
+    Mat4 proj = cam_get_perspective_projection_mat(camera);
     
     glUniformMatrix4fv(sphere->u_mv, 1, GL_TRUE, mv.data);
     glUniformMatrix4fv(sphere->u_proj, 1, GL_TRUE, proj.data);
@@ -55,17 +73,6 @@ bool sphere_create(Sphere* sphere) {
         return false;
     }
 
-    bool ok = true;
-    ok &= get_attrib_location(&(sphere->a_pos), program, "a_pos");
-    ok &= get_uniform_location(&(sphere->u_mv), program, "u_mv");
-    ok &= get_uniform_location(&(sphere->u_proj), program, "u_proj");
-    ok &= get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner");
-    ok &= get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer");
-    if (!ok) {
-        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the shader program\n");
-        return false;
-    }
-
     GLuint vbo;
     glCreateBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -86,6 +93,20 @@ bool sphere_create(Sphere* sphere) {
     sphere->vbo = vbo;
     sphere->vao = vao;
     sphere->ebo = ebo;
+    sphere->rotation = vec3_zeros();
+    sphere->translation = vec3_zeros();
+    sphere->scale = vec3_ones();
+
+    bool ok = true;
+    ok &= get_attrib_location(&(sphere->a_pos), program, "a_pos");
+    ok &= get_uniform_location(&(sphere->u_mv), program, "u_mv");
+    ok &= get_uniform_location(&(sphere->u_proj), program, "u_proj");
+    ok &= get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner");
+    ok &= get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer");
+    if (!ok) {
+        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the shader program\n");
+        return false;
+    }
 
     return true;
 }

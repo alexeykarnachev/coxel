@@ -30,7 +30,7 @@ bool cam_create(Camera* cam) {
 }
 
 
-static Mat3 cam_get_basis(Camera* cam) {
+static Mat3 cam_get_basis_mat(Camera* cam) {
     Mat3 rotation = mat3_rotation(cam->rotation.data[0], cam->rotation.data[1], 0.0f);
     Vec3 view_dir = mat3_vec3_mul(&rotation, &cam->view_dir);
     Vec3 z = vec3_norm(&view_dir);
@@ -49,7 +49,7 @@ static Mat3 cam_get_basis(Camera* cam) {
 }
 
 void cam_translate(Camera* cam, float xd, float yd, float zd) {
-    Mat3 basis = cam_get_basis(cam);
+    Mat3 basis = cam_get_basis_mat(cam);
 
     Vec3 x = mat3_get_row(&basis, 0);
     x = vec3_scale(&x, xd);
@@ -71,8 +71,8 @@ void cam_rotate(Camera* cam, float pitch, float yaw) {
     cam->rotation.data[1] += yaw;
 }
 
-Mat4 cam_get_view(Camera* cam) {
-    Mat3 basis = cam_get_basis(cam);
+Mat4 cam_get_view_mat(Camera* cam) {
+    Mat3 basis = cam_get_basis_mat(cam);
     Vec3 x = mat3_get_row(&basis, 0);
     Vec3 y = mat3_get_row(&basis, 1);
     Vec3 z = mat3_get_row(&basis, 2);
@@ -93,7 +93,7 @@ Mat4 cam_get_view(Camera* cam) {
     return view;
 }
 
-Mat4 cam_get_perspective_projection(Camera* cam) {
+Mat4 cam_get_perspective_projection_mat(Camera* cam) {
     float f = 1.0f / tan(cam->fov / 2.0f);
     float rng_inv = 1.0f / (cam->near - cam->far);
     

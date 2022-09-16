@@ -294,3 +294,13 @@ void mat3_print(Mat3* m) {
         printf("\n");
     }
 }
+
+Vec3 vec3_zeros() {
+    Vec3 vec = { {0.0, 0.0, 0.0} };
+    return vec;
+}
+
+Vec3 vec3_ones() {
+    Vec3 vec = { {1.0, 1.0, 1.0} };
+    return vec;
+}

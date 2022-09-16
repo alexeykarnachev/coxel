@@ -26,8 +26,8 @@ static void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 }
 
 static void cam_update() {
-    MV = cam_get_view(&CAMERA);
-    PROJ = cam_get_perspective_projection(&CAMERA);
+    MV = cam_get_view_mat(&CAMERA);
+    PROJ = cam_get_perspective_projection_mat(&CAMERA);
 }
 
 static void cursor_position_callback(GLFWwindow* window, double x, double y) {
@@ -114,6 +114,7 @@ int main(void) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        sphere_translate(&sphere, 0.0f, 0.0f, 0.0f);
         sphere_draw(&sphere, &CAMERA);
 
         glfwSwapBuffers(window);
