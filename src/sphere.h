@@ -9,8 +9,7 @@ typedef struct Sphere {
     GLuint ebo;
 
     GLuint a_pos;
-    GLuint u_mv;
-    GLuint u_proj;
+    GLuint u_mvp;
     GLuint u_tess_lvl_inner;
     GLuint u_tess_lvl_outer;
 } Sphere;
@@ -56,14 +55,13 @@ static Mat4 sphere_get_model_mat(Sphere* sphere) {
 void sphere_draw(Sphere* sphere, Camera* camera) {
     glUseProgram(sphere->program);
 
-    Mat4 view = cam_get_view_mat(camera);
     Mat4 model = sphere_get_model_mat(sphere);
-    Mat4 mv = mat4_matmul(&view, &model);
-
+    Mat4 view = cam_get_view_mat(camera);
     Mat4 proj = cam_get_perspective_projection_mat(camera);
+    Mat4 mv = mat4_matmul(&view, &model);
+    Mat4 mvp = mat4_matmul(&proj, &mv);
     
-    glUniformMatrix4fv(sphere->u_mv, 1, GL_TRUE, mv.data);
-    glUniformMatrix4fv(sphere->u_proj, 1, GL_TRUE, proj.data);
+    glUniformMatrix4fv(sphere->u_mvp, 1, GL_TRUE, mvp.data);
     glUniform1f(sphere->u_tess_lvl_inner, 8.0f);
     glUniform1f(sphere->u_tess_lvl_outer, 8.0f);
 
@@ -112,8 +110,7 @@ bool sphere_create(Sphere* sphere) {
 
     bool ok = true;
     ok &= get_attrib_location(&(sphere->a_pos), program, "a_pos");
-    ok &= get_uniform_location(&(sphere->u_mv), program, "u_mv");
-    ok &= get_uniform_location(&(sphere->u_proj), program, "u_proj");
+    ok &= get_uniform_location(&(sphere->u_mvp), program, "u_mvp");
     ok &= get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner");
     ok &= get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer");
     if (!ok) {

@@ -3,8 +3,7 @@
 layout(triangles, equal_spacing, ccw) in;
 in vec3 cs_pos[];
 
-uniform mat4 u_mv;
-uniform mat4 u_proj;
+uniform mat4 u_mvp;
 
 void main(void) {
     vec3 p0 = gl_TessCoord.x * cs_pos[0];
@@ -13,5 +12,5 @@ void main(void) {
 
     vec3 pos = normalize(p0 + p1 + p2);
 
-    gl_Position = u_proj * u_mv * vec4(pos, 1.0);
+    gl_Position = u_mvp * vec4(pos, 1.0);
 }
