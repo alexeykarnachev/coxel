@@ -8,8 +8,10 @@ uniform mat4 u_proj;
 uniform vec4 u_v_center;
 uniform vec4 u_v_light_pos;
 
+out vec3 es_pos;
 out vec3 es_normal;
 out vec3 es_light_dir;
+out float es_light_dist;
 
 void main(void) {
     vec3 p0 = gl_TessCoord.x * cs_pos[0];
@@ -19,7 +21,11 @@ void main(void) {
     vec4 pos = vec4(normalize(p0 + p1 + p2), 1.0);
     vec4 mv_pos = u_mv * pos;
 
-    es_light_dir = normalize((mv_pos - u_v_light_pos).xyz);
+    es_pos = mv_pos.xyz;
+    es_light_dir = (mv_pos - u_v_light_pos).xyz;
+    es_light_dist = pow(length(es_light_dir), 2.0);
+    es_light_dir = normalize(es_light_dir);
+
     es_normal = normalize((mv_pos - u_v_center).xyz);
     gl_Position = u_proj * u_mv * pos;
 }

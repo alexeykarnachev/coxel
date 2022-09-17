@@ -121,7 +121,7 @@ int main(void) {
     Vec3 light_pos = {{ 0.0, 10.0, 0.0 }};
 
     while (!glfwWindowShouldClose(window)) {
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         sphere_translate(&sphere1, 0.005, 0.0, 0.0);
