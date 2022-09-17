@@ -106,7 +106,7 @@ int main(void) {
         glfwTerminate();
         exit(-1);
     }
-    sphere_translate(&sphere1, -1.0f, 0.0f, 0.0f);
+    sphere_translate(&sphere1, -3.0f, -3.0f, 0.0f);
 
     Sphere sphere2;
     if (!sphere_create(&sphere2)) {
@@ -118,15 +118,14 @@ int main(void) {
 
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
-    Vec3 light_pos = {{ 0.0, 10.0, 0.0 }};
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        sphere_translate(&sphere1, 0.005, 0.0, 0.0);
-        sphere_draw(&sphere1, &CAMERA, &light_pos);
-        sphere_draw(&sphere2, &CAMERA, &light_pos);
+        // sphere_translate(&sphere1, 0.005, 0.0, 0.0);
+        sphere_draw(&sphere1, &CAMERA, &sphere2.translation);
+        sphere_draw(&sphere2, &CAMERA, &sphere2.translation);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

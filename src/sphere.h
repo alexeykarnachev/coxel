@@ -9,12 +9,13 @@ typedef struct Sphere {
     GLuint ebo;
 
     GLuint a_pos;
-    GLuint u_mv;
+    GLuint u_model;
+    GLuint u_view;
     GLuint u_proj;
     GLuint u_tess_lvl_inner;
     GLuint u_tess_lvl_outer;
-    GLuint u_v_center;
-    GLuint u_v_light_pos;
+    GLuint u_center_pos;
+    GLuint u_light_pos;
 } Sphere;
 
 void sphere_scale(Sphere* sphere, float xd, float yd, float zd) {
@@ -61,13 +62,11 @@ void sphere_draw(Sphere* sphere, Camera* camera, Vec3* light_pos) {
     Mat4 model = sphere_get_model_mat(sphere);
     Mat4 view = cam_get_view_mat(camera);
     Mat4 proj = cam_get_perspective_projection_mat(camera);
-    Mat4 mv = mat4_mat4_mul(&view, &model);
-    Vec4 v_center = mat4_vec3_mul(&view, &sphere->translation);
-    Vec4 v_light_pos = mat4_vec3_mul(&view, light_pos);
     
-    glUniform4fv(sphere->u_v_center, 1, v_center.data);
-    glUniform4fv(sphere->u_v_light_pos, 1, v_light_pos.data);
-    glUniformMatrix4fv(sphere->u_mv, 1, GL_TRUE, mv.data);
+    glUniform3fv(sphere->u_center_pos, 1, sphere->translation.data);
+    glUniform3fv(sphere->u_light_pos, 1, light_pos->data);
+    glUniformMatrix4fv(sphere->u_model, 1, GL_TRUE, model.data);
+    glUniformMatrix4fv(sphere->u_view, 1, GL_TRUE, view.data);
     glUniformMatrix4fv(sphere->u_proj, 1, GL_TRUE, proj.data);
     glUniform1f(sphere->u_tess_lvl_inner, 8.0f);
     glUniform1f(sphere->u_tess_lvl_outer, 8.0f);
@@ -118,9 +117,10 @@ bool sphere_create(Sphere* sphere) {
 
     bool ok = true;
     ok &= get_attrib_location(&(sphere->a_pos), program, "a_pos");
-    ok &= get_uniform_location(&(sphere->u_v_center), program, "u_v_center");
-    ok &= get_uniform_location(&(sphere->u_v_light_pos), program, "u_v_light_pos");
-    ok &= get_uniform_location(&(sphere->u_mv), program, "u_mv");
+    ok &= get_uniform_location(&(sphere->u_center_pos), program, "u_center_pos");
+    ok &= get_uniform_location(&(sphere->u_light_pos), program, "u_light_pos");
+    ok &= get_uniform_location(&(sphere->u_model), program, "u_model");
+    ok &= get_uniform_location(&(sphere->u_view), program, "u_view");
     ok &= get_uniform_location(&(sphere->u_proj), program, "u_proj");
     ok &= get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner");
     ok &= get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer");
