@@ -100,24 +100,33 @@ int main(void) {
     GLFWwindow *window = create_window();
     glEnable(GL_CULL_FACE);
 
-    Sphere sphere;
-    if (!sphere_create(&sphere)) {
+    Sphere sphere1;
+    if (!sphere_create(&sphere1)) {
         printf("ERROR: failed to create sphere\n");
         glfwTerminate();
         exit(-1);
     }
+    sphere_translate(&sphere1, -1.0f, 0.0f, 0.0f);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    Sphere sphere2;
+    if (!sphere_create(&sphere2)) {
+        printf("ERROR: failed to create sphere\n");
+        glfwTerminate();
+        exit(-1);
+    }
+    sphere_translate(&sphere2, 3.0f, 3.0f, 0.0f);
+
+    glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
+    Vec3 light_pos = {{ 0.0, 10.0, 0.0 }};
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        sphere_translate(&sphere, 0.0f, 0.0f, 0.0f);
-        sphere_rotate(&sphere, 0.0f, 0.0f, 0.0f);
-        sphere_scale(&sphere, 0.0f, 0.0f, 0.0f);
-        sphere_draw(&sphere, &CAMERA);
+        sphere_translate(&sphere1, 0.005, 0.0, 0.0);
+        sphere_draw(&sphere1, &CAMERA, &light_pos);
+        sphere_draw(&sphere2, &CAMERA, &light_pos);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

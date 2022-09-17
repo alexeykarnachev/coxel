@@ -190,7 +190,7 @@ Mat3 mat3_get_z_rotation(float a) {
     return m;
 }
 
-Mat3 mat3_matmul(Mat3* m1, Mat3* m2) {
+Mat3 mat3_mat3_mul(Mat3* m1, Mat3* m2) {
     Mat3 m;
     for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 3; ++j) {
@@ -205,7 +205,7 @@ Mat3 mat3_matmul(Mat3* m1, Mat3* m2) {
     return m;
 }
 
-Mat4 mat4_matmul(Mat4* m1, Mat4* m2) {
+Mat4 mat4_mat4_mul(Mat4* m1, Mat4* m2) {
     Mat4 m;
     for (size_t i = 0; i < 4; ++i) {
         for (size_t j = 0; j < 4; ++j) {
@@ -225,8 +225,8 @@ Mat3 mat3_rotation(float xa, float ya, float za) {
     Mat3 y_r = mat3_get_y_rotation(ya);
     Mat3 z_r = mat3_get_z_rotation(za);
 
-    Mat3 r1 = mat3_matmul(&z_r, &y_r);
-    Mat3 m = mat3_matmul(&r1, &x_r);
+    Mat3 r1 = mat3_mat3_mul(&z_r, &y_r);
+    Mat3 m = mat3_mat3_mul(&r1, &x_r);
 
     return m;
 }
@@ -238,24 +238,6 @@ Vec3 mat3_vec3_mul(Mat3* m, Vec3* v) {
         float val = 0.0f;
         for (size_t j = 0; j < 3; ++j) {
             val += m->data[i * 3 + j] * v->data[j];
-        }
-        res.data[i] = val;
-    }
-
-    return res;
-}
-
-Vec3 mat4_vec3_mul(Mat4* m, Vec3* v) {
-    Vec3 res;
-    
-    for (size_t i = 0; i < 3; ++i) {
-        float val = 0.0f;
-        for (size_t j = 0; j < 4; ++j) {
-            if (j == 3) {
-                val += m->data[i * 4 + j];
-            } else {
-                val += m->data[i * 4 + j] * v->data[j];
-            }
         }
         res.data[i] = val;
     }
@@ -277,6 +259,11 @@ Vec4 mat4_vec4_mul(Mat4* m, Vec4* v) {
     return res;
 }
 
+Vec4 mat4_vec3_mul(Mat4* m, Vec3* v) {
+    Vec4 h = vec3_append(v, 1.0f);
+    return mat4_vec4_mul(m, &h);
+}
+
 void mat4_print(Mat4* m) {
     for (size_t i = 0; i < 4; ++i) {
         for (size_t j = 0; j < 4; ++j) {
@@ -293,6 +280,20 @@ void mat3_print(Mat3* m) {
         }
         printf("\n");
     }
+}
+
+void vec3_print(Vec3* v) {
+    for (size_t i = 0; i < 3; ++i) {
+        printf("%f   ", v->data[i]);
+    }
+    printf("\n");
+}
+
+void vec4_print(Vec4* v) {
+    for (size_t i = 0; i < 4; ++i) {
+        printf("%f   ", v->data[i]);
+    }
+    printf("\n");
 }
 
 Vec3 vec3_zeros() {
