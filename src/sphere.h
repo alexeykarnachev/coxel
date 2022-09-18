@@ -16,6 +16,9 @@ typedef struct Sphere {
     GLuint u_tess_lvl_outer;
     GLuint u_center_pos;
     GLuint u_light_pos;
+    GLuint u_diffuse_color;
+    GLuint u_ambient_color;
+    GLuint u_light_power;
 } Sphere;
 
 void sphere_scale(Sphere* sphere, float xd, float yd, float zd) {
@@ -56,7 +59,14 @@ static Mat4 sphere_get_model_mat(Sphere* sphere) {
     return model_mat;
 }
 
-void sphere_draw(Sphere* sphere, Camera* camera, Vec3* light_pos) {
+void sphere_draw(
+        Sphere* sphere,
+        Camera* camera,
+        Vec3* light_pos,
+        Vec3* diffuse_color,
+        Vec3* ambient_color,
+        float light_power
+) {
     glUseProgram(sphere->program);
 
     Mat4 model = sphere_get_model_mat(sphere);
@@ -65,6 +75,10 @@ void sphere_draw(Sphere* sphere, Camera* camera, Vec3* light_pos) {
     
     glUniform3fv(sphere->u_center_pos, 1, sphere->translation.data);
     glUniform3fv(sphere->u_light_pos, 1, light_pos->data);
+    glUniform3fv(sphere->u_diffuse_color, 1, diffuse_color->data);
+    glUniform3fv(sphere->u_ambient_color, 1, ambient_color->data);
+    glUniform1f(sphere->u_light_power, light_power);
+
     glUniformMatrix4fv(sphere->u_model, 1, GL_TRUE, model.data);
     glUniformMatrix4fv(sphere->u_view, 1, GL_TRUE, view.data);
     glUniformMatrix4fv(sphere->u_proj, 1, GL_TRUE, proj.data);
@@ -119,6 +133,10 @@ bool sphere_create(Sphere* sphere) {
     ok &= get_attrib_location(&(sphere->a_pos), program, "a_pos");
     ok &= get_uniform_location(&(sphere->u_center_pos), program, "u_center_pos");
     ok &= get_uniform_location(&(sphere->u_light_pos), program, "u_light_pos");
+    ok &= get_uniform_location(&(sphere->u_diffuse_color), program, "u_diffuse_color");
+    ok &= get_uniform_location(&(sphere->u_ambient_color), program, "u_ambient_color");
+    ok &= get_uniform_location(&(sphere->u_light_power), program, "u_light_power");
+
     ok &= get_uniform_location(&(sphere->u_model), program, "u_model");
     ok &= get_uniform_location(&(sphere->u_view), program, "u_view");
     ok &= get_uniform_location(&(sphere->u_proj), program, "u_proj");

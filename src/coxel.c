@@ -100,32 +100,35 @@ int main(void) {
     GLFWwindow *window = create_window();
     glEnable(GL_CULL_FACE);
 
-    Sphere sphere1;
-    if (!sphere_create(&sphere1)) {
-        printf("ERROR: failed to create sphere\n");
-        glfwTerminate();
-        exit(-1);
-    }
-    sphere_translate(&sphere1, -3.0f, -3.0f, 0.0f);
+    Sphere planet;
+    Sphere sun;
 
-    Sphere sphere2;
-    if (!sphere_create(&sphere2)) {
+    bool ok = true;
+    ok &= sphere_create(&sun);
+    ok &= sphere_create(&planet);
+    if (!ok) {
         printf("ERROR: failed to create sphere\n");
         glfwTerminate();
         exit(-1);
     }
-    sphere_translate(&sphere2, 3.0f, 3.0f, 0.0f);
+
+    sphere_translate(&planet, -3.0f, -3.0f, 0.0f);
+    sphere_translate(&sun, 3.0f, 3.0f, 0.0f);
+
+    Vec3 planet_diffuse_color = {{ 0.3, 0.3, 0.9 }};
+    Vec3 sun_diffuse_color = {{ 1.0, 0.75, 0.1 }};
+    Vec3 space_color = {{ 0.015, 0.015, 0.025 }};
+    float light_power = 40.0;
 
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 
     while (!glfwWindowShouldClose(window)) {
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(space_color.data[0], space_color.data[1], space_color.data[2], 0.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // sphere_translate(&sphere1, 0.005, 0.0, 0.0);
-        sphere_draw(&sphere1, &CAMERA, &sphere2.translation);
-        sphere_draw(&sphere2, &CAMERA, &sphere2.translation);
+        sphere_draw(&planet, &CAMERA, &sun.translation, &planet_diffuse_color, &space_color, light_power);
+        sphere_draw(&sun, &CAMERA, &sun.translation, &sun_diffuse_color, &sun_diffuse_color, light_power);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
