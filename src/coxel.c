@@ -123,8 +123,42 @@ int main(void) {
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 
+    // ----------------
+    // |
+    GLuint program = glCreateProgram();
+    shader_link_program("./shaders/test.vert", NULL, NULL, "./shaders/test.frag", program);
+
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    GLint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex, 0);
+
+    GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, draw_buffers);
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        exit(-1);
+    }
+    // |
+    // ----------------
+
     while (!glfwWindowShouldClose(window)) {
         glClearColor(space_color.data[0], space_color.data[1], space_color.data[2], 0.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // ----------------
+        // |
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        // |
+        // ----------------
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         sphere_draw_planet(
@@ -141,6 +175,17 @@ int main(void) {
             &CAMERA,
             &sun_color
         );
+
+        // ----------------
+        // |
+        // glBindTexture(GL_TEXTURE_2D, tex);
+        // glViewport(0, 0, 800, 800);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glUseProgram(program);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        // |
+        // ----------------
 
         glfwSwapBuffers(window);
         glfwPollEvents();

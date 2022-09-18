@@ -1,4 +1,4 @@
-bool compile_shader_source(const GLchar* source, GLenum shader_type, GLuint* shader) {
+bool shader_compile_source(const GLchar* source, GLenum shader_type, GLuint* shader) {
     *shader = glCreateShader(shader_type);
     glShaderSource(*shader, 1, &source, NULL);
     glCompileShader(*shader);
@@ -15,7 +15,7 @@ bool compile_shader_source(const GLchar* source, GLenum shader_type, GLuint* sha
     return true;
 }
 
-bool compile_shader_file(const char* file_path, GLenum shader_type, GLuint* shader) {
+bool shader_compile_file(const char* file_path, GLenum shader_type, GLuint* shader) {
     char* source = read_cstr_file(file_path);
     if (source == NULL) {
         fprintf(stderr, "ERROR: failed to read the shader source file `%s`: %s\n", file_path, strerror(errno));
@@ -23,7 +23,7 @@ bool compile_shader_file(const char* file_path, GLenum shader_type, GLuint* shad
         return false;
     }
 
-    bool is_compiled = compile_shader_source(source, shader_type, shader);
+    bool is_compiled = shader_compile_source(source, shader_type, shader);
     free(source);
     if (!is_compiled) {
         fprintf(stderr, "ERROR: failed to compile ther shader source file `%s`\n", file_path);
@@ -33,7 +33,7 @@ bool compile_shader_file(const char* file_path, GLenum shader_type, GLuint* shad
     return true;
 }
 
-bool link_program_files(
+bool shader_link_program(
     const char* vert_file_path,
     const char* tesc_file_path,
     const char* tese_file_path,
@@ -46,18 +46,18 @@ bool link_program_files(
     GLuint frag_shader = 0;
 
     bool is_compiled = true;
-    is_compiled &= compile_shader_file(vert_file_path, GL_VERTEX_SHADER, &vert_shader);
+    is_compiled &= shader_compile_file(vert_file_path, GL_VERTEX_SHADER, &vert_shader);
     glAttachShader(program, vert_shader);
 
-    is_compiled &= compile_shader_file(frag_file_path, GL_FRAGMENT_SHADER, &frag_shader);
+    is_compiled &= shader_compile_file(frag_file_path, GL_FRAGMENT_SHADER, &frag_shader);
     glAttachShader(program, frag_shader);
 
     if (tesc_file_path != NULL) {
-        is_compiled &= compile_shader_file(tesc_file_path, GL_TESS_CONTROL_SHADER, &tesc_shader);
+        is_compiled &= shader_compile_file(tesc_file_path, GL_TESS_CONTROL_SHADER, &tesc_shader);
         glAttachShader(program, tesc_shader);
     }
     if (tese_file_path != NULL) {
-        is_compiled &= compile_shader_file(tese_file_path, GL_TESS_EVALUATION_SHADER, &tese_shader);
+        is_compiled &= shader_compile_file(tese_file_path, GL_TESS_EVALUATION_SHADER, &tese_shader);
         glAttachShader(program, tese_shader);
     }
 
@@ -86,7 +86,7 @@ bool link_program_files(
     return true;
 }
 
-bool get_attrib_location(GLuint* loc, GLuint program, const char* name) {
+bool shader_get_attrib_location(GLuint* loc, GLuint program, const char* name) {
     GLuint _loc = glGetAttribLocation(program, name);
     if (_loc == -1) {
         fprintf(stderr, "ERROR: failed to get the location of the attribute `%s`\n", name);
@@ -97,7 +97,7 @@ bool get_attrib_location(GLuint* loc, GLuint program, const char* name) {
     return true;
 }
 
-bool get_uniform_location(GLuint* loc, GLuint program, const char* name) {
+bool shader_get_uniform_location(GLuint* loc, GLuint program, const char* name) {
     GLuint _loc = glGetUniformLocation(program, name);
     if (_loc == -1) {
         fprintf(stderr, "ERROR: failed to get the location of the uniform `%s`\n", name);

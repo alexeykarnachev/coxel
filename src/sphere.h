@@ -7,6 +7,7 @@ typedef struct Sphere {
     GLuint vbo;
     GLuint vao;
     GLuint ebo;
+    GLuint fbo;
 
     GLuint a_pos;
     GLuint u_model;
@@ -125,7 +126,7 @@ void sphere_draw_sun(
 bool sphere_create(Sphere* sphere, const char* tese_shader_file_path, const char* frag_shader_file_path) {
     memset(sphere, 0, sizeof(*sphere));
     GLuint program = glCreateProgram();
-    bool is_linked = link_program_files(
+    bool is_linked = shader_link_program(
         "./shaders/sphere/sphere.vert",
         "./shaders/sphere/sphere.tesc",
         tese_shader_file_path,
@@ -133,7 +134,7 @@ bool sphere_create(Sphere* sphere, const char* tese_shader_file_path, const char
         program
     );
     if (!is_linked) {
-        fprintf(stderr, "ERROR: failed to link sphere program files\n");
+        fprintf(stderr, "ERROR: failed to link sphere program\n");
         return false;
     }
 
@@ -162,12 +163,12 @@ bool sphere_create(Sphere* sphere, const char* tese_shader_file_path, const char
     sphere->scale = vec3_ones();
 
     bool ok = true;
-    ok &= get_attrib_location(&(sphere->a_pos), program, "a_pos");
-    ok &= get_uniform_location(&(sphere->u_model), program, "u_model");
-    ok &= get_uniform_location(&(sphere->u_view), program, "u_view");
-    ok &= get_uniform_location(&(sphere->u_proj), program, "u_proj");
-    ok &= get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner");
-    ok &= get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer");
+    ok &= shader_get_attrib_location(&(sphere->a_pos), program, "a_pos");
+    ok &= shader_get_uniform_location(&(sphere->u_model), program, "u_model");
+    ok &= shader_get_uniform_location(&(sphere->u_view), program, "u_view");
+    ok &= shader_get_uniform_location(&(sphere->u_proj), program, "u_proj");
+    ok &= shader_get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner");
+    ok &= shader_get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer");
     if (!ok) {
         fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sphere shader program\n");
         return false;
@@ -179,11 +180,11 @@ bool sphere_create(Sphere* sphere, const char* tese_shader_file_path, const char
 bool sphere_create_planet(Planet* planet) {
     bool ok = sphere_create(&planet->sphere, "./shaders/sphere/planet.tese", "./shaders/sphere/planet.frag");
 
-    ok &= get_uniform_location(&(planet->u_center_pos), planet->sphere.program, "u_center_pos");
-    ok &= get_uniform_location(&(planet->u_light_pos), planet->sphere.program, "u_light_pos");
-    ok &= get_uniform_location(&(planet->u_diffuse_color), planet->sphere.program, "u_diffuse_color");
-    ok &= get_uniform_location(&(planet->u_ambient_color), planet->sphere.program, "u_ambient_color");
-    ok &= get_uniform_location(&(planet->u_light_power), planet->sphere.program, "u_light_power");
+    ok &= shader_get_uniform_location(&(planet->u_center_pos), planet->sphere.program, "u_center_pos");
+    ok &= shader_get_uniform_location(&(planet->u_light_pos), planet->sphere.program, "u_light_pos");
+    ok &= shader_get_uniform_location(&(planet->u_diffuse_color), planet->sphere.program, "u_diffuse_color");
+    ok &= shader_get_uniform_location(&(planet->u_ambient_color), planet->sphere.program, "u_ambient_color");
+    ok &= shader_get_uniform_location(&(planet->u_light_power), planet->sphere.program, "u_light_power");
     if (!ok) {
         fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the planet shader program\n");
         return false;
@@ -195,7 +196,7 @@ bool sphere_create_planet(Planet* planet) {
 bool sphere_create_sun(Sun* sun) {
     bool ok = sphere_create(&sun->sphere, "./shaders/sphere/sun.tese", "./shaders/sphere/sun.frag");
 
-    ok &= get_uniform_location(&(sun->u_color), sun->sphere.program, "u_color");
+    ok &= shader_get_uniform_location(&(sun->u_color), sun->sphere.program, "u_color");
     if (!ok) {
         fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sun shader program\n");
         return false;
