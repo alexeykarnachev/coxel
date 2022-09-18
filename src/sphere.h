@@ -14,12 +14,23 @@ typedef struct Sphere {
     GLuint u_proj;
     GLuint u_tess_lvl_inner;
     GLuint u_tess_lvl_outer;
+} Sphere;
+
+typedef struct Planet {
+    Sphere sphere;
+
     GLuint u_center_pos;
     GLuint u_light_pos;
     GLuint u_diffuse_color;
     GLuint u_ambient_color;
     GLuint u_light_power;
-} Sphere;
+} Planet;
+
+typedef struct Sun {
+    Sphere sphere;
+
+    GLuint u_color;
+} Sun;
 
 void sphere_scale(Sphere* sphere, float xd, float yd, float zd) {
     sphere->scale.data[0] += xd;
@@ -47,7 +58,11 @@ static Mat4 sphere_get_model_mat(Sphere* sphere) {
         0.0, 0.0, sphere->scale.data[2]
     }};
 
-    Mat3 rotation_mat = mat3_rotation(sphere->rotation.data[0], sphere->rotation.data[1], sphere->rotation.data[2]);
+    Mat3 rotation_mat = mat3_rotation(
+        sphere->rotation.data[0],
+        sphere->rotation.data[1],
+        sphere->rotation.data[2]
+    );
     Mat3 rs_mat = mat3_mat3_mul(&scale_mat, &rotation_mat);
     Mat4 model_mat = {{
         rs_mat.data[0], rs_mat.data[1], rs_mat.data[2], sphere->translation.data[0],
@@ -59,26 +74,13 @@ static Mat4 sphere_get_model_mat(Sphere* sphere) {
     return model_mat;
 }
 
-void sphere_draw(
-        Sphere* sphere,
-        Camera* camera,
-        Vec3* light_pos,
-        Vec3* diffuse_color,
-        Vec3* ambient_color,
-        float light_power
-) {
+void sphere_draw(Sphere* sphere, Camera* camera) {
     glUseProgram(sphere->program);
 
     Mat4 model = sphere_get_model_mat(sphere);
     Mat4 view = cam_get_view_mat(camera);
     Mat4 proj = cam_get_perspective_projection_mat(camera);
     
-    glUniform3fv(sphere->u_center_pos, 1, sphere->translation.data);
-    glUniform3fv(sphere->u_light_pos, 1, light_pos->data);
-    glUniform3fv(sphere->u_diffuse_color, 1, diffuse_color->data);
-    glUniform3fv(sphere->u_ambient_color, 1, ambient_color->data);
-    glUniform1f(sphere->u_light_power, light_power);
-
     glUniformMatrix4fv(sphere->u_model, 1, GL_TRUE, model.data);
     glUniformMatrix4fv(sphere->u_view, 1, GL_TRUE, view.data);
     glUniformMatrix4fv(sphere->u_proj, 1, GL_TRUE, proj.data);
@@ -90,14 +92,44 @@ void sphere_draw(
     glDrawElements(GL_PATCHES, sizeof(ICOSAHEDRON_FACES) / sizeof(ICOSAHEDRON_FACES[0]),  GL_UNSIGNED_BYTE, 0);
 }
 
-bool sphere_create(Sphere* sphere) {
+void sphere_draw_planet(
+        Planet* planet,
+        Camera* camera,
+        Vec3* light_pos,
+        Vec3* diffuse_color,
+        Vec3* ambient_color,
+        float light_power
+) {
+    glUseProgram(planet->sphere.program);
+
+    glUniform3fv(planet->u_center_pos, 1, planet->sphere.translation.data);
+    glUniform3fv(planet->u_light_pos, 1, light_pos->data);
+    glUniform3fv(planet->u_diffuse_color, 1, diffuse_color->data);
+    glUniform3fv(planet->u_ambient_color, 1, ambient_color->data);
+    glUniform1f(planet->u_light_power, light_power);
+
+    sphere_draw(&planet->sphere, camera);
+}
+
+void sphere_draw_sun(
+        Sun* sun,
+        Camera* camera,
+        Vec3* color
+) {
+    glUseProgram(sun->sphere.program);
+
+    glUniform3fv(sun->u_color, 1, color->data);
+    sphere_draw(&sun->sphere, camera);
+}
+
+bool sphere_create(Sphere* sphere, const char* tese_shader_file_path, const char* frag_shader_file_path) {
     memset(sphere, 0, sizeof(*sphere));
     GLuint program = glCreateProgram();
     bool is_linked = link_program_files(
         "./shaders/sphere/sphere.vert",
         "./shaders/sphere/sphere.tesc",
-        "./shaders/sphere/sphere.tese",
-        "./shaders/sphere/sphere.frag",
+        tese_shader_file_path,
+        frag_shader_file_path,
         program
     );
     if (!is_linked) {
@@ -131,19 +163,41 @@ bool sphere_create(Sphere* sphere) {
 
     bool ok = true;
     ok &= get_attrib_location(&(sphere->a_pos), program, "a_pos");
-    ok &= get_uniform_location(&(sphere->u_center_pos), program, "u_center_pos");
-    ok &= get_uniform_location(&(sphere->u_light_pos), program, "u_light_pos");
-    ok &= get_uniform_location(&(sphere->u_diffuse_color), program, "u_diffuse_color");
-    ok &= get_uniform_location(&(sphere->u_ambient_color), program, "u_ambient_color");
-    ok &= get_uniform_location(&(sphere->u_light_power), program, "u_light_power");
-
     ok &= get_uniform_location(&(sphere->u_model), program, "u_model");
     ok &= get_uniform_location(&(sphere->u_view), program, "u_view");
     ok &= get_uniform_location(&(sphere->u_proj), program, "u_proj");
     ok &= get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner");
     ok &= get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer");
     if (!ok) {
-        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the shader program\n");
+        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sphere shader program\n");
+        return false;
+    }
+
+    return true;
+}
+
+bool sphere_create_planet(Planet* planet) {
+    bool ok = sphere_create(&planet->sphere, "./shaders/sphere/planet.tese", "./shaders/sphere/planet.frag");
+
+    ok &= get_uniform_location(&(planet->u_center_pos), planet->sphere.program, "u_center_pos");
+    ok &= get_uniform_location(&(planet->u_light_pos), planet->sphere.program, "u_light_pos");
+    ok &= get_uniform_location(&(planet->u_diffuse_color), planet->sphere.program, "u_diffuse_color");
+    ok &= get_uniform_location(&(planet->u_ambient_color), planet->sphere.program, "u_ambient_color");
+    ok &= get_uniform_location(&(planet->u_light_power), planet->sphere.program, "u_light_power");
+    if (!ok) {
+        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the planet shader program\n");
+        return false;
+    }
+
+    return true;
+}
+
+bool sphere_create_sun(Sun* sun) {
+    bool ok = sphere_create(&sun->sphere, "./shaders/sphere/sun.tese", "./shaders/sphere/sun.frag");
+
+    ok &= get_uniform_location(&(sun->u_color), sun->sphere.program, "u_color");
+    if (!ok) {
+        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sun shader program\n");
         return false;
     }
 
