@@ -1,8 +1,8 @@
 #include "includes.h"
 
 
-static unsigned int SCR_WIDTH = 1920;
-static unsigned int SCR_HEIGHT = 1080;
+static size_t SCR_WIDTH = 1920;
+static size_t SCR_HEIGHT = 1080;
 static float SIDE_TRANSLATION_SENS = 5.0;
 static float FORWARD_TRANSLATION_SENS = 0.5;
 static float ROTATION_SENS = 1.0;
@@ -115,50 +115,22 @@ int main(void) {
     sphere_translate(&planet.sphere, -3.0f, -3.0f, 0.0f);
     sphere_translate(&sun.sphere, 3.0f, 3.0f, 0.0f);
 
+    Bloom bloom;
+    bloom_create(&bloom, 10, SCR_WIDTH, SCR_HEIGHT);
+
     Vec3 space_color = {{ 0.015, 0.015, 0.025 }};
     Vec3 planet_diffuse_color = {{ 0.3, 0.3, 0.9 }};
     Vec3 sun_color = {{ 1.0, 0.75, 0.1 }};
-    float sun_light_power = 40.0;
+    float sun_light_power = 250.0;
 
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
-
-    // ----------------
-    // |
-    GLuint program = glCreateProgram();
-    shader_link_program("./shaders/test.vert", NULL, NULL, "./shaders/test.frag", program);
-
-    GLuint fbo;
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-    GLint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex, 0);
-
-    GLenum draw_buffers[1] = {GL_COLOR_ATTACHMENT0};
-    glDrawBuffers(1, draw_buffers);
-    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        exit(-1);
-    }
-    // |
-    // ----------------
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(space_color.data[0], space_color.data[1], space_color.data[2], 0.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // ----------------
-        // |
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        // |
-        // ----------------
+        glBindFramebuffer(GL_FRAMEBUFFER, bloom.inp_fbo);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         sphere_draw_planet(
@@ -176,16 +148,28 @@ int main(void) {
             &sun_color
         );
 
-        // ----------------
-        // |
-        // glBindTexture(GL_TEXTURE_2D, tex);
-        // glViewport(0, 0, 800, 800);
+        bool horizontal = true, first_iteration = true;
+        glUseProgram(bloom.program);
+
+        for (unsigned int i = 0; i < 5; i++)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, bloom.pingpong_fbo[horizontal]);
+            glBindTexture(
+                GL_TEXTURE_2D,
+                first_iteration ? bloom.inp_textures[1] : bloom.pingpong_textures[!horizontal]
+            );
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+            horizontal = !horizontal;
+            if (first_iteration)
+                first_iteration = false;
+        }
+
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glUseProgram(program);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, bloom.inp_textures[1]);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-        // |
-        // ----------------
 
         glfwSwapBuffers(window);
         glfwPollEvents();

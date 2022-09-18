@@ -7,7 +7,6 @@ typedef struct Sphere {
     GLuint vbo;
     GLuint vao;
     GLuint ebo;
-    GLuint fbo;
 
     GLuint a_pos;
     GLuint u_model;
@@ -123,7 +122,11 @@ void sphere_draw_sun(
     sphere_draw(&sun->sphere, camera);
 }
 
-bool sphere_create(Sphere* sphere, const char* tese_shader_file_path, const char* frag_shader_file_path) {
+bool sphere_create(
+    Sphere* sphere,
+    const char* tese_shader_file_path,
+    const char* frag_shader_file_path
+) {
     memset(sphere, 0, sizeof(*sphere));
     GLuint program = glCreateProgram();
     bool is_linked = shader_link_program(
