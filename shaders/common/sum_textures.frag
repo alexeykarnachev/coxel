@@ -12,11 +12,11 @@ void main() {
     vec3 color1 = texture(tex1, tex_pos).rgb;
     vec3 color = color0 + color1;
 
-    // const float gamma = 2.2;
-    // const float exposure = 4.0;
+    const float gamma = 2.2;
+    const float exposure = 5.0;
 
-    // color = vec3(1.0) - exp(-color * exposure);
-    // color = pow(color, vec3(1.0 / gamma));
+    color = vec3(1.0) - exp(-color * exposure);
+    color = pow(color, vec3(1.0 / gamma));
 
     f_color = vec4(color, 1.0);
 }

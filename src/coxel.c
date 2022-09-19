@@ -105,10 +105,10 @@ int main(void) {
     Bloom bloom;
 
     int bloom_n_iters = 10;
-    Vec3 space_color = {{ 0.005, 0.005, 0.005 }};
-    Vec3 planet_diffuse_color = {{ 0.3, 0.3, 0.9 }};
+    Vec3 space_color = {{ 0.0001, 0.0, 0.0001 }};
+    Vec3 planet_diffuse_color = {{ 0.9, 0.3, 0.3 }};
     Vec3 sun_color = {{0.9569, 0.9137, 0.6078}};
-    sun_color = vec3_scale(&sun_color, 5000.0);
+    sun_color = vec3_scale(&sun_color, 1000.0);
 
     bool ok = true;
     ok &= sphere_create_sun(&sun);
@@ -120,8 +120,9 @@ int main(void) {
         exit(-1);
     }
 
-    sphere_translate(&planet.sphere, -3.0f, -3.0f, -10.0f);
-    sphere_translate(&sun.sphere, 3.0f, 3.0f, -10.0f);
+    sphere_translate(&planet.sphere, -3.0f, -3.0f, -20.0f);
+    sphere_translate(&sun.sphere, 3.0f, 3.0f, -20.0f);
+    sphere_scale(&sun.sphere, 2.0f, 2.0f, 2.0f);
 
 
     glEnable(GL_DEPTH_TEST);
