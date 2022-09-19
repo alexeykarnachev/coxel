@@ -134,7 +134,9 @@ bool sphere_create(
         "./shaders/sphere/sphere.tesc",
         tese_shader_file_path,
         frag_shader_file_path,
-        program
+        program,
+        0,
+        NULL
     );
     if (!is_linked) {
         fprintf(stderr, "ERROR: failed to link sphere program\n");

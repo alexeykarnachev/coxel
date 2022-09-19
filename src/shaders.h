@@ -38,14 +38,24 @@ bool shader_link_program(
     const char* tesc_file_path,
     const char* tese_file_path,
     const char* frag_file_path,
-    GLuint program
+    GLuint program,
+    const int n_deps,
+    const char* deps_file_paths[]
 ) {
     GLuint vert_shader = 0;
     GLuint tesc_shader = 0;
     GLuint tese_shader = 0;
     GLuint frag_shader = 0;
+    GLuint deps_shaders[n_deps];
 
     bool is_compiled = true;
+    for (size_t i = 0; i < n_deps; ++i) {
+        const char* deps_file_path = deps_file_paths[i];
+        // TODO: chech shader type in runtime and put correct shader type here:
+        is_compiled &= shader_compile_file(deps_file_path, GL_FRAGMENT_SHADER, &deps_shaders[i]);
+        glAttachShader(program, deps_shaders[i]);
+    }
+
     is_compiled &= shader_compile_file(vert_file_path, GL_VERTEX_SHADER, &vert_shader);
     glAttachShader(program, vert_shader);
 
@@ -72,6 +82,9 @@ bool shader_link_program(
     glDetachShader(program, tesc_shader);
     glDetachShader(program, tese_shader);
     glDetachShader(program, frag_shader);
+    for (size_t i = 0; i < n_deps; ++i) {
+        glDetachShader(program, deps_shaders[i]);
+    }
 
     GLint is_linked;
     glGetProgramiv(program, GL_LINK_STATUS, &is_linked);

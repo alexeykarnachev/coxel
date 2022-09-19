@@ -1,6 +1,6 @@
 typedef struct Bloom {
     GLuint blur_program;
-    GLuint sum_textures_program;
+    GLuint bloom_program;
     GLuint inp_fbo;
     GLuint inp_textures[2];
     GLuint pingpong_fbo[2];
@@ -36,23 +36,29 @@ bool bloom_create(Bloom* bloom, size_t scr_width, size_t scr_height) {
         NULL,
         NULL,
         "./shaders/postproc/blur.frag",
-        blur_program
+        blur_program,
+        0,
+        NULL
     );
     if (!is_linked) {
         fprintf(stderr, "ERROR: failed to link blur program\n");
         return false;
     }
 
-    GLuint sum_textures_program = glCreateProgram();
+    GLuint bloom_program = glCreateProgram();
+    
+    const char* deps_file_paths[1] = {"./shaders/common/hdr.frag"};
     is_linked = shader_link_program(
         "./shaders/common/plane.vert",
         NULL,
         NULL,
-        "./shaders/common/sum_textures.frag",
-        sum_textures_program
+        "./shaders/postproc/bloom.frag",
+        bloom_program,
+        1,
+        deps_file_paths 
     );
     if (!is_linked) {
-        fprintf(stderr, "ERROR: failed to link sum textures program\n");
+        fprintf(stderr, "ERROR: failed to link bloom program\n");
         return false;
     }
 
@@ -67,7 +73,7 @@ bool bloom_create(Bloom* bloom, size_t scr_width, size_t scr_height) {
     bloom_create_fbo(&pong_fbo, &pingpong_textures[1], 1, scr_width, scr_height);
 
     bloom->blur_program = blur_program;
-    bloom->sum_textures_program = sum_textures_program;
+    bloom->bloom_program = bloom_program;
     bloom->inp_fbo = inp_fbo;
     bloom->inp_textures[0] = inp_textures[0];
     bloom->inp_textures[1] = inp_textures[1];
@@ -112,7 +118,7 @@ void bloom_draw(Bloom* bloom, size_t n_iters) {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(bloom->sum_textures_program);
+    glUseProgram(bloom->bloom_program);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, bloom->inp_textures[0]);
