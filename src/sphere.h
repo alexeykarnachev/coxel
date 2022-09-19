@@ -23,7 +23,7 @@ typedef struct Planet {
     GLuint u_light_pos;
     GLuint u_diffuse_color;
     GLuint u_ambient_color;
-    GLuint u_light_power;
+    GLuint u_light_color;
 } Planet;
 
 typedef struct Sun {
@@ -98,7 +98,7 @@ void sphere_draw_planet(
         Vec3* light_pos,
         Vec3* diffuse_color,
         Vec3* ambient_color,
-        float light_power
+        Vec3* light_color
 ) {
     glUseProgram(planet->sphere.program);
 
@@ -106,7 +106,7 @@ void sphere_draw_planet(
     glUniform3fv(planet->u_light_pos, 1, light_pos->data);
     glUniform3fv(planet->u_diffuse_color, 1, diffuse_color->data);
     glUniform3fv(planet->u_ambient_color, 1, ambient_color->data);
-    glUniform1f(planet->u_light_power, light_power);
+    glUniform3fv(planet->u_light_color, 1, light_color->data);
 
     sphere_draw(&planet->sphere, camera);
 }
@@ -173,7 +173,7 @@ bool sphere_create(
     ok &= shader_get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner");
     ok &= shader_get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer");
     if (!ok) {
-        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sphere shader program\n");
+        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sphere program\n");
         return false;
     }
 
@@ -187,9 +187,9 @@ bool sphere_create_planet(Planet* planet) {
     ok &= shader_get_uniform_location(&(planet->u_light_pos), planet->sphere.program, "u_light_pos");
     ok &= shader_get_uniform_location(&(planet->u_diffuse_color), planet->sphere.program, "u_diffuse_color");
     ok &= shader_get_uniform_location(&(planet->u_ambient_color), planet->sphere.program, "u_ambient_color");
-    ok &= shader_get_uniform_location(&(planet->u_light_power), planet->sphere.program, "u_light_power");
+    ok &= shader_get_uniform_location(&(planet->u_light_color), planet->sphere.program, "u_light_color");
     if (!ok) {
-        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the planet shader program\n");
+        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the planet program\n");
         return false;
     }
 
@@ -201,7 +201,7 @@ bool sphere_create_sun(Sun* sun) {
 
     ok &= shader_get_uniform_location(&(sun->u_color), sun->sphere.program, "u_color");
     if (!ok) {
-        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sun shader program\n");
+        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sun program\n");
         return false;
     }
 

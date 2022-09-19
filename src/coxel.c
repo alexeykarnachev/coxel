@@ -102,26 +102,24 @@ int main(void) {
 
     Planet planet;
     Sun sun;
+    Bloom bloom;
 
     bool ok = true;
     ok &= sphere_create_sun(&sun);
     ok &= sphere_create_planet(&planet);
+    ok &= bloom_create(&bloom, SCR_WIDTH, SCR_HEIGHT);
     if (!ok) {
-        printf("ERROR: failed to create sphere\n");
+        printf("ERROR: failed to create scene objects\n");
         glfwTerminate();
         exit(-1);
     }
 
-    sphere_translate(&planet.sphere, -3.0f, -3.0f, 0.0f);
-    sphere_translate(&sun.sphere, 3.0f, 3.0f, 0.0f);
+    sphere_translate(&planet.sphere, -3.0f, -3.0f, -10.0f);
+    sphere_translate(&sun.sphere, 3.0f, 3.0f, -10.0f);
 
-    Bloom bloom;
-    bloom_create(&bloom, 10, SCR_WIDTH, SCR_HEIGHT);
-
-    Vec3 space_color = {{ 0.015, 0.015, 0.025 }};
-    Vec3 planet_diffuse_color = {{ 0.3, 0.3, 0.9 }};
-    Vec3 sun_color = {{ 1.0, 0.75, 0.1 }};
-    float sun_light_power = 250.0;
+    Vec3 space_color = {{ 0.005, 0.005, 0.005 }};
+    Vec3 planet_diffuse_color = {{ 0.9, 0.3, 0.3 }};
+    Vec3 sun_color = {{ 5000.0, 5000.0, 1000.0 }};
 
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -130,8 +128,9 @@ int main(void) {
         glClearColor(space_color.data[0], space_color.data[1], space_color.data[2], 0.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, bloom.inp_fbo);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        bloom_bind(&bloom);
+
+        sphere_translate(&planet.sphere, 0.05f, 0.05f, 0.00f);
 
         sphere_draw_planet(
             &planet,
@@ -139,7 +138,7 @@ int main(void) {
             &sun.sphere.translation,
             &planet_diffuse_color,
             &space_color,
-            sun_light_power
+            &sun_color
         );
 
         sphere_draw_sun(
@@ -148,28 +147,7 @@ int main(void) {
             &sun_color
         );
 
-        bool horizontal = true, first_iteration = true;
-        glUseProgram(bloom.program);
-
-        for (unsigned int i = 0; i < 5; i++)
-        {
-            glBindFramebuffer(GL_FRAMEBUFFER, bloom.pingpong_fbo[horizontal]);
-            glBindTexture(
-                GL_TEXTURE_2D,
-                first_iteration ? bloom.inp_textures[1] : bloom.pingpong_textures[!horizontal]
-            );
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-            horizontal = !horizontal;
-            if (first_iteration)
-                first_iteration = false;
-        }
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, bloom.inp_textures[1]);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        bloom_draw(&bloom);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
