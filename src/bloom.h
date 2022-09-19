@@ -95,8 +95,7 @@ void bloom_bind(Bloom* bloom) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void bloom_draw(Bloom* bloom) {
-    size_t n_iters = 5;
+void bloom_draw(Bloom* bloom, size_t n_iters) {
     glUseProgram(bloom->blur_program);
 
     for (unsigned int i = 0; i < n_iters; i++)
@@ -119,7 +118,7 @@ void bloom_draw(Bloom* bloom) {
     glBindTexture(GL_TEXTURE_2D, bloom->inp_textures[0]);
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, bloom->pingpong_textures[n_iters % 2 == 0]);
+    glBindTexture(GL_TEXTURE_2D, bloom->pingpong_textures[(n_iters - 1) % 2 == 0]);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }

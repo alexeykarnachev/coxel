@@ -104,6 +104,12 @@ int main(void) {
     Sun sun;
     Bloom bloom;
 
+    int bloom_n_iters = 10;
+    Vec3 space_color = {{ 0.005, 0.005, 0.005 }};
+    Vec3 planet_diffuse_color = {{ 0.3, 0.3, 0.9 }};
+    Vec3 sun_color = {{0.9569, 0.9137, 0.6078}};
+    sun_color = vec3_scale(&sun_color, 5000.0);
+
     bool ok = true;
     ok &= sphere_create_sun(&sun);
     ok &= sphere_create_planet(&planet);
@@ -117,9 +123,6 @@ int main(void) {
     sphere_translate(&planet.sphere, -3.0f, -3.0f, -10.0f);
     sphere_translate(&sun.sphere, 3.0f, 3.0f, -10.0f);
 
-    Vec3 space_color = {{ 0.005, 0.005, 0.005 }};
-    Vec3 planet_diffuse_color = {{ 0.9, 0.3, 0.3 }};
-    Vec3 sun_color = {{ 5000.0, 5000.0, 1000.0 }};
 
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -147,7 +150,7 @@ int main(void) {
             &sun_color
         );
 
-        bloom_draw(&bloom);
+        bloom_draw(&bloom, bloom_n_iters);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
