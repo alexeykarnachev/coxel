@@ -78,8 +78,9 @@ int main(int argc, char* argv[]) {
     const char* vert_file_path = "./shaders/common/plane.vert";
     const char* frag_file_path = argv[1];
     const char* globals_file_path = "./shaders/shadertoy/globals.glsl";
-    const char* deps_file_paths[1] = {globals_file_path};
-    const char* file_paths[3] = {vert_file_path, frag_file_path, globals_file_path};
+    const char* random_file_path = "./shaders/common/random.glsl";
+    const char* deps_file_paths[2] = {globals_file_path, random_file_path};
+    const char* file_paths[4] = {vert_file_path, frag_file_path, globals_file_path, random_file_path};
     printf("INFO: Rendering fragment shader: %s\n", frag_file_path);
 
     GLFWwindow *window = create_window();
@@ -98,7 +99,7 @@ int main(int argc, char* argv[]) {
     time_t mod_time = 0;
     float time;
     while (!glfwWindowShouldClose(window)) {
-        if (is_file_modified(3, file_paths, &mod_time)) {
+        if (is_file_modified(4, file_paths, &mod_time)) {
             glDeleteProgram(program);
             program = glCreateProgram();
             shader_link_program(
@@ -107,7 +108,7 @@ int main(int argc, char* argv[]) {
                 NULL,
                 frag_file_path,
                 program,
-                1,
+                2,
                 deps_file_paths
             );
             glUseProgram(program);

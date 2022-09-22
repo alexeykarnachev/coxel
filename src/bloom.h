@@ -47,7 +47,7 @@ bool bloom_create(Bloom* bloom, size_t scr_width, size_t scr_height) {
 
     GLuint bloom_program = glCreateProgram();
     
-    const char* deps_file_paths[1] = {"./shaders/common/hdr.frag"};
+    const char* deps_file_paths[1] = {"./shaders/common/hdr.glsl"};
     is_linked = shader_link_program(
         "./shaders/common/plane.vert",
         NULL,
