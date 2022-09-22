@@ -26,7 +26,7 @@ bool shader_compile_file(const char* file_path, GLenum shader_type, GLuint* shad
     bool is_compiled = shader_compile_source(source, shader_type, shader);
     free(source);
     if (!is_compiled) {
-        fprintf(stderr, "ERROR: failed to compile ther shader source file `%s`\n", file_path);
+        fprintf(stderr, "ERROR: failed to compile the shader source file `%s`\n", file_path);
         return false;
     }
 
@@ -101,23 +101,29 @@ bool shader_link_program(
 
 bool shader_get_attrib_location(GLuint* loc, GLuint program, const char* name) {
     GLuint _loc = glGetAttribLocation(program, name);
+    *loc = _loc;
+
     if (_loc == -1) {
         fprintf(stderr, "ERROR: failed to get the location of the attribute `%s`\n", name);
+        #ifndef IGNORE_SHADER_LOC_ERRORS
         return false;
+        #endif
     }
 
-    *loc = _loc;
     return true;
 }
 
 bool shader_get_uniform_location(GLuint* loc, GLuint program, const char* name) {
     GLuint _loc = glGetUniformLocation(program, name);
+    *loc = _loc;
+
     if (_loc == -1) {
         fprintf(stderr, "ERROR: failed to get the location of the uniform `%s`\n", name);
+        #ifndef IGNORE_SHADER_LOC_ERRORS
         return false;
+        #endif
     }
 
-    *loc = _loc;
     return true;
 }
 

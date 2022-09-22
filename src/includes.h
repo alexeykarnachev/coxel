@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 
 #include "utils.h"
 #include "la.h"

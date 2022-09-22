@@ -121,7 +121,7 @@ int main(void) {
     }
 
     sphere_translate(&planet.sphere, -3.0f, -3.0f, -20.0f);
-    sphere_translate(&sun.sphere, 3.0f, 3.0f, -20.0f);
+    sphere_translate(&sun.sphere, 0.0f, 0.0f, -20.0f);
     sphere_scale(&sun.sphere, 2.0f, 2.0f, 2.0f);
 
 

@@ -29,6 +29,7 @@ typedef struct Planet {
 typedef struct Sun {
     Sphere sphere;
 
+    GLuint u_center_pos;
     GLuint u_color;
 } Sun;
 
@@ -118,6 +119,7 @@ void sphere_draw_sun(
 ) {
     glUseProgram(sun->sphere.program);
 
+    glUniform3fv(sun->u_center_pos, 1, sun->sphere.translation.data);
     glUniform3fv(sun->u_color, 1, color->data);
     sphere_draw(&sun->sphere, camera);
 }
@@ -201,6 +203,7 @@ bool sphere_create_planet(Planet* planet) {
 bool sphere_create_sun(Sun* sun) {
     bool ok = sphere_create(&sun->sphere, "./shaders/sphere/sun.tese", "./shaders/sphere/sun.frag");
 
+    ok &= shader_get_uniform_location(&(sun->u_center_pos), sun->sphere.program, "u_center_pos");
     ok &= shader_get_uniform_location(&(sun->u_color), sun->sphere.program, "u_color");
     if (!ok) {
         fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sun program\n");
