@@ -1,0 +1,36 @@
+#version 460 core
+
+in vec2 tex_pos;
+
+uniform vec2 u_resolution;
+uniform float u_time;
+
+out vec4 color;
+
+float noise3d(float x, float y, float z);
+#define PI 3.14159265359
+
+void main(void) {
+
+    int n_levels = 6;
+    float freq = 10;
+    float ampl = 1;
+    float total_ampl = 0;
+    float w = 0;
+    for (int i = 0; i < n_levels; ++i) {
+        float x = tex_pos.x * freq;
+        float y = tex_pos.y * freq;
+        float z = u_time / 4.0;
+        w += ampl * noise3d(x, y, z);
+        total_ampl += ampl;
+        freq *= 2.0;
+        ampl *= 0.5;
+    }
+
+    w /= total_ampl;
+    w = sin(tex_pos.x * 2.0 * PI + w * 4.0 + tex_pos.y * w * 5.0);
+    float r = (1.0 - tex_pos.y) * w + w * (1.0 - tex_pos.y) + 0.3 * (1.0 + sin(u_time)) * (1.0 - tex_pos.y);
+    float g = sign(w) * pow(w, 2.0) - tex_pos.y;
+    float b = (tex_pos.y) * (1.0 - w);
+    color = vec4(r, g, b, 1.0);
+}
