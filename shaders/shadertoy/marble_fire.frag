@@ -28,8 +28,8 @@ void main(void) {
     }
 
     w /= total_ampl;
-    w = sin(tex_pos.x * 2.0 * PI + w * 4.0 + tex_pos.y * w * 5.0);
-    float r = (1.0 - tex_pos.y) * w + w * (1.0 - tex_pos.y) + 0.3 * (1.0 + sin(u_time)) * (1.0 - tex_pos.y);
+    w = ((1.0 + sin(tex_pos.x * 2.0 * PI + w * 4.0 + tex_pos.y * w * 5.0)) * 0.5 + (1.0 + sin(u_time * 2.0)) * 0.5) / 2.0;
+    float r = (1.0 - tex_pos.y) * w + w * (1.0 - tex_pos.y) + 0.2 * (1.0 + sin(u_time)) * (1.0 - tex_pos.y);
     float g = sign(w) * pow(w, 2.0) - tex_pos.y;
     float b = (tex_pos.y) * (1.0 - w);
     color = vec4(r, g, b, 1.0);
