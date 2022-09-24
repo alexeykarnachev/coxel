@@ -11,7 +11,7 @@ float quintic_step(float x) {
 }
 
 float noise1d(float x) {
-    int c1 = int(x) & 255;
+    int c1 = int(floor(x)) & 255;
     int c2 = (c1 + 1) & 255;
 
     float y1 = VALS256[c1];
@@ -24,9 +24,9 @@ float noise1d(float x) {
 }
 
 float noise2d(float x, float y) {
-    int cx1 = int(x) & 255;
+    int cx1 = int(floor(x)) & 255;
     int cx2 = (cx1 + 1) & 255;
-    int cy1 = int(y) & 255;
+    int cy1 = int(floor(y)) & 255;
     int cy2 = (cy1 + 1) & 255;
 
     float z1 = VALS256[INDS256[(INDS256[cx1] + cy1) & 255]];
@@ -45,11 +45,11 @@ float noise2d(float x, float y) {
 }
 
 float noise3d(float x, float y, float z) {
-    int cx1 = int(x) & 255;
+    int cx1 = int(floor(x)) & 255;
     int cx2 = (cx1 + 1) & 255;
-    int cy1 = int(y) & 255;
+    int cy1 = int(floor(y)) & 255;
     int cy2 = (cy1 + 1) & 255;
-    int cz1 = int(z) & 255;
+    int cz1 = int(floor(z)) & 255;
     int cz2 = (cz1 + 1) & 255;
 
     float w1 = VALS256[
@@ -77,6 +77,76 @@ float noise3d(float x, float y, float z) {
     float wx2 = mix(w2, w4, tx);
     float wx3 = mix(w5, w7, tx);
     float wx4 = mix(w6, w8, tx);
+
+    float wy1 = mix(wx1, wx3, ty);
+    float wy2 = mix(wx2, wx4, ty);
+
+    float w = mix(wy1, wy2, tz);
+
+    return w;
+}
+
+float noise4d(float x, float y, float z, float u) {
+    int cx1 = int(floor(x)) & 255;
+    int cx2 = (cx1 + 1) & 255;
+    int cy1 = int(floor(y)) & 255;
+    int cy2 = (cy1 + 1) & 255;
+    int cz1 = int(floor(z)) & 255;
+    int cz2 = (cz1 + 1) & 255;
+    int cu1 = int(floor(u)) & 255;
+    int cu2 = (cu1 + 1) & 255;
+
+    float u1 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx1] + cy1) & 255] + cz1) & 255] + cu1) & 255];
+    float u2 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx1] + cy1) & 255] + cz1) & 255] + cu2) & 255];
+    float u3 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx1] + cy1) & 255] + cz2) & 255] + cu1) & 255];
+    float u4 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx1] + cy1) & 255] + cz2) & 255] + cu2) & 255];
+    float u5 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx2] + cy1) & 255] + cz1) & 255] + cu1) & 255];
+    float u6 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx2] + cy1) & 255] + cz1) & 255] + cu2) & 255];
+    float u7 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx2] + cy1) & 255] + cz2) & 255] + cu1) & 255];
+    float u8 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx2] + cy1) & 255] + cz2) & 255] + cu2) & 255];
+    float u9 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx1] + cy2) & 255] + cz1) & 255] + cu1) & 255];
+    float u10 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx1] + cy2) & 255] + cz1) & 255] + cu2) & 255];
+    float u11 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx1] + cy2) & 255] + cz2) & 255] + cu1) & 255];
+    float u12 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx1] + cy2) & 255] + cz2) & 255] + cu2) & 255];
+    float u13 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx2] + cy2) & 255] + cz1) & 255] + cu1) & 255];
+    float u14 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx2] + cy2) & 255] + cz1) & 255] + cu2) & 255];
+    float u15 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx2] + cy2) & 255] + cz2) & 255] + cu1) & 255];
+    float u16 = VALS256[
+        (INDS256[(INDS256[(INDS256[cx2] + cy2) & 255] + cz2) & 255] + cu2) & 255];
+
+    float tx = quintic_step(fract(x));
+    float ty = quintic_step(fract(y));
+    float tz = quintic_step(fract(z));
+    float tu = quintic_step(fract(u));
+
+    float wu1 = mix(u1, u2, tu);
+    float wu2 = mix(u3, u4, tu);
+    float wu3 = mix(u5, u6, tu);
+    float wu4 = mix(u7, u8, tu);
+    float wu5 = mix(u9, u10, tu);
+    float wu6 = mix(u11, u12, tu);
+    float wu7 = mix(u13, u14, tu);
+    float wu8 = mix(u15, u16, tu);
+
+    float wx1 = mix(wu1, wu3, tx);
+    float wx2 = mix(wu2, wu4, tx);
+    float wx3 = mix(wu5, wu7, tx);
+    float wx4 = mix(wu6, wu8, tx);
 
     float wy1 = mix(wx1, wx3, ty);
     float wy2 = mix(wx2, wx4, ty);

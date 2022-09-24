@@ -104,7 +104,7 @@ int main(void) {
     Sun sun;
     Bloom bloom;
 
-    int bloom_n_iters = 10;
+    int bloom_n_iters = 6;
     Vec3 space_color = {{ 0.0001, 0.0, 0.0001 }};
     Vec3 planet_diffuse_color = {{ 0.9, 0.3, 0.3 }};
     Vec3 sun_color = {{0.9569, 0.9137, 0.6078}};
@@ -124,7 +124,8 @@ int main(void) {
     sphere_translate(&sun.sphere, 0.0f, 0.0f, -20.0f);
     sphere_scale(&sun.sphere, 2.0f, 2.0f, 2.0f);
 
-
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glLineWidth(2.0);
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 

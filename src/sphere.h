@@ -126,19 +126,24 @@ void sphere_draw_sun(
 
 bool sphere_create(
     Sphere* sphere,
-    const char* tese_shader_file_path,
-    const char* frag_shader_file_path
+    const char* tese_file_path,
+    const char* frag_file_path
 ) {
     memset(sphere, 0, sizeof(*sphere));
     GLuint program = glCreateProgram();
+
+    int n_deps = 1;
+    const char* random_file_path = "./shaders/common/random.glsl"; 
+    const char* deps_file_paths[1] = {random_file_path};
+
     bool is_linked = shader_link_program(
         "./shaders/sphere/sphere.vert",
         "./shaders/sphere/sphere.tesc",
-        tese_shader_file_path,
-        frag_shader_file_path,
+        tese_file_path,
+        frag_file_path,
         program,
-        0,
-        NULL
+        n_deps,
+        deps_file_paths
     );
     if (!is_linked) {
         fprintf(stderr, "ERROR: failed to link sphere program\n");
