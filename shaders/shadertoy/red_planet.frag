@@ -7,7 +7,7 @@ uniform float u_time;
 
 out vec4 color;
 
-float noise4d(float x, float y, float z, float u);
+float perlin_noise4d(float x, float y, float z, float u);
 #define PI 3.14159265359
 
 bool is_in_circle(vec2 pos, float radius) {
@@ -28,7 +28,7 @@ void main(void) {
     vec2 p = tex_pos - 0.5;
     float r = 0.4;
     float z = get_z(p, r);
-    float u = (1.0 + sin(u_time)) * 0.5;
+    float u = u_time;
 
     if (is_in_circle(p, r)) {
         float freq = 2.0;
@@ -40,7 +40,7 @@ void main(void) {
         float w = 0.0;
 
         for (int i = 0; i < n_levels; ++i) {
-            w += ampl * noise4d(p.x * freq, p.y * freq, z * freq, u);
+            w += ampl * perlin_noise4d(p.x * freq, p.y * freq, z * freq, u);
             ampl_sum += ampl;
             freq *= freq_mult;
             ampl *= ampl_mult;

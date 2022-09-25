@@ -9,15 +9,66 @@ const float VALS256[256] = float[256]( 0.0901379979912359, 0.08866898508738652, 
 #define ONE_OVER_SQRT2 0.70710678118
 
 const vec2 GRADS2D[8] = vec2[8](
-        vec2(0.0, 1.0),
-        vec2(ONE_OVER_SQRT2, ONE_OVER_SQRT2),
-        vec2(1.0, 0.0),
-        vec2(ONE_OVER_SQRT2, -ONE_OVER_SQRT2),
-        vec2(0.0, -1.0),
-        vec2(-ONE_OVER_SQRT2, -ONE_OVER_SQRT2),
-        vec2(-1.0, 0.0),
-        vec2(-ONE_OVER_SQRT2, ONE_OVER_SQRT2)
+    vec2(0.0, 1.0),
+    vec2(ONE_OVER_SQRT2, ONE_OVER_SQRT2),
+    vec2(1.0, 0.0),
+    vec2(ONE_OVER_SQRT2, -ONE_OVER_SQRT2),
+    vec2(0.0, -1.0),
+    vec2(-ONE_OVER_SQRT2, -ONE_OVER_SQRT2),
+    vec2(-1.0, 0.0),
+    vec2(-ONE_OVER_SQRT2, ONE_OVER_SQRT2)
 );
+
+const vec3 GRADS3D[12] = vec3[12](
+    vec3(1.0, 1.0, 0.0),
+    vec3(-1.0, 1.0, 0.0),
+    vec3(1.0, -1.0, 0.0),
+    vec3(-1.0, -1.0, 0.0),
+    vec3(1.0, 0.0, 1.0),
+    vec3(-1.0, 0.0, 1.0),
+    vec3(1.0, 0.0, -1.0),
+    vec3(-1.0, 0.0, -1.0),
+    vec3(0.0, 1.0, 1.0),
+    vec3(0.0, -1.0, 1.0),
+    vec3(0.0, 1.0, -1.0),
+    vec3(0.0, -1.0, -1.0)
+);
+
+const vec4 GRADS4D[32] = vec4[32](
+    vec4(0,1,1,1),
+    vec4(0,1,1,-1),
+    vec4(0,1,-1,1),
+    vec4(0,1,-1,-1),
+    vec4(0,-1,1,1),
+    vec4(0,-1,1,-1),
+    vec4(0,-1,-1,1),
+    vec4(0,-1,-1,-1),
+    vec4(1,0,1,1),
+    vec4(1,0,1,-1),
+    vec4(1,0,-1,1),
+    vec4(1,0,-1,-1),
+    vec4(-1,0,1,1),
+    vec4(-1,0,1,-1),
+    vec4(-1,0,-1,1),
+    vec4(-1,0,-1,-1),
+    vec4(1,1,0,1),
+    vec4(1,1,0,-1),
+    vec4(1,-1,0,1),
+    vec4(1,-1,0,-1),
+    vec4(-1,1,0,1),
+    vec4(-1,1,0,-1),
+    vec4(-1,-1,0,1),
+    vec4(-1,-1,0,-1),
+    vec4(1,1,1,0),
+    vec4(1,1,-1,0),
+    vec4(1,-1,1,0),
+    vec4(1,-1,-1,0),
+    vec4(-1,1,1,0),
+    vec4(-1,1,-1,0),
+    vec4(-1,-1,1,0),
+    vec4(-1,-1,-1,0)
+);
+
 
 float quintic_step(float x) {
     return x * x * x * (x * (x * 6. - 15.) + 10.);
@@ -203,4 +254,157 @@ float perlin_noise2d(float x, float y) {
     z = clamp(z, -1.0, 1.0);
     z = (z + 1.0) / 2.0;
     return z;
+}
+
+float perlin_noise3d(float x, float y, float z) {
+    int cx1 = int(floor(x)) & 255;
+    int cx2 = (cx1 + 1) & 255;
+    int cy1 = int(floor(y)) & 255;
+    int cy2 = (cy1 + 1) & 255;
+    int cz1 = int(floor(z)) & 255;
+    int cz2 = (cz1 + 1) & 255;
+
+    vec3 g1 = GRADS3D[INDS256[(cx1 + INDS256[(cy1 + INDS256[cz1]) & 255]) & 255] % 12];
+    vec3 g2 = GRADS3D[INDS256[(cx2 + INDS256[(cy1 + INDS256[cz1]) & 255]) & 255] % 12];
+    vec3 g3 = GRADS3D[INDS256[(cx1 + INDS256[(cy2 + INDS256[cz1]) & 255]) & 255] % 12];
+    vec3 g4 = GRADS3D[INDS256[(cx2 + INDS256[(cy2 + INDS256[cz1]) & 255]) & 255] % 12];
+    vec3 g5 = GRADS3D[INDS256[(cx1 + INDS256[(cy1 + INDS256[cz2]) & 255]) & 255] % 12];
+    vec3 g6 = GRADS3D[INDS256[(cx2 + INDS256[(cy1 + INDS256[cz2]) & 255]) & 255] % 12];
+    vec3 g7 = GRADS3D[INDS256[(cx1 + INDS256[(cy2 + INDS256[cz2]) & 255]) & 255] % 12];
+    vec3 g8 = GRADS3D[INDS256[(cx2 + INDS256[(cy2 + INDS256[cz2]) & 255]) & 255] % 12];
+
+    float tx = fract(x);
+    float ty = fract(y);
+    float tz = fract(z);
+
+    vec3 t1 = vec3(tx, ty, tz);
+    vec3 t2 = vec3(tx - 1.0, ty, tz);
+    vec3 t3 = vec3(tx, ty - 1.0, tz);
+    vec3 t4 = vec3(tx - 1.0, ty - 1.0, tz);
+    vec3 t5 = vec3(tx, ty, tz - 1.0);
+    vec3 t6 = vec3(tx - 1.0, ty, tz - 1.0);
+    vec3 t7 = vec3(tx, ty - 1.0, tz - 1.0);
+    vec3 t8 = vec3(tx - 1.0, ty - 1.0, tz - 1.0);
+
+    float w1 = dot(g1, t1);
+    float w2 = dot(g2, t2);
+    float w3 = dot(g3, t3);
+    float w4 = dot(g4, t4);
+    float w5 = dot(g5, t5);
+    float w6 = dot(g6, t6);
+    float w7 = dot(g7, t7);
+    float w8 = dot(g8, t8);
+
+    tx = quintic_step(tx);
+    ty = quintic_step(ty);
+    tz = quintic_step(tz);
+
+    float wx1 = mix(w1, w2, tx);
+    float wx2 = mix(w3, w4, tx);
+    float wx3 = mix(w5, w6, tx);
+    float wx4 = mix(w7, w8, tx);
+
+    float wy1 = mix(wx1, wx2, ty);
+    float wy2 = mix(wx3, wx4, ty);
+
+    float w = mix(wy1, wy2, tz);
+
+    w = clamp(w, -1.0, 1.0);
+    w = (w + 1.0) / 2.0;
+    return w;
+}
+
+float perlin_noise4d(float x, float y, float z, float u) {
+    int cx1 = int(floor(x)) & 255;
+    int cx2 = (cx1 + 1) & 255;
+    int cy1 = int(floor(y)) & 255;
+    int cy2 = (cy1 + 1) & 255;
+    int cz1 = int(floor(z)) & 255;
+    int cz2 = (cz1 + 1) & 255;
+    int cu1 = int(floor(u)) & 255;
+    int cu2 = (cu1 + 1) & 255;
+
+    vec4 g1 = GRADS4D[INDS256[(cx1 + INDS256[(cy1 + INDS256[(cz1 + INDS256[cu1]) & 255]) & 255]) & 255] % 32];
+    vec4 g2 = GRADS4D[INDS256[(cx2 + INDS256[(cy1 + INDS256[(cz1 + INDS256[cu1]) & 255]) & 255]) & 255] % 32];
+    vec4 g3 = GRADS4D[INDS256[(cx1 + INDS256[(cy2 + INDS256[(cz1 + INDS256[cu1]) & 255]) & 255]) & 255] % 32];
+    vec4 g4 = GRADS4D[INDS256[(cx2 + INDS256[(cy2 + INDS256[(cz1 + INDS256[cu1]) & 255]) & 255]) & 255] % 32];
+    vec4 g5 = GRADS4D[INDS256[(cx1 + INDS256[(cy1 + INDS256[(cz2 + INDS256[cu1]) & 255]) & 255]) & 255] % 32];
+    vec4 g6 = GRADS4D[INDS256[(cx2 + INDS256[(cy1 + INDS256[(cz2 + INDS256[cu1]) & 255]) & 255]) & 255] % 32];
+    vec4 g7 = GRADS4D[INDS256[(cx1 + INDS256[(cy2 + INDS256[(cz2 + INDS256[cu1]) & 255]) & 255]) & 255] % 32];
+    vec4 g8 = GRADS4D[INDS256[(cx2 + INDS256[(cy2 + INDS256[(cz2 + INDS256[cu1]) & 255]) & 255]) & 255] % 32];
+    vec4 g9 = GRADS4D[INDS256[(cx1 + INDS256[(cy1 + INDS256[(cz1 + INDS256[cu2]) & 255]) & 255]) & 255] % 32];
+    vec4 g10 = GRADS4D[INDS256[(cx2 + INDS256[(cy1 + INDS256[(cz1 + INDS256[cu2]) & 255]) & 255]) & 255] % 32];
+    vec4 g11 = GRADS4D[INDS256[(cx1 + INDS256[(cy2 + INDS256[(cz1 + INDS256[cu2]) & 255]) & 255]) & 255] % 32];
+    vec4 g12 = GRADS4D[INDS256[(cx2 + INDS256[(cy2 + INDS256[(cz1 + INDS256[cu2]) & 255]) & 255]) & 255] % 32];
+    vec4 g13 = GRADS4D[INDS256[(cx1 + INDS256[(cy1 + INDS256[(cz2 + INDS256[cu2]) & 255]) & 255]) & 255] % 32];
+    vec4 g14 = GRADS4D[INDS256[(cx2 + INDS256[(cy1 + INDS256[(cz2 + INDS256[cu2]) & 255]) & 255]) & 255] % 32];
+    vec4 g15 = GRADS4D[INDS256[(cx1 + INDS256[(cy2 + INDS256[(cz2 + INDS256[cu2]) & 255]) & 255]) & 255] % 32];
+    vec4 g16 = GRADS4D[INDS256[(cx2 + INDS256[(cy2 + INDS256[(cz2 + INDS256[cu2]) & 255]) & 255]) & 255] % 32];
+
+    float tx = fract(x);
+    float ty = fract(y);
+    float tz = fract(z);
+    float tu = fract(u);
+
+    vec4 t1 = vec4(tx, ty, tz, tu);
+    vec4 t2 = vec4(tx - 1.0, ty, tz, tu);
+    vec4 t3 = vec4(tx, ty - 1.0, tz, tu);
+    vec4 t4 = vec4(tx - 1.0, ty - 1.0, tz, tu);
+    vec4 t5 = vec4(tx, ty, tz - 1.0, tu);
+    vec4 t6 = vec4(tx - 1.0, ty, tz - 1.0, tu);
+    vec4 t7 = vec4(tx, ty - 1.0, tz - 1.0, tu);
+    vec4 t8 = vec4(tx - 1.0, ty - 1.0, tz - 1.0, tu);
+    vec4 t9 = vec4(tx, ty, tz, tu - 1.0);
+    vec4 t10 = vec4(tx - 1.0, ty, tz, tu - 1.0);
+    vec4 t11 = vec4(tx, ty - 1.0, tz, tu - 1.0);
+    vec4 t12 = vec4(tx - 1.0, ty - 1.0, tz, tu - 1.0);
+    vec4 t13 = vec4(tx, ty, tz - 1.0, tu - 1.0);
+    vec4 t14 = vec4(tx - 1.0, ty, tz - 1.0, tu - 1.0);
+    vec4 t15 = vec4(tx, ty - 1.0, tz - 1.0, tu - 1.0);
+    vec4 t16 = vec4(tx - 1.0, ty - 1.0, tz - 1.0, tu - 1.0);
+
+    float w1 = dot(g1, t1);
+    float w2 = dot(g2, t2);
+    float w3 = dot(g3, t3);
+    float w4 = dot(g4, t4);
+    float w5 = dot(g5, t5);
+    float w6 = dot(g6, t6);
+    float w7 = dot(g7, t7);
+    float w8 = dot(g8, t8);
+    float w9 = dot(g9, t9);
+    float w10 = dot(g10, t10);
+    float w11 = dot(g11, t11);
+    float w12 = dot(g12, t12);
+    float w13 = dot(g13, t13);
+    float w14 = dot(g14, t14);
+    float w15 = dot(g15, t15);
+    float w16 = dot(g16, t16);
+
+    tx = quintic_step(tx);
+    ty = quintic_step(ty);
+    tz = quintic_step(tz);
+    tu = quintic_step(tu);
+
+    float wx1 = mix(w1, w2, tx);
+    float wx2 = mix(w3, w4, tx);
+    float wx3 = mix(w5, w6, tx);
+    float wx4 = mix(w7, w8, tx);
+    float wx5 = mix(w9, w10, tx);
+    float wx6 = mix(w11, w12, tx);
+    float wx7 = mix(w13, w14, tx);
+    float wx8 = mix(w15, w16, tx);
+
+    float wy1 = mix(wx1, wx2, ty);
+    float wy2 = mix(wx3, wx4, ty);
+    float wy3 = mix(wx5, wx6, ty);
+    float wy4 = mix(wx7, wx8, ty);
+
+    float wz1 = mix(wy1, wy2, tz);
+    float wz2 = mix(wy3, wy4, tz);
+
+    float w = mix(wz1, wz2, tu);
+
+    w = clamp(w, -1.0, 1.0);
+    w = (w + 1.0) / 2.0;
+    return w;
 }

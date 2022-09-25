@@ -9,7 +9,6 @@ out vec4 color;
 
 float perlin_noise2d(float x, float y);
 
-
 vec3 get_circle_color(float noise, vec2 p, vec2 c, float r, float w) {
     r *= noise;
     vec3 color = vec3(0.0);
@@ -19,7 +18,6 @@ vec3 get_circle_color(float noise, vec2 p, vec2 c, float r, float w) {
     color.g += pow(color.r, 8.0);
     return color;
 }
-
 
 void main(void) {
 
