@@ -405,3 +405,28 @@ float perlin_noise4d(float x, float y, float z, float u) {
     w = (w + 1.0) / 2.0;
     return w;
 }
+
+
+float layered_perlin_noise3d(
+    float x,
+    float y,
+    float z,
+    int n_levels,
+    float freq_mult,
+    float ampl_mult,
+    float freq_init
+) {
+    float f = 0.0;
+    float ampl_sum = 0.0;
+    float ampl = 1.0;
+    float freq = freq_init;
+    for (int i = 0; i < n_levels; ++i) {
+        f += ampl * perlin_noise3d(x * freq, y * freq, z * freq);
+        ampl_sum += ampl;
+        ampl *= ampl_mult;
+        freq *= freq_mult;
+    }
+    f /= ampl_sum;
+    return f;
+}
+

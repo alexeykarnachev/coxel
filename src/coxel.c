@@ -97,6 +97,7 @@ int main(void) {
     cam_update();
     GLFWwindow *window = create_window();
     glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 
     Planet planet;
     Sun sun;
@@ -106,7 +107,7 @@ int main(void) {
     Vec3 space_color = {{ 0.0001, 0.0, 0.0001 }};
     Vec3 planet_diffuse_color = {{ 0.9, 0.3, 0.3 }};
     Vec3 sun_color = {{0.9569, 0.9137, 0.6078}};
-    sun_color = vec3_scale(&sun_color, 100000.0);
+    sun_color = vec3_scale(&sun_color, 1000000000.0);
 
     bool ok = true;
     ok &= sphere_create_sun(&sun);
@@ -118,10 +119,10 @@ int main(void) {
         exit(-1);
     }
 
-    sphere_translate(&planet.sphere, 0.0f, -20.0f, -10.0f);
-    sphere_translate(&sun.sphere, 0.0f, 500.0f, -1000.0f);
-    sphere_scale(&sun.sphere, 40.0f, 40.0f, 40.0f);
-    sphere_scale(&planet.sphere, 20.0f, 20.0f, 20.0f);
+    sphere_translate(&planet.sphere, 0.0f, -110.0f, -10.0f);
+    sphere_translate(&sun.sphere, 0.0f, 500.0f, -50000.0f);
+    sphere_scale(&sun.sphere, 1000.0f, 1000.0f, 1000.0f);
+    sphere_scale(&planet.sphere, 100.0f, 100.0f, 100.0f);
 
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
@@ -132,18 +133,18 @@ int main(void) {
 
         bloom_bind(&bloom);
 
+        sphere_draw_sun(
+            &sun,
+            &CAMERA,
+            &sun_color
+        );
+
         sphere_draw_planet(
             &planet,
             &CAMERA,
             &sun.sphere.translation,
             &planet_diffuse_color,
             &space_color,
-            &sun_color
-        );
-
-        sphere_draw_sun(
-            &sun,
-            &CAMERA,
             &sun_color
         );
 
