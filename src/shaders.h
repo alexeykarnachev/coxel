@@ -1,6 +1,6 @@
-bool shader_compile_source(const GLchar* source, GLenum shader_type, GLuint* shader) {
+bool shader_compile_source(const GLchar* sources[], size_t n_sources, GLenum shader_type, GLuint* shader) {
     *shader = glCreateShader(shader_type);
-    glShaderSource(*shader, 1, &source, NULL);
+    glShaderSource(*shader, n_sources, sources, NULL);
     glCompileShader(*shader);
 
     GLint is_compiled;
@@ -15,18 +15,38 @@ bool shader_compile_source(const GLchar* source, GLenum shader_type, GLuint* sha
     return true;
 }
 
-bool shader_compile_file(const char* file_path, GLenum shader_type, GLuint* shader) {
-    char* source = read_cstr_file(file_path);
-    if (source == NULL) {
+bool shader_compile_file(
+        const char* file_path,
+        const char* deps_file_paths[],
+        const size_t n_deps,
+        GLenum shader_type,
+        GLuint* shader
+) {
+    const char* sources[n_deps + 1];
+    sources[0] = read_cstr_file(file_path);
+    if (sources[0] == NULL) {
         fprintf(stderr, "ERROR: failed to read the shader source file `%s`: %s\n", file_path, strerror(errno));
         errno = 0;
         return false;
     }
 
-    bool is_compiled = shader_compile_source(source, shader_type, shader);
-    free(source);
+    for (size_t i = 0; i < n_deps; ++i) {
+        sources[i + 1] = read_cstr_file(deps_file_paths[i]);
+        if (sources[i + 1] == NULL) {
+            fprintf(stderr, "ERROR: failed to read the shader deps source file `%s`: %s\n", deps_file_paths[i], strerror(errno));
+            errno = 0;
+            return false;
+        }
+    }
+
+    bool is_compiled = shader_compile_source(sources, 1 + n_deps, shader_type, shader);
+
+    for (size_t i = 0; i < 1 + n_deps; ++i) {
+        free((char*)sources[i]);
+    }
+
     if (!is_compiled) {
-        fprintf(stderr, "ERROR: failed to compile the shader source file `%s`\n", file_path);
+        fprintf(stderr, "ERROR: failed to compile the shader source file (or deps files) `%s`\n", file_path);
         return false;
     }
 
@@ -49,25 +69,20 @@ bool shader_link_program(
     GLuint deps_shaders[n_deps];
 
     bool is_compiled = true;
-    for (size_t i = 0; i < n_deps; ++i) {
-        const char* deps_file_path = deps_file_paths[i];
-        // TODO: chech shader type in runtime and put correct shader type here:
-        is_compiled &= shader_compile_file(deps_file_path, GL_FRAGMENT_SHADER, &deps_shaders[i]);
-        glAttachShader(program, deps_shaders[i]);
-    }
 
-    is_compiled &= shader_compile_file(vert_file_path, GL_VERTEX_SHADER, &vert_shader);
-    glAttachShader(program, vert_shader);
-
-    is_compiled &= shader_compile_file(frag_file_path, GL_FRAGMENT_SHADER, &frag_shader);
+    is_compiled &= shader_compile_file(frag_file_path, deps_file_paths, n_deps, GL_FRAGMENT_SHADER, &frag_shader);
     glAttachShader(program, frag_shader);
 
+    is_compiled &= shader_compile_file(vert_file_path, deps_file_paths, n_deps, GL_VERTEX_SHADER, &vert_shader);
+    glAttachShader(program, vert_shader);
+
     if (tesc_file_path != NULL) {
-        is_compiled &= shader_compile_file(tesc_file_path, GL_TESS_CONTROL_SHADER, &tesc_shader);
+        is_compiled &= shader_compile_file(tesc_file_path, deps_file_paths, n_deps, GL_TESS_CONTROL_SHADER, &tesc_shader);
         glAttachShader(program, tesc_shader);
     }
+
     if (tese_file_path != NULL) {
-        is_compiled &= shader_compile_file(tese_file_path, GL_TESS_EVALUATION_SHADER, &tese_shader);
+        is_compiled &= shader_compile_file(tese_file_path, deps_file_paths, n_deps, GL_TESS_EVALUATION_SHADER, &tese_shader);
         glAttachShader(program, tese_shader);
     }
 

@@ -85,8 +85,8 @@ void sphere_draw(Sphere* sphere, Camera* camera) {
     glUniformMatrix4fv(sphere->u_model, 1, GL_TRUE, model.data);
     glUniformMatrix4fv(sphere->u_view, 1, GL_TRUE, view.data);
     glUniformMatrix4fv(sphere->u_proj, 1, GL_TRUE, proj.data);
-    glUniform1f(sphere->u_tess_lvl_inner, 8.0f);
-    glUniform1f(sphere->u_tess_lvl_outer, 8.0f);
+    glUniform1f(sphere->u_tess_lvl_inner, 64.0f);
+    glUniform1f(sphere->u_tess_lvl_outer, 64.0f);
 
     glBindVertexArray(sphere->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->ebo);

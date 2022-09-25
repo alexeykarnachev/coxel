@@ -14,8 +14,6 @@ static bool LMB_PRESSED;
 
 static Mat4 MV;
 static Mat4 PROJ;
-static float TESS_LVL_INNER = 6.0;
-static float TESS_LVL_OUTER = 6.0;
 static Camera CAMERA;
 
 static void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
@@ -108,7 +106,7 @@ int main(void) {
     Vec3 space_color = {{ 0.0001, 0.0, 0.0001 }};
     Vec3 planet_diffuse_color = {{ 0.9, 0.3, 0.3 }};
     Vec3 sun_color = {{0.9569, 0.9137, 0.6078}};
-    sun_color = vec3_scale(&sun_color, 1000.0);
+    sun_color = vec3_scale(&sun_color, 100000.0);
 
     bool ok = true;
     ok &= sphere_create_sun(&sun);
@@ -120,12 +118,11 @@ int main(void) {
         exit(-1);
     }
 
-    sphere_translate(&planet.sphere, -3.0f, -3.0f, -20.0f);
-    sphere_translate(&sun.sphere, 0.0f, 0.0f, -20.0f);
-    sphere_scale(&sun.sphere, 2.0f, 2.0f, 2.0f);
+    sphere_translate(&planet.sphere, 0.0f, -20.0f, -10.0f);
+    sphere_translate(&sun.sphere, 0.0f, 500.0f, -1000.0f);
+    sphere_scale(&sun.sphere, 40.0f, 40.0f, 40.0f);
+    sphere_scale(&planet.sphere, 20.0f, 20.0f, 20.0f);
 
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    // glLineWidth(2.0);
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 
@@ -134,8 +131,6 @@ int main(void) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         bloom_bind(&bloom);
-
-        sphere_translate(&planet.sphere, 0.05f, 0.05f, 0.00f);
 
         sphere_draw_planet(
             &planet,
