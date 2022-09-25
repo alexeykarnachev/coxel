@@ -1,6 +1,7 @@
 #version 460 core
 
 in vec4 es_pos;
+in float es_height;
 
 uniform vec3 u_center_pos;
 uniform vec3 u_light_pos;
@@ -16,7 +17,7 @@ void main() {
     vec3 light_dir = es_pos.xyz - u_light_pos;
     float light_dist = length(light_dir);
     light_dir = normalize(light_dir);
-    vec3 normal = normalize(es_pos.xyz - u_center_pos);
+    vec3 normal = normalize(cross(dFdx(es_pos.xyz), dFdy(es_pos.xyz)));
 
     float lambertian = max(dot(-light_dir, normal), 0.0);
     vec3 diffuse_term = lambertian * u_diffuse_color * u_light_color / (light_dist * light_dist);

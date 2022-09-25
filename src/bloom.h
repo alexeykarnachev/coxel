@@ -24,12 +24,6 @@ void bloom_create_fbo(GLuint* fbo, GLuint* textures, size_t n_textures, size_t w
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, textures[i], 0);
     }
 
-    GLuint rbo_depth;
-    glGenRenderbuffers(1, &rbo_depth);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth);
-
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -75,8 +69,15 @@ bool bloom_create(Bloom* bloom, size_t scr_width, size_t scr_height) {
     GLuint pingpong_textures[2];
 
     bloom_create_fbo(&inp_fbo, inp_textures, 2, scr_width, scr_height);
+
     bloom_create_fbo(&ping_fbo, &pingpong_textures[0], 1, scr_width, scr_height);
     bloom_create_fbo(&pong_fbo, &pingpong_textures[1], 1, scr_width, scr_height);
+
+    // GLuint rbo_depth;
+    // glGenRenderbuffers(1, &rbo_depth);
+    // glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
+    // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, scr_width, scr_height);
+    // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth);
 
     bloom->blur_program = blur_program;
     bloom->bloom_program = bloom_program;

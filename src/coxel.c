@@ -3,8 +3,8 @@
 
 static size_t SCR_WIDTH = 1920;
 static size_t SCR_HEIGHT = 1080;
-static float SIDE_TRANSLATION_SENS = 5.0;
-static float FORWARD_TRANSLATION_SENS = 0.5;
+static float SIDE_TRANSLATION_SENS = 250.0;
+static float FORWARD_TRANSLATION_SENS = 50.0;
 static float ROTATION_SENS = 1.0;
 
 static float CURSOR_X;
@@ -97,6 +97,7 @@ int main(void) {
     cam_update();
     GLFWwindow *window = create_window();
     glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
 
     Planet planet;
@@ -105,9 +106,9 @@ int main(void) {
 
     int bloom_n_iters = 6;
     Vec3 space_color = {{ 0.0001, 0.0, 0.0001 }};
-    Vec3 planet_diffuse_color = {{ 0.9, 0.3, 0.3 }};
+    Vec3 planet_diffuse_color = {{ 0.3, 0.4, 0.9 }};
     Vec3 sun_color = {{0.9569, 0.9137, 0.6078}};
-    sun_color = vec3_scale(&sun_color, 1000000000.0);
+    sun_color = vec3_scale(&sun_color, 10000.0);
 
     bool ok = true;
     ok &= sphere_create_sun(&sun);
@@ -119,12 +120,11 @@ int main(void) {
         exit(-1);
     }
 
-    sphere_translate(&planet.sphere, 0.0f, -110.0f, -10.0f);
-    sphere_translate(&sun.sphere, 0.0f, 500.0f, -50000.0f);
-    sphere_scale(&sun.sphere, 1000.0f, 1000.0f, 1000.0f);
-    sphere_scale(&planet.sphere, 100.0f, 100.0f, 100.0f);
+    sphere_translate(&planet.sphere, -200.0f, 0.0f, -1000.0f);
+    sphere_translate(&sun.sphere, 0.0f, 0.0f, -1000.0f);
+    sphere_scale(&sun.sphere, 100.0f, 100.0f, 100.0f);
+    sphere_scale(&planet.sphere, 10.0f, 10.0f, 10.0f);
 
-    glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 
     while (!glfwWindowShouldClose(window)) {
@@ -133,18 +133,18 @@ int main(void) {
 
         bloom_bind(&bloom);
 
-        sphere_draw_sun(
-            &sun,
-            &CAMERA,
-            &sun_color
-        );
-
         sphere_draw_planet(
             &planet,
             &CAMERA,
             &sun.sphere.translation,
             &planet_diffuse_color,
             &space_color,
+            &sun_color
+        );
+
+        sphere_draw_sun(
+            &sun,
+            &CAMERA,
             &sun_color
         );
 

@@ -9,7 +9,6 @@ uniform float exposure = 5.0;
 
 out vec4 f_color;
 
-// shaders/common/hdr.glsl
 vec3 hdr(vec3 color, float gamma, float exposure);
 
 void main() {             

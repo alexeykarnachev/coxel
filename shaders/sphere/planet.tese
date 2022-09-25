@@ -9,6 +9,7 @@ uniform mat4 u_proj;
 
 out vec4 es_pos;
 
+
 float layered_perlin_noise3d(
     float x,
     float y,
@@ -29,10 +30,9 @@ void main(void) {
     int n_levels = 6;
     float freq_mult = 2.0;
     float ampl_mult = 0.5;
-    float freq_init = 4.0;
+    float freq_init = 2.0;
     float f = layered_perlin_noise3d(p.x, p.y, p.z, n_levels, freq_mult, ampl_mult, freq_init);
-    f = (f * 2.0) - 1.0;
-    p += (f * 0.2);
+    p += 0.1 * ((f * 2.0) - 1.0);
 
     vec4 pos = vec4(p, 1.0);
     es_pos = u_model * pos; 
