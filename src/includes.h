@@ -16,4 +16,4 @@
 #include "shaders.h"
 #include "meshes.h"
 #include "sphere.h"
-#include "bloom.h"
+#include "hdr.h"

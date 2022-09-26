@@ -3,8 +3,8 @@
 
 static size_t SCR_WIDTH = 1920;
 static size_t SCR_HEIGHT = 1080;
-static float SIDE_TRANSLATION_SENS = 250.0;
-static float FORWARD_TRANSLATION_SENS = 50.0;
+static float SIDE_TRANSLATION_SENS = 10.0;
+static float FORWARD_TRANSLATION_SENS = 1.0;
 static float ROTATION_SENS = 1.0;
 
 static float CURSOR_X;
@@ -102,28 +102,27 @@ int main(void) {
 
     Planet planet;
     Sun sun;
-    Bloom bloom;
+    HDR hdr;
 
-    int bloom_n_iters = 6;
-    Vec3 space_color = {{ 0.0001, 0.0, 0.0001 }};
+    Vec3 space_color = {{ 0.0, 0.0, 0.0 }};
     Vec3 planet_diffuse_color = {{ 0.3, 0.4, 0.9 }};
     Vec3 sun_color = {{0.9569, 0.9137, 0.6078}};
-    sun_color = vec3_scale(&sun_color, 10000.0);
+    sun_color = vec3_scale(&sun_color, 50.0);
 
     bool ok = true;
     ok &= sphere_create_sun(&sun);
     ok &= sphere_create_planet(&planet);
-    ok &= bloom_create(&bloom, SCR_WIDTH, SCR_HEIGHT);
+    ok &= hdr_create(&hdr, SCR_WIDTH, SCR_HEIGHT);
     if (!ok) {
         printf("ERROR: failed to create scene objects\n");
         glfwTerminate();
         exit(-1);
     }
 
-    sphere_translate(&planet.sphere, -200.0f, 0.0f, -1000.0f);
-    sphere_translate(&sun.sphere, 0.0f, 0.0f, -1000.0f);
-    sphere_scale(&sun.sphere, 100.0f, 100.0f, 100.0f);
-    sphere_scale(&planet.sphere, 10.0f, 10.0f, 10.0f);
+    sphere_translate(&planet.sphere, -5.0f, 0.0f, -10.0f);
+    sphere_translate(&sun.sphere, 0.0f, 0.0f, -10.0f);
+    sphere_scale(&sun.sphere, 1.0f, 1.0f, 1.0f);
+    sphere_scale(&planet.sphere, 0.1f, 0.1f, 0.1f);
 
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 
@@ -131,7 +130,7 @@ int main(void) {
         glClearColor(space_color.data[0], space_color.data[1], space_color.data[2], 0.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        bloom_bind(&bloom);
+        hdr_bind(&hdr);
 
         sphere_draw_planet(
             &planet,
@@ -148,7 +147,7 @@ int main(void) {
             &sun_color
         );
 
-        bloom_draw(&bloom, bloom_n_iters);
+        hdr_draw(&hdr, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

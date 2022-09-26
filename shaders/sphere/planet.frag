@@ -10,7 +10,7 @@ uniform vec3 u_ambient_color;
 uniform vec3 u_light_color;
 
 layout(location = 0) out vec4 f_color;
-layout(location = 1) out vec4 f_brightness;
+// layout(location = 1) out vec4 f_brightness;
 
 
 void main() {
@@ -24,6 +24,6 @@ void main() {
     vec3 color = u_ambient_color + diffuse_term;
     f_color = vec4(color, 1.0);
 
-    float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
-    f_brightness = brightness > 1.0 ? f_color : vec4(0.0, 0.0, 0.0, 1.0);
+    // float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    // f_brightness = brightness > 1.0 ? f_color : vec4(0.0, 0.0, 0.0, 1.0);
 }
