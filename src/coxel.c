@@ -100,29 +100,28 @@ int main(void) {
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
 
-    Planet planet;
-    Sun sun;
+    Sphere planet;
+    Sphere sun;
     HDR hdr;
 
-    Vec3 space_color = {{ 0.0, 0.0, 0.0 }};
-    Vec3 planet_diffuse_color = {{ 0.3, 0.4, 0.9 }};
-    Vec3 sun_color = {{0.9569, 0.9137, 0.6078}};
-    sun_color = vec3_scale(&sun_color, 50.0);
-
-    bool ok = true;
-    ok &= sphere_create_sun(&sun);
-    ok &= sphere_create_planet(&planet);
-    ok &= hdr_create(&hdr, SCR_WIDTH, SCR_HEIGHT);
-    if (!ok) {
-        printf("ERROR: failed to create scene objects\n");
-        glfwTerminate();
+    if (
+        !sphere_create(&sun)
+        || !sphere_create(&planet)
+        || !hdr_create(&hdr, SCR_WIDTH, SCR_HEIGHT)
+    ) {
         exit(-1);
+        glfwTerminate();
     }
 
-    sphere_translate(&planet.sphere, -5.0f, 0.0f, -10.0f);
-    sphere_translate(&sun.sphere, 0.0f, 0.0f, -10.0f);
-    sphere_scale(&sun.sphere, 1.0f, 1.0f, 1.0f);
-    sphere_scale(&planet.sphere, 0.1f, 0.1f, 0.1f);
+    Vec3 space_color = {{ 0.0, 0.0, 0.0 }};
+    Vec3 planet_diffuse_color = {{ 0.3, 0.4, 1.0 }};
+    Vec3 sun_color = {{1.0, 1.0, 1.0}};
+    sun_color = vec3_scale(&sun_color, 100000.0);
+
+    sphere_translate(&sun, -50.0f, 50.0f, -500.0f);
+    sphere_translate(&planet, 2.0f, -2.0f, -4.0f);
+    sphere_scale(&sun, 2.0f, 2.0f, 2.0f);
+    sphere_scale(&planet, 1.0f, 1.0f, 1.0f);
 
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 
@@ -132,19 +131,40 @@ int main(void) {
 
         hdr_bind(&hdr);
 
-        sphere_draw_planet(
+        sphere_draw(
             &planet,
             &CAMERA,
-            &sun.sphere.translation,
+            64.0,  // tess_lvl_inner
+            64.0,  // tess_lvl_outer
+            6,     // surface_noise_n_levels
+            2.0,   // surface_noise_freq_mult
+            0.6,   // surface_noise_ampl_mult
+            1.0,   // surface_noise_freq_init
+            0.1,   // surface_noise_mult
+            &sun.translation,
             &planet_diffuse_color,
-            &space_color,
-            &sun_color
+            &sun_color,
+            &sun_color,
+            0.0001,  // ambient_weight
+            256.0   // specular_power
         );
 
-        sphere_draw_sun(
+        sphere_draw(
             &sun,
             &CAMERA,
-            &sun_color
+            6.0,  // tess_lvl_inner
+            6.0,  // tess_lvl_outer
+            0,     // surface_noise_n_levels
+            0.0,   // surface_noise_freq_mult
+            0.0,   // surface_noise_ampl_mult
+            0.0,   // surface_noise_freq_init
+            0.0,   // surface_noise_mult
+            &sun.translation,
+            &sun_color,
+            &sun_color,
+            &sun_color,
+            1.0,  // ambient_weight
+            1.0   // specular_power
         );
 
         hdr_draw(&hdr, 0);

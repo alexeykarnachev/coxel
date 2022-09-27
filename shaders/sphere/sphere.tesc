@@ -4,8 +4,8 @@ layout(vertices = 3) out;
 
 in vec3 vs_pos[];
 
-uniform float u_tess_lvl_inner;
-uniform float u_tess_lvl_outer;
+layout(location = 1) uniform float u_tess_lvl_inner;
+layout(location = 2) uniform float u_tess_lvl_outer;
 
 out vec3 cs_pos[];
 

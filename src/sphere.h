@@ -12,26 +12,25 @@ typedef struct Sphere {
     GLuint u_model;
     GLuint u_view;
     GLuint u_proj;
+
     GLuint u_tess_lvl_inner;
     GLuint u_tess_lvl_outer;
-} Sphere;
 
-typedef struct Planet {
-    Sphere sphere;
+    GLuint u_surface_noise_n_levels;
+    GLuint u_surface_noise_freq_mult;
+    GLuint u_surface_noise_ampl_mult;
+    GLuint u_surface_noise_freq_init;
+    GLuint u_surface_noise_mult;
 
-    GLuint u_center_pos;
+    GLuint u_view_pos;
     GLuint u_light_pos;
     GLuint u_diffuse_color;
-    GLuint u_ambient_color;
+    GLuint u_specular_color;
     GLuint u_light_color;
-} Planet;
+    GLuint u_ambient_weight;
+    GLuint u_specular_power;
+} Sphere;
 
-typedef struct Sun {
-    Sphere sphere;
-
-    GLuint u_center_pos;
-    GLuint u_color;
-} Sun;
 
 void sphere_scale(Sphere* sphere, float xd, float yd, float zd) {
     sphere->scale.data[0] += xd;
@@ -75,7 +74,23 @@ static Mat4 sphere_get_model_mat(Sphere* sphere) {
     return model_mat;
 }
 
-void sphere_draw(Sphere* sphere, Camera* camera) {
+void sphere_draw(
+    Sphere* sphere,
+    Camera* camera,
+    float tess_lvl_inner,
+    float tess_lvl_outer,
+    int surface_noise_n_levels,
+    float surface_noise_freq_mult,
+    float surface_noise_ampl_mult,
+    float surface_noise_freq_init,
+    float surface_noise_mult,
+    Vec3* light_pos,
+    Vec3* diffuse_color,
+    Vec3* specular_color,
+    Vec3* light_color,
+    float ambient_weight,
+    float specular_power
+) {
     glUseProgram(sphere->program);
 
     Mat4 model = sphere_get_model_mat(sphere);
@@ -85,86 +100,81 @@ void sphere_draw(Sphere* sphere, Camera* camera) {
     glUniformMatrix4fv(sphere->u_model, 1, GL_TRUE, model.data);
     glUniformMatrix4fv(sphere->u_view, 1, GL_TRUE, view.data);
     glUniformMatrix4fv(sphere->u_proj, 1, GL_TRUE, proj.data);
-    glUniform1f(sphere->u_tess_lvl_inner, 64.0f);
-    glUniform1f(sphere->u_tess_lvl_outer, 64.0f);
+
+    glUniform1f(sphere->u_tess_lvl_inner, tess_lvl_inner);
+    glUniform1f(sphere->u_tess_lvl_outer, tess_lvl_outer);
+
+    glUniform1i(sphere->u_surface_noise_n_levels, surface_noise_n_levels);
+    glUniform1f(sphere->u_surface_noise_freq_mult, surface_noise_freq_mult);
+    glUniform1f(sphere->u_surface_noise_ampl_mult, surface_noise_ampl_mult);
+    glUniform1f(sphere->u_surface_noise_freq_init, surface_noise_freq_init);
+    glUniform1f(sphere->u_surface_noise_mult, surface_noise_mult);
+
+    glUniform3fv(sphere->u_view_pos, 1, camera->translation.data);
+    glUniform3fv(sphere->u_light_pos, 1, light_pos->data);
+    glUniform3fv(sphere->u_diffuse_color, 1, diffuse_color->data);
+    glUniform3fv(sphere->u_specular_color, 1, specular_color->data);
+    glUniform3fv(sphere->u_light_color, 1, light_color->data);
+    glUniform1f(sphere->u_ambient_weight, ambient_weight);
+    glUniform1f(sphere->u_specular_power, specular_power);
 
     glBindVertexArray(sphere->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->ebo);
     glDrawElements(GL_PATCHES, sizeof(ICOSAHEDRON_FACES) / sizeof(ICOSAHEDRON_FACES[0]),  GL_UNSIGNED_BYTE, 0);
 }
 
-void sphere_draw_planet(
-        Planet* planet,
-        Camera* camera,
-        Vec3* light_pos,
-        Vec3* diffuse_color,
-        Vec3* ambient_color,
-        Vec3* light_color
-) {
-    glUseProgram(planet->sphere.program);
-
-    glUniform3fv(planet->u_center_pos, 1, planet->sphere.translation.data);
-    glUniform3fv(planet->u_light_pos, 1, light_pos->data);
-    glUniform3fv(planet->u_diffuse_color, 1, diffuse_color->data);
-    glUniform3fv(planet->u_ambient_color, 1, ambient_color->data);
-    glUniform3fv(planet->u_light_color, 1, light_color->data);
-
-    sphere_draw(&planet->sphere, camera);
-}
-
-void sphere_draw_sun(
-        Sun* sun,
-        Camera* camera,
-        Vec3* color
-) {
-    glUseProgram(sun->sphere.program);
-
-    glUniform3fv(sun->u_center_pos, 1, sun->sphere.translation.data);
-    glUniform3fv(sun->u_color, 1, color->data);
-    sphere_draw(&sun->sphere, camera);
-}
-
-bool sphere_create(
-    Sphere* sphere,
-    const char* tese_file_path,
-    const char* frag_file_path
-) {
+bool sphere_create(Sphere* sphere) {
     memset(sphere, 0, sizeof(*sphere));
+
     GLuint program = glCreateProgram();
-
-    int n_deps = 1;
-    const char* random_file_path = "./shaders/common/random.glsl"; 
-    const char* deps_file_paths[1] = {random_file_path};
-
-    bool is_linked = shader_link_program(
-        "./shaders/sphere/sphere.vert",
-        "./shaders/sphere/sphere.tesc",
-        tese_file_path,
-        frag_file_path,
-        program,
-        n_deps,
-        deps_file_paths
-    );
-    if (!is_linked) {
-        fprintf(stderr, "ERROR: failed to link sphere program\n");
+    const char* deps_file_paths[1] = {"./shaders/common/random.glsl"};
+    if (
+        !shader_link_program(
+            "./shaders/sphere/sphere.vert",
+            "./shaders/sphere/sphere.tesc",
+            "./shaders/sphere/sphere.tese",
+            "./shaders/common/lighting.frag",
+            program, 1, deps_file_paths
+        )
+        || !shader_get_attrib_location(&(sphere->a_pos), program, "a_pos")
+        || !shader_get_uniform_location(&(sphere->u_model), program, "u_model")
+        || !shader_get_uniform_location(&(sphere->u_view), program, "u_view")
+        || !shader_get_uniform_location(&(sphere->u_proj), program, "u_proj")
+        || !shader_get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner")
+        || !shader_get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer")
+        || !shader_get_uniform_location(&(sphere->u_surface_noise_n_levels), program, "u_surface_noise_n_levels")
+        || !shader_get_uniform_location(&(sphere->u_surface_noise_freq_mult), program, "u_surface_noise_freq_mult")
+        || !shader_get_uniform_location(&(sphere->u_surface_noise_ampl_mult), program, "u_surface_noise_ampl_mult")
+        || !shader_get_uniform_location(&(sphere->u_surface_noise_freq_init), program, "u_surface_noise_freq_init")
+        || !shader_get_uniform_location(&(sphere->u_surface_noise_mult), program, "u_surface_noise_mult")
+        || !shader_get_uniform_location(&(sphere->u_view_pos), program, "u_view_pos")
+        || !shader_get_uniform_location(&(sphere->u_light_pos), program, "u_light_pos")
+        || !shader_get_uniform_location(&(sphere->u_diffuse_color), program, "u_diffuse_color")
+        || !shader_get_uniform_location(&(sphere->u_specular_color), program, "u_specular_color")
+        || !shader_get_uniform_location(&(sphere->u_light_color), program, "u_light_color")
+        || !shader_get_uniform_location(&(sphere->u_ambient_weight), program, "u_ambient_weight")
+        || !shader_get_uniform_location(&(sphere->u_specular_power), program, "u_specular_power")
+    ) {
         return false;
     }
 
-    GLuint vbo;
-    glCreateBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(ICOSAHEDRON_VERTS), ICOSAHEDRON_VERTS, GL_STATIC_DRAW);
-
     GLuint vao;
+    GLuint vbo;
+    GLuint ebo;
+
     glCreateVertexArrays(1, &vao);
+    glCreateBuffers(1, &vbo);
+    glCreateBuffers(1, &ebo);
+
     glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(ICOSAHEDRON_VERTS), ICOSAHEDRON_VERTS, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ICOSAHEDRON_FACES), ICOSAHEDRON_FACES, GL_STATIC_DRAW);
+
     glEnableVertexAttribArray(sphere->a_pos);
     glVertexAttribPointer(sphere->a_pos, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-
-    GLuint ebo;
-    glCreateBuffers(1, &ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ICOSAHEDRON_FACES), ICOSAHEDRON_FACES, GL_STATIC_DRAW);
 
     sphere->program = program;
     sphere->vbo = vbo;
@@ -174,46 +184,6 @@ bool sphere_create(
     sphere->translation = vec3_zeros();
     sphere->scale = vec3_ones();
 
-    bool ok = true;
-    ok &= shader_get_attrib_location(&(sphere->a_pos), program, "a_pos");
-    ok &= shader_get_uniform_location(&(sphere->u_model), program, "u_model");
-    ok &= shader_get_uniform_location(&(sphere->u_view), program, "u_view");
-    ok &= shader_get_uniform_location(&(sphere->u_proj), program, "u_proj");
-    ok &= shader_get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner");
-    ok &= shader_get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer");
-    if (!ok) {
-        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sphere program\n");
-        return false;
-    }
-
     return true;
 }
 
-bool sphere_create_planet(Planet* planet) {
-    bool ok = sphere_create(&planet->sphere, "./shaders/sphere/planet.tese", "./shaders/sphere/planet.frag");
-
-    ok &= shader_get_uniform_location(&(planet->u_center_pos), planet->sphere.program, "u_center_pos");
-    ok &= shader_get_uniform_location(&(planet->u_light_pos), planet->sphere.program, "u_light_pos");
-    ok &= shader_get_uniform_location(&(planet->u_diffuse_color), planet->sphere.program, "u_diffuse_color");
-    ok &= shader_get_uniform_location(&(planet->u_ambient_color), planet->sphere.program, "u_ambient_color");
-    ok &= shader_get_uniform_location(&(planet->u_light_color), planet->sphere.program, "u_light_color");
-    if (!ok) {
-        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the planet program\n");
-        return false;
-    }
-
-    return true;
-}
-
-bool sphere_create_sun(Sun* sun) {
-    bool ok = sphere_create(&sun->sphere, "./shaders/sphere/sun.tese", "./shaders/sphere/sun.frag");
-
-    ok &= shader_get_uniform_location(&(sun->u_center_pos), sun->sphere.program, "u_center_pos");
-    ok &= shader_get_uniform_location(&(sun->u_color), sun->sphere.program, "u_color");
-    if (!ok) {
-        fprintf(stderr, "ERROR: failed to find some attribute or uniform locations in the sun program\n");
-        return false;
-    }
-
-    return true;
-}

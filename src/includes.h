@@ -11,6 +11,7 @@
 #include <sys/time.h>
 
 #include "utils.h"
+#include "gl_utils.h"
 #include "la.h"
 #include "camera.h"
 #include "shaders.h"
