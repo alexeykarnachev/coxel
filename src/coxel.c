@@ -131,6 +131,8 @@ int main(void) {
 
         hdr_bind(&hdr);
 
+        sphere_rotate(&planet, 0.0, 0.002, 0.0);
+
         sphere_draw(
             &planet,
             &CAMERA,
@@ -139,14 +141,14 @@ int main(void) {
             6,     // surface_noise_n_levels
             2.0,   // surface_noise_freq_mult
             0.6,   // surface_noise_ampl_mult
-            1.0,   // surface_noise_freq_init
-            0.1,   // surface_noise_mult
+            2.0,   // surface_noise_freq_init
+            0.3,   // surface_noise_mult
             &sun.translation,
             &planet_diffuse_color,
             &sun_color,
             &sun_color,
-            0.0001,  // ambient_weight
-            256.0   // specular_power
+            0.00001,  // ambient_weight
+            128.0   // specular_power
         );
 
         sphere_draw(
