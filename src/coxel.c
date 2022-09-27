@@ -102,11 +102,13 @@ int main(void) {
 
     Sphere planet;
     Sphere sun;
+    PointShadows point_shadows;
     HDR hdr;
 
     if (
         !sphere_create(&sun)
         || !sphere_create(&planet)
+        || !point_shadows_create(&point_shadows, SCR_WIDTH, SCR_HEIGHT)
         || !hdr_create(&hdr, SCR_WIDTH, SCR_HEIGHT)
     ) {
         exit(-1);
@@ -129,9 +131,13 @@ int main(void) {
         glClearColor(space_color.data[0], space_color.data[1], space_color.data[2], 0.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        hdr_bind(&hdr);
+        // hdr_bind(&hdr);
+        // hdr_draw(&hdr, 0);
 
         sphere_rotate(&planet, 0.0, 0.002, 0.0);
+
+        point_shadows_bind();
+        glClear(GL_DEPTH_BUFFER_BIT);
 
         sphere_draw(
             &planet,
@@ -145,7 +151,6 @@ int main(void) {
             0.3,   // surface_noise_mult
             &sun.translation,
             &planet_diffuse_color,
-            &sun_color,
             &sun_color,
             0.00001,  // ambient_weight
             128.0   // specular_power
@@ -164,12 +169,45 @@ int main(void) {
             &sun.translation,
             &sun_color,
             &sun_color,
-            &sun_color,
             1.0,  // ambient_weight
             1.0   // specular_power
         );
 
-        hdr_draw(&hdr, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, point_shadows->depth_cubemap);
+        sphere_draw(
+            &planet,
+            &CAMERA,
+            64.0,  // tess_lvl_inner
+            64.0,  // tess_lvl_outer
+            6,     // surface_noise_n_levels
+            2.0,   // surface_noise_freq_mult
+            0.6,   // surface_noise_ampl_mult
+            2.0,   // surface_noise_freq_init
+            0.3,   // surface_noise_mult
+            &sun.translation,
+            &planet_diffuse_color,
+            &sun_color,
+            0.00001,  // ambient_weight
+            128.0   // specular_power
+        );
+
+        sphere_draw(
+            &sun,
+            &CAMERA,
+            6.0,  // tess_lvl_inner
+            6.0,  // tess_lvl_outer
+            0,     // surface_noise_n_levels
+            0.0,   // surface_noise_freq_mult
+            0.0,   // surface_noise_ampl_mult
+            0.0,   // surface_noise_freq_init
+            0.0,   // surface_noise_mult
+            &sun.translation,
+            &sun_color,
+            &sun_color,
+            1.0,  // ambient_weight
+            1.0   // specular_power
+        );
 
         glfwSwapBuffers(window);
         glfwPollEvents();

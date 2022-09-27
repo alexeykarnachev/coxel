@@ -57,6 +57,7 @@ bool shader_link_program(
     const char* vert_file_path,
     const char* tesc_file_path,
     const char* tese_file_path,
+    const char* geom_file_path,
     const char* frag_file_path,
     GLuint program,
     const int n_deps,
@@ -65,6 +66,7 @@ bool shader_link_program(
     GLuint vert_shader = 0;
     GLuint tesc_shader = 0;
     GLuint tese_shader = 0;
+    GLuint geom_shader = 0;
     GLuint frag_shader = 0;
     GLuint deps_shaders[n_deps];
 
@@ -86,6 +88,11 @@ bool shader_link_program(
         glAttachShader(program, tese_shader);
     }
 
+    if (geom_file_path != NULL) {
+        is_compiled &= shader_compile_file(geom_file_path, deps_file_paths, n_deps, GL_GEOMETRY_SHADER, &geom_shader);
+        glAttachShader(program, geom_shader);
+    }
+
     if (!is_compiled) {
         fprintf(stderr, "ERROR: failed to compile some shader files\n");
         return false;
@@ -96,6 +103,7 @@ bool shader_link_program(
     glDetachShader(program, vert_shader);
     glDetachShader(program, tesc_shader);
     glDetachShader(program, tese_shader);
+    glDetachShader(program, geom_shader);
     glDetachShader(program, frag_shader);
     for (size_t i = 0; i < n_deps; ++i) {
         glDetachShader(program, deps_shaders[i]);

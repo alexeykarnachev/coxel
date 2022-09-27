@@ -14,6 +14,13 @@ typedef struct Mat4 {
     float data[16];
 } Mat4;
 
+const Vec3 vec3_pos_x = {{1.0, 0.0, 0.0}};
+const Vec3 vec3_neg_x = {{-1.0, 0.0, 0.0}};
+const Vec3 vec3_pos_y = {{0.0, 1.0, 0.0}};
+const Vec3 vec3_neg_y = {{0.0, -1.0, 0.0}};
+const Vec3 vec3_pos_z = {{0.0, 0.0, 1.0}};
+const Vec3 vec3_neg_z = {{0.0, 0.0, -1.0}};
+
 Vec3 vec3_cross(Vec3* v1, Vec3* v2) {
     Vec3 res = {
         {
@@ -262,6 +269,51 @@ Vec4 mat4_vec4_mul(Mat4* m, Vec4* v) {
 Vec4 mat4_vec3_mul(Mat4* m, Vec3* v) {
     Vec4 h = vec3_append(v, 1.0f);
     return mat4_vec4_mul(m, &h);
+}
+
+Mat4 get_perspective_projection_mat(float fov, float near, float far, float aspect) {
+    float f = 1.0f / tan(fov / 2.0f);
+    float rng_inv = 1.0f / (near - far);
+    
+    Mat4 proj = {
+        {
+            f / aspect, 0.0f, 0.0f, 0.0f,
+            0.0f, f, 0.0f, 0.0f,
+            0.0f, 0.0f, (near + far) * rng_inv, near * far * rng_inv * 2.0f,
+            0.0f, 0.0f, -1.0f, 0.0f
+        }
+    };
+
+    return proj;
+}
+
+Mat3 get_basis_mat(Vec3* z, Vec3* up) {
+    z = vec3_norm(z);
+
+    Vec3 x = vec3_cross(&z, up);
+    x = vec3_norm(&x);
+
+    Vec3 y = vec3_cross(&x, &z);
+    y = vec3_norm(&y);
+
+    Mat3 basis = mat3_from_rows(&x, &y, &z);
+    return basis;
+}
+
+Mat4 get_view_mat(Vec3* view_dir, Vec3* up, Vec3* pos) {
+    Mat3 basis = get_basis_mat(view_dir, up);
+    Vec3 x = mat3_get_row(&basis, 0);
+    Vec3 y = mat3_get_row(&basis, 1);
+    Vec3 z = mat3_get_row(&basis, 2);
+    z = vec3_negate(&z);
+
+    Vec4 row0 = vec3_append(&x, -vec3_dot(&x, &pos)); 
+    Vec4 row1 = vec3_append(&y, -vec3_dot(&y, &pos));
+    Vec4 row2 = vec3_append(&z, -vec3_dot(&z, &pos));
+    Vec4 row3 = {0.0f, 0.0f, 0.0f, 1.0f};
+
+    Mat4 view = mat4_from_rows(&row0, &row1, &row2, &row3);
+    return view;
 }
 
 void mat4_print(Mat4* m) {

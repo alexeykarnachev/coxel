@@ -13,7 +13,7 @@ uniform float u_surface_noise_ampl_mult;
 uniform float u_surface_noise_freq_init;
 uniform float u_surface_noise_mult;
 
-out vec4 es_pos;
+out vec4 frag_pos;
 
 float layered_perlin_noise3d(
     float x,
@@ -46,6 +46,6 @@ void main(void) {
     }
 
     vec4 pos = vec4(p, 1.0);
-    es_pos = u_model * pos; 
+    frag_pos = u_model * pos; 
     gl_Position = u_proj * u_view * es_pos;
 }

@@ -3,7 +3,8 @@ typedef struct Sphere {
     Vec3 translation;
     Vec3 scale;
 
-    GLuint program;
+    GLuint color_program;
+    GLuint shadow_program;
     GLuint vbo;
     GLuint vao;
     GLuint ebo;
@@ -25,10 +26,13 @@ typedef struct Sphere {
     GLuint u_view_pos;
     GLuint u_light_pos;
     GLuint u_diffuse_color;
-    GLuint u_specular_color;
     GLuint u_light_color;
     GLuint u_ambient_weight;
     GLuint u_specular_power;
+
+    GLuint u_with_shadows;
+    GLuint u_far;
+    GLuint u_shadow_transforms[6];
 } Sphere;
 
 
@@ -86,12 +90,30 @@ void sphere_draw(
     float surface_noise_mult,
     Vec3* light_pos,
     Vec3* diffuse_color,
-    Vec3* specular_color,
     Vec3* light_color,
     float ambient_weight,
-    float specular_power
+    float specular_power,
+    bool with_shadows
 ) {
-    glUseProgram(sphere->program);
+    if (with_shadows) {
+        glUseProgram(sphere->shadow_program);
+        Mat4 shadow_proj = get_perspective_projection_mat(90.0, camera->near, camera->far, camera->aspect);
+        Mat4 shadow_transforms[6];
+        shadow_transforms[0] = get_view_mat(&vec3_pos_x, &vec3_neg_y, light_pos);
+        shadow_transforms[1] = get_view_mat(&vec3_neg_x, &vec3_neg_y, light_pos);
+        shadow_transforms[2] = get_view_mat(&vec3_pos_y, &vec3_pos_z, light_pos);
+        shadow_transforms[3] = get_view_mat(&vec3_neg_y, &vec3_neg_z, light_pos);
+        shadow_transforms[4] = get_view_mat(&vec3_pos_z, &vec3_neg_y, light_pos);
+        shadow_transforms[5] = get_view_mat(&vec3_neg_z, &vec3_neg_y, light_pos);
+
+        for (size_t i = 0; i < 6; ++i) {
+            glUniformMatrix4fv(sphere->u_model, 1, GL_TRUE, shadow_transforms[i]);
+        }
+
+
+    } else {
+        glUseProgram(sphere->color_program);
+    }
 
     Mat4 model = sphere_get_model_mat(sphere);
     Mat4 view = cam_get_view_mat(camera);
@@ -113,10 +135,12 @@ void sphere_draw(
     glUniform3fv(sphere->u_view_pos, 1, camera->translation.data);
     glUniform3fv(sphere->u_light_pos, 1, light_pos->data);
     glUniform3fv(sphere->u_diffuse_color, 1, diffuse_color->data);
-    glUniform3fv(sphere->u_specular_color, 1, specular_color->data);
     glUniform3fv(sphere->u_light_color, 1, light_color->data);
     glUniform1f(sphere->u_ambient_weight, ambient_weight);
     glUniform1f(sphere->u_specular_power, specular_power);
+
+    glUniform1i(sphere->u_with_shadows, with_shadows);
+    glUniform1f(sphere->u_far, camera->far);
 
     glBindVertexArray(sphere->vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphere->ebo);
@@ -126,35 +150,7 @@ void sphere_draw(
 bool sphere_create(Sphere* sphere) {
     memset(sphere, 0, sizeof(*sphere));
 
-    GLuint program = glCreateProgram();
-    const char* deps_file_paths[1] = {"./shaders/common/random.glsl"};
-    if (
-        !shader_link_program(
-            "./shaders/sphere/sphere.vert",
-            "./shaders/sphere/sphere.tesc",
-            "./shaders/sphere/sphere.tese",
-            "./shaders/common/lighting.frag",
-            program, 1, deps_file_paths
-        )
-        || !shader_get_attrib_location(&(sphere->a_pos), program, "a_pos")
-        || !shader_get_uniform_location(&(sphere->u_model), program, "u_model")
-        || !shader_get_uniform_location(&(sphere->u_view), program, "u_view")
-        || !shader_get_uniform_location(&(sphere->u_proj), program, "u_proj")
-        || !shader_get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner")
-        || !shader_get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer")
-        || !shader_get_uniform_location(&(sphere->u_surface_noise_n_levels), program, "u_surface_noise_n_levels")
-        || !shader_get_uniform_location(&(sphere->u_surface_noise_freq_mult), program, "u_surface_noise_freq_mult")
-        || !shader_get_uniform_location(&(sphere->u_surface_noise_ampl_mult), program, "u_surface_noise_ampl_mult")
-        || !shader_get_uniform_location(&(sphere->u_surface_noise_freq_init), program, "u_surface_noise_freq_init")
-        || !shader_get_uniform_location(&(sphere->u_surface_noise_mult), program, "u_surface_noise_mult")
-        || !shader_get_uniform_location(&(sphere->u_view_pos), program, "u_view_pos")
-        || !shader_get_uniform_location(&(sphere->u_light_pos), program, "u_light_pos")
-        || !shader_get_uniform_location(&(sphere->u_diffuse_color), program, "u_diffuse_color")
-        || !shader_get_uniform_location(&(sphere->u_specular_color), program, "u_specular_color")
-        || !shader_get_uniform_location(&(sphere->u_light_color), program, "u_light_color")
-        || !shader_get_uniform_location(&(sphere->u_ambient_weight), program, "u_ambient_weight")
-        || !shader_get_uniform_location(&(sphere->u_specular_power), program, "u_specular_power")
-    ) {
+    if ( !sphere_shader_link_program(sphere, false) || !sphere_shader_link_program(sphere, true)) {
         return false;
     }
 
@@ -186,4 +182,60 @@ bool sphere_create(Sphere* sphere) {
 
     return true;
 }
+
+bool sphere_shader_link_program(Sphere* sphere, GLuint program, bool with_shadows) {
+    GLuint program = glCreateProgram();
+
+    const char* deps[1] = {"./shaders/common/random.glsl"};
+    const char* vert = "./shaders/sphere/sphere.vert"; 
+    const char* tesc = "./shaders/sphere/sphere.tesc"; 
+    const char* tese = "./shaders/sphere/sphere.tese"; 
+    const char* frag = "./shaders/common/lighting.frag"; 
+    const char* geom = with_shadows ? "./shaders/common/cube_shadows.geom" : NULL;
+    if (!shader_link_program(vert, tesc, tese, geom, frag, program, 1, deps)) {
+        return false;
+    } else if (with_shadows) {
+        bool ok = true;
+        ok &= shader_get_uniform_location(&(sphere->u_shadow_transforms[0]), program, "u_shadow_transforms[0]");
+        ok &= shader_get_uniform_location(&(sphere->u_shadow_transforms[1]), program, "u_shadow_transforms[1]");
+        ok &= shader_get_uniform_location(&(sphere->u_shadow_transforms[2]), program, "u_shadow_transforms[2]");
+        ok &= shader_get_uniform_location(&(sphere->u_shadow_transforms[3]), program, "u_shadow_transforms[3]");
+        ok &= shader_get_uniform_location(&(sphere->u_shadow_transforms[4]), program, "u_shadow_transforms[4]");
+        ok &= shader_get_uniform_location(&(sphere->u_shadow_transforms[5]), program, "u_shadow_transforms[5]");
+        if (!ok) {
+            return false;
+        }
+        sphere->shadow_program = program;
+    } else {
+        sphere->color_program = program;
+    }
+
+    if (
+        || !shader_get_attrib_location(&(sphere->a_pos), program, "a_pos")
+        || !shader_get_uniform_location(&(sphere->u_model), program, "u_model")
+        || !shader_get_uniform_location(&(sphere->u_view), program, "u_view")
+        || !shader_get_uniform_location(&(sphere->u_proj), program, "u_proj")
+        || !shader_get_uniform_location(&(sphere->u_tess_lvl_inner), program, "u_tess_lvl_inner")
+        || !shader_get_uniform_location(&(sphere->u_tess_lvl_outer), program, "u_tess_lvl_outer")
+        || !shader_get_uniform_location(&(sphere->u_surface_noise_n_levels), program, "u_surface_noise_n_levels")
+        || !shader_get_uniform_location(&(sphere->u_surface_noise_freq_mult), program, "u_surface_noise_freq_mult")
+        || !shader_get_uniform_location(&(sphere->u_surface_noise_ampl_mult), program, "u_surface_noise_ampl_mult")
+        || !shader_get_uniform_location(&(sphere->u_surface_noise_freq_init), program, "u_surface_noise_freq_init")
+        || !shader_get_uniform_location(&(sphere->u_surface_noise_mult), program, "u_surface_noise_mult")
+        || !shader_get_uniform_location(&(sphere->u_view_pos), program, "u_view_pos")
+        || !shader_get_uniform_location(&(sphere->u_light_pos), program, "u_light_pos")
+        || !shader_get_uniform_location(&(sphere->u_diffuse_color), program, "u_diffuse_color")
+        || !shader_get_uniform_location(&(sphere->u_light_color), program, "u_light_color")
+        || !shader_get_uniform_location(&(sphere->u_ambient_weight), program, "u_ambient_weight")
+        || !shader_get_uniform_location(&(sphere->u_specular_power), program, "u_specular_power")
+        || !shader_get_uniform_location(&(sphere->u_with_shadows), program, "u_with_shadows")
+        || !shader_get_uniform_location(&(sphere->u_far), program, "u_far")
+    ) {
+        return false;
+    }
+
+    return true;
+}
+
+
 

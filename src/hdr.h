@@ -73,6 +73,7 @@ bool hdr_create_program(GLuint* program) {
         "./shaders/common/plane.vert",
         NULL,
         NULL,
+        NULL,
         "./shaders/postproc/hdr.frag",
         *program,
         1,

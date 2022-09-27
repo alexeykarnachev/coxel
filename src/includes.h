@@ -18,3 +18,4 @@
 #include "meshes.h"
 #include "sphere.h"
 #include "hdr.h"
+#include "point_shadows.h"
