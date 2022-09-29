@@ -2,12 +2,12 @@ LIBS=-lglfw3 -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lm
 # CFLAGS=-Wall -Wextra -std=c11 -Ideps
 CFLAGS=-std=c11 -Ideps
 
-all: coxel shadertoy
+all: demo shadertoy
 
-coxel coxel.c:
-	$(CC) $(CFLAGS) deps/glad.c src/coxel.c -o coxel $(LIBS)
+demo demo.c:
+	$(CC) $(CFLAGS) deps/glad.c src/demo/main.c -o demo $(LIBS)
 
 shadertoy shadertoy.c:
 	$(CC) $(CFLAGS) deps/glad.c src/shadertoy.c -o shadertoy $(LIBS)
 
-.PHONY: coxel shadertoy
+.PHONY: demo shadertoy

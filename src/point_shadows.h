@@ -32,8 +32,8 @@ void point_shadows_bind(PointShadows* point_shadows) {
 bool point_shadows_create_fbo(GLuint* fbo, GLuint* depth_cubemap, size_t scr_width, size_t scr_height) {
     glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *depth_cubemap, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
+    // glDrawBuffer(GL_NONE);
+    // glReadBuffer(GL_NONE);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         fprintf(stderr, "ERROR: point shadows framebuffer not complete\n");

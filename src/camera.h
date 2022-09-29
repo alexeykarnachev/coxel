@@ -66,7 +66,9 @@ Mat4 cam_get_view_mat(Camera* cam) {
         cam->pos.data[2] + cam->translation.data[2]
     } };
 
-    Mat4 veiw = get_view_mat(cam->view_dir, cam->up, &pos);
+    Mat3 rotation = mat3_rotation(cam->rotation.data[0], cam->rotation.data[1], 0.0f);
+    Vec3 view_dir = mat3_vec3_mul(&rotation, &cam->view_dir);
+    Mat4 view = get_view_mat(&view_dir, &cam->up, &pos);
     return view;
 }
 

@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    const char* vert_file_path = "./shaders/common/plane.vert";
+    const char* vert_file_path = "./shaders/vertex/plane.vert";
     const char* frag_file_path = argv[1];
     const char* globals_file_path = "./shaders/shadertoy/globals.glsl";
     const char* random_file_path = "./shaders/common/random.glsl";
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 
-    GLuint program;
+    Program program;
 
     GLuint vao;
     glCreateVertexArrays(1, &vao);
@@ -100,26 +100,25 @@ int main(int argc, char* argv[]) {
     float time;
     while (!glfwWindowShouldClose(window)) {
         if (is_file_modified(4, file_paths, &mod_time)) {
-            glDeleteProgram(program);
-            program = glCreateProgram();
-            shader_link_program(
+            program_create(
+                &program,
                 vert_file_path,
                 NULL,
                 NULL,
+                NULL,
                 frag_file_path,
-                program,
                 2,
                 deps_file_paths
             );
-            glUseProgram(program);
             printf("INFO: Shader program has been reloaded\n");
         }
         time = get_time_passed(&start_time);
 
         glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glUniform2f(glGetUniformLocation(program, "u_resolution"), SCR_WIDTH, SCR_HEIGHT);
-        glUniform1f(glGetUniformLocation(program, "u_time"), time);
+
+        program_set_uniform_2f(&program, "u_resolution", SCR_WIDTH, SCR_HEIGHT);
+        program_set_uniform_1f(&program, "u_time", time);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

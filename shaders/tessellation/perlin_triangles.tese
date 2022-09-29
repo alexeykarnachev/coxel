@@ -1,19 +1,26 @@
 # version 460 core
 
 layout(triangles, equal_spacing, ccw) in;
-in vec3 cs_pos[];
+
+in VertexData {
+    vec4 pos;
+} tese_in[];
 
 uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_proj;
+uniform bool u_is_sphere;
 
-uniform int   u_surface_noise_n_levels;
-uniform float u_surface_noise_freq_mult;
-uniform float u_surface_noise_ampl_mult;
-uniform float u_surface_noise_freq_init;
-uniform float u_surface_noise_mult;
+uniform int   u_surface_noise_n_levels = 6;
+uniform float u_surface_noise_freq_mult = 2.0;
+uniform float u_surface_noise_ampl_mult = 0.5;
+uniform float u_surface_noise_freq_init = 6.0;
+uniform float u_surface_noise_mult = 0.8;
 
-out vec4 frag_pos;
+out VertexData {
+    vec4 pos;
+} tese_out;
+
 
 float layered_perlin_noise3d(
     float x,
@@ -26,11 +33,14 @@ float layered_perlin_noise3d(
 );
 
 void main(void) {
-    vec3 p0 = gl_TessCoord.x * cs_pos[0];
-    vec3 p1 = gl_TessCoord.y * cs_pos[1];
-    vec3 p2 = gl_TessCoord.z * cs_pos[2];
+    vec3 p0 = gl_TessCoord.x * tese_in[0].pos.xyz;
+    vec3 p1 = gl_TessCoord.y * tese_in[1].pos.xyz;
+    vec3 p2 = gl_TessCoord.z * tese_in[2].pos.xyz;
+    vec3 p = p0 + p1 + p2;
 
-    vec3 p = normalize(p0 + p1 + p2);
+    if (u_is_sphere) {
+        p = normalize(p);
+    }
 
     if (u_surface_noise_mult > 0 && u_surface_noise_n_levels > 0) {
         float f = layered_perlin_noise3d(
@@ -45,7 +55,6 @@ void main(void) {
         p += p * u_surface_noise_mult * ((f * 2.0) - 1.0);
     }
 
-    vec4 pos = vec4(p, 1.0);
-    frag_pos = u_model * pos; 
-    gl_Position = u_proj * u_view * es_pos;
+    tese_out.pos = u_model * vec4(p, 1.0);
+    gl_Position = u_proj * u_view * tese_out.pos;
 }
