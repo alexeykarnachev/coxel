@@ -15,7 +15,7 @@
 #include "la.h"
 #include "camera.h"
 #include "meshes.h"
-// #include "sphere.h"
 #include "hdr.h"
 #include "model.h"
 #include "program.h"
+#include "point_shadows.h"
