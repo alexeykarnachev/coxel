@@ -6,14 +6,14 @@ in VertexData {
     vec4 pos;
 } tese_in[];
 
-uniform mat4 u_model;
 uniform mat4 u_view;
 uniform mat4 u_proj;
+uniform vec3 u_center;
 uniform bool u_is_sphere;
 
 uniform int   u_surface_noise_n_levels = 6;
 uniform float u_surface_noise_freq_mult = 2.0;
-uniform float u_surface_noise_ampl_mult = 0.5;
+uniform float u_surface_noise_ampl_mult = 0.1;
 uniform float u_surface_noise_freq_init = 6.0;
 uniform float u_surface_noise_mult = 0.8;
 
@@ -37,9 +37,10 @@ void main(void) {
     vec3 p1 = gl_TessCoord.y * tese_in[1].pos.xyz;
     vec3 p2 = gl_TessCoord.z * tese_in[2].pos.xyz;
     vec3 p = p0 + p1 + p2;
+    vec3 normal = normalize(p - u_center);
 
     if (u_is_sphere) {
-        p = normalize(p);
+        p = u_center + normal;
     }
 
     if (u_surface_noise_mult > 0 && u_surface_noise_n_levels > 0) {
@@ -52,9 +53,9 @@ void main(void) {
                 u_surface_noise_ampl_mult,
                 u_surface_noise_freq_init
         );
-        p += p * u_surface_noise_mult * ((f * 2.0) - 1.0);
+        p += normal * u_surface_noise_mult * ((f * 2.0) - 1.0);
     }
 
-    tese_out.pos = u_model * vec4(p, 1.0);
+    tese_out.pos = vec4(p, 1.0);
     gl_Position = u_proj * u_view * tese_out.pos;
 }
