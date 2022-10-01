@@ -1,15 +1,13 @@
 #version 460 core
 
-in vec3 a_pos;
-
-uniform mat4 u_model;
+in vec3 model_pos;
 
 out VertexData {
-    vec4 pos;
+    vec4 model_pos;
 } vs_out;
 
 
 void main() {
-    vs_out.pos = u_model * vec4(a_pos, 1.0);
-    gl_Position = vs_out.pos;
+    vs_out.model_pos = vec4(model_pos, 1.0);
+    gl_Position = vs_out.model_pos;
 }

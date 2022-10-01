@@ -277,7 +277,7 @@ Vec4 mat4_vec3_mul(Mat4* m, Vec3* v) {
     return mat4_vec4_mul(m, &h);
 }
 
-Mat4 get_model_mat(Vec3* scale, Vec3* rotation, Vec3* translation) {
+Mat4 get_world_mat(Vec3* scale, Vec3* rotation, Vec3* translation) {
     Mat3 scale_mat = {{
         scale->data[0], 0.0, 0.0,
         0.0, scale->data[1], 0.0,
@@ -290,14 +290,14 @@ Mat4 get_model_mat(Vec3* scale, Vec3* rotation, Vec3* translation) {
         rotation->data[2]
     );
     Mat3 rs_mat = mat3_mat3_mul(&scale_mat, &rotation_mat);
-    Mat4 model_mat = {{
+    Mat4 world_mat = {{
         rs_mat.data[0], rs_mat.data[1], rs_mat.data[2], translation->data[0],
         rs_mat.data[3], rs_mat.data[4], rs_mat.data[5], translation->data[1],
         rs_mat.data[6], rs_mat.data[7], rs_mat.data[8], translation->data[2],
         0.0f, 0.0f, 0.0f, 1.0f
     }};
 
-    return model_mat;
+    return world_mat;
 }
 
 Mat4 get_perspective_projection_mat(float fov, float near, float far, float aspect) {
@@ -386,3 +386,10 @@ Vec3 vec3_ones() {
     Vec3 vec = { {1.0, 1.0, 1.0} };
     return vec;
 }
+
+void mat4_pack(float data[], Mat4 mats[], size_t n_mats) {
+    for (size_t i = 0; i < n_mats; ++i) {
+        memcpy(&data[i * 16], mats[i].data, sizeof(mats[i].data[0]) * 16);
+    } 
+}
+

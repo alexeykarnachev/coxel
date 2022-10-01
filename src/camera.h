@@ -20,7 +20,7 @@ bool cam_create(Camera* cam) {
     
     cam->fov = 45.0f;
     cam->near = 0.1f;
-    cam->far = 1000000.0f;
+    cam->far = 1024.0f;
     cam->aspect = 1.777f;
     cam->rotation = rotation;
     cam->translation = translation;

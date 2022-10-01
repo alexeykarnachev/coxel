@@ -14,6 +14,7 @@ bool model_create(
 );
 
 void model_draw_patches(Model* model, size_t n_vertices);
+void model_draw_triangle_strips(Model* model, size_t n_vertices);
 
 bool model_create(
     Model* model,

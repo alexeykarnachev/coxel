@@ -34,17 +34,16 @@ bool program_create(
 
     GLuint gl_program = glCreateProgram();
     gl_link_program(
-            vert_file_path,
-            tesc_file_path,
-            tese_file_path,
-            geom_file_path,
-            frag_file_path,
-            gl_program,
-            n_deps,
-            deps_file_paths
+        vert_file_path,
+        tesc_file_path,
+        tese_file_path,
+        geom_file_path,
+        frag_file_path,
+        gl_program,
+        n_deps,
+        deps_file_paths
     );
 
-    glDeleteProgram(program->gl_program);
     program->gl_program = gl_program;
 }
 
