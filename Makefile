@@ -5,7 +5,7 @@ CFLAGS=-std=c11 -Ideps
 all: demo shadertoy
 
 demo demo.c:
-	$(CC) $(CFLAGS) deps/glad.c src/demo/main.c -o demo $(LIBS)
+	$(CC) $(CFLAGS) deps/glad.c src/sandbox/main.c -o demo $(LIBS)
 
 shadertoy shadertoy.c:
 	$(CC) $(CFLAGS) deps/glad.c src/shadertoy.c -o shadertoy $(LIBS)
