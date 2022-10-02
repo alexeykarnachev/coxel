@@ -75,12 +75,9 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    const char* vert_file_path = "./shaders/vertex/plane.vert";
     const char* frag_file_path = argv[1];
-    const char* globals_file_path = "./shaders/shadertoy/globals.glsl";
-    const char* random_file_path = "./shaders/common/random.glsl";
-    const char* deps_file_paths[2] = {globals_file_path, random_file_path};
-    const char* file_paths[4] = {vert_file_path, frag_file_path, globals_file_path, random_file_path};
+    const char* deps_file_paths[1] = {GLSL_RANDOM};
+    const char* file_paths[3] = {VERT_PLANE, frag_file_path, GLSL_RANDOM};
     printf("INFO: Rendering fragment shader: %s\n", frag_file_path);
 
     GLFWwindow *window = create_window();
@@ -88,7 +85,7 @@ int main(int argc, char* argv[]) {
     glEnable(GL_DEPTH_TEST);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
 
-    Program program;
+    GLuint program = glCreateProgram();
 
     GLuint vao;
     glCreateVertexArrays(1, &vao);
@@ -99,15 +96,15 @@ int main(int argc, char* argv[]) {
     time_t mod_time = 0;
     float time;
     while (!glfwWindowShouldClose(window)) {
-        if (is_file_modified(4, file_paths, &mod_time)) {
-            program_create(
-                &program,
-                vert_file_path,
+        if (is_file_modified(3, file_paths, &mod_time)) {
+            gl_link_program(
+                program,
+                VERT_PLANE,
                 NULL,
                 NULL,
                 NULL,
                 frag_file_path,
-                2,
+                1,
                 deps_file_paths
             );
             printf("INFO: Shader program has been reloaded\n");
@@ -117,8 +114,8 @@ int main(int argc, char* argv[]) {
         glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        program_set_uniform_2f(&program, "u_resolution", SCR_WIDTH, SCR_HEIGHT);
-        program_set_uniform_1f(&program, "u_time", time);
+        gl_set_program_uniform_2f(program, "u_resolution", SCR_WIDTH, SCR_HEIGHT);
+        gl_set_program_uniform_1f(program, "u_time", time);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 

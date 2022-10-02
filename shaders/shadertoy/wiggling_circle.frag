@@ -1,6 +1,9 @@
 #version 460 core
 
-in vec2 tex_pos;
+in VertexData {
+    vec4 proj_pos;
+    vec2 tex_pos;
+} fs_in;
 
 uniform vec2 u_resolution;
 uniform float u_time;
@@ -29,8 +32,8 @@ void main(void) {
 
     float z = u_time * 2.0;
     for (int i = 0; i < n_levels; ++i) {
-        float x = tex_pos.x * freq;
-        float y = tex_pos.y * freq;
+        float x = fs_in.tex_pos.x * freq;
+        float y = fs_in.tex_pos.y * freq;
         w += ampl * perlin_noise3d(x, y, z);
         ampl_sum += ampl;
         ampl *= ampl_mult;
@@ -39,6 +42,6 @@ void main(void) {
     vec2 center = vec2(0.5);
     float radius = 0.2 + w * 0.1;
     float line_width = 0.003;
-    color = vec4(get_circle_color(tex_pos, center, radius, line_width), 1.0);
+    color = vec4(get_circle_color(fs_in.tex_pos, center, radius, line_width), 1.0);
 }
 

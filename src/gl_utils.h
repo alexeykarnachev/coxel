@@ -1,3 +1,35 @@
+void gl_create_depth_buffer(GLuint* rbo, size_t width, size_t height);
+void gl_create_rgba16f_buffer(GLuint* tex, size_t width, size_t height);
+
+bool gl_link_program(
+    GLuint program,
+    const char* vert_file_path,
+    const char* tesc_file_path,
+    const char* tese_file_path,
+    const char* geom_file_path,
+    const char* frag_file_path,
+    const int n_deps,
+    const char* deps_file_paths[]
+);
+bool gl_compile_shader_file(
+        const char* file_path,
+        const char* deps_file_paths[],
+        const size_t n_deps,
+        GLenum shader_type,
+        GLuint* shader
+);
+
+bool gl_compile_shader_source(const GLchar* sources[], size_t n_sources, GLenum shader_type, GLuint* shader);
+bool gl_get_program_attrib_location(GLuint* loc, GLuint program, const char* name);
+bool gl_get_program_uniform_location(GLuint* loc, GLuint program, const char* name);
+bool gl_set_program_attribute(GLuint program, const char* name, size_t n_components, GLenum type);
+bool gl_set_program_uniform_1i(GLuint program, const char* name, GLint val);
+bool gl_set_program_uniform_1f(GLuint program, const char* name, GLfloat val);
+bool gl_set_program_uniform_2f(GLuint program, const char* name, GLfloat v1, GLfloat v2);
+bool gl_set_program_uniform_3fv(GLuint program, const char* name, GLfloat* data, size_t n_vectors);
+bool gl_set_program_uniform_matrix_4fv(GLuint program, const char* name, GLfloat* data, size_t n_matrices, GLboolean transpose);
+
+
 void gl_create_rgba16f_buffer(GLuint* tex, size_t width, size_t height) {
     glGenTextures(1, tex);
     glBindTexture(GL_TEXTURE_2D, *tex);
@@ -10,30 +42,6 @@ void gl_create_depth_buffer(GLuint* rbo, size_t width, size_t height) {
     glGenRenderbuffers(1, rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, *rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-}
-
-void gl_create_depth_cubemap(GLuint* tex, size_t width, size_t height) {
-    glGenTextures(1, tex);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, *tex);
-    for (unsigned int i = 0; i < 6; ++i) {
-        glTexImage2D(
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                0,
-                GL_DEPTH_COMPONENT,
-                width,
-                height,
-                0,
-                GL_DEPTH_COMPONENT,
-                GL_FLOAT,
-                NULL
-       );
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
 bool gl_compile_shader_source(const GLchar* sources[], size_t n_sources, GLenum shader_type, GLuint* shader) {
@@ -92,12 +100,12 @@ bool gl_compile_shader_file(
 }
 
 bool gl_link_program(
+    GLuint program,
     const char* vert_file_path,
     const char* tesc_file_path,
     const char* tese_file_path,
     const char* geom_file_path,
     const char* frag_file_path,
-    GLuint program,
     const int n_deps,
     const char* deps_file_paths[]
 ) {
@@ -185,6 +193,57 @@ bool gl_get_program_uniform_location(GLuint* loc, GLuint program, const char* na
         #endif
     }
 
+    return true;
+}
+
+bool gl_set_program_attribute(GLuint program, const char* name, size_t n_components, GLenum type) {
+    glUseProgram(program);
+
+    GLuint loc;
+    if (!gl_get_program_attrib_location(&loc, program, name)) {
+        return false;
+    }
+
+    glEnableVertexAttribArray(loc);
+    glVertexAttribPointer(loc, n_components, type, GL_FALSE, 0, 0);
+
+    return true;
+}
+
+#define _GET_UNIFORM_LOC \
+            glUseProgram(program);\
+            GLuint loc;\
+            if (!gl_get_program_uniform_location(&loc, program, name)) {\
+                return false;\
+            }\
+
+bool gl_set_program_uniform_1i(GLuint program, const char* name, GLint val) {
+    _GET_UNIFORM_LOC
+    glUniform1i(loc, val);
+    return true;
+}
+
+bool gl_set_program_uniform_1f(GLuint program, const char* name, GLfloat val) {
+    _GET_UNIFORM_LOC
+    glUniform1f(loc, val);
+    return true;
+}
+
+bool gl_set_program_uniform_2f(GLuint program, const char* name, GLfloat v1, GLfloat v2) {
+    _GET_UNIFORM_LOC
+    glUniform2f(loc, v1, v2);
+    return true;
+}
+
+bool gl_set_program_uniform_3fv(GLuint program, const char* name, GLfloat* data, size_t n_vectors) {
+    _GET_UNIFORM_LOC
+    glUniform3fv(loc, n_vectors, data);
+    return true;
+}
+
+bool gl_set_program_uniform_matrix_4fv(GLuint program, const char* name, GLfloat* data, size_t n_matrices, GLboolean transpose) {
+    _GET_UNIFORM_LOC
+    glUniformMatrix4fv(loc, n_matrices, transpose, data);
     return true;
 }
 

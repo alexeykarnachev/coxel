@@ -70,12 +70,12 @@ bool hdr_create_program(GLuint* program) {
     const char* hdr_file_path = "./shaders/common/hdr.glsl"; 
     const char* deps_file_paths[1] = {hdr_file_path};
     bool is_linked = gl_link_program(
+        *program,
         "./shaders/common/plane.vert",
         NULL,
         NULL,
         NULL,
         "./shaders/postproc/hdr.frag",
-        *program,
         1,
         deps_file_paths
     );

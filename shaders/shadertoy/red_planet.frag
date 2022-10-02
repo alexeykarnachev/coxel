@@ -1,6 +1,9 @@
 #version 460 core
 
-in vec2 tex_pos;
+in VertexData {
+    vec4 proj_pos;
+    vec2 tex_pos;
+} fs_in;
 
 uniform vec2 u_resolution;
 uniform float u_time;
@@ -25,7 +28,7 @@ float get_z(vec2 pos, float radius) {
 
 void main(void) {
     
-    vec2 p = tex_pos - 0.5;
+    vec2 p = fs_in.tex_pos - 0.5;
     float r = 0.4;
     float z = get_z(p, r);
     float u = u_time;

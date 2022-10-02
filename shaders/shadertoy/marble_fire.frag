@@ -1,6 +1,9 @@
 #version 460 core
 
-in vec2 tex_pos;
+in VertexData {
+    vec4 proj_pos;
+    vec2 tex_pos;
+} fs_in;
 
 uniform vec2 u_resolution;
 uniform float u_time;
@@ -18,8 +21,8 @@ void main(void) {
     float total_ampl = 0;
     float w = 0;
     for (int i = 0; i < n_levels; ++i) {
-        float x = tex_pos.x * freq;
-        float y = tex_pos.y * freq;
+        float x = fs_in.tex_pos.x * freq;
+        float y = fs_in.tex_pos.y * freq;
         float z = u_time / 4.0;
         w += ampl * noise3d(x, y, z);
         total_ampl += ampl;
@@ -28,9 +31,9 @@ void main(void) {
     }
 
     w /= total_ampl;
-    w = ((1.0 + sin(tex_pos.x * 2.0 * PI + w * 4.0 + tex_pos.y * w * 5.0)) * 0.5 + (1.0 + sin(u_time * 2.0)) * 0.5) / 2.0;
-    float r = (1.0 - tex_pos.y) * w + w * (1.0 - tex_pos.y) + 0.2 * (1.0 + sin(u_time)) * (1.0 - tex_pos.y);
-    float g = sign(w) * pow(w, 2.0) - tex_pos.y;
-    float b = (tex_pos.y) * (1.0 - w);
+    w = ((1.0 + sin(fs_in.tex_pos.x * 2.0 * PI + w * 4.0 + fs_in.tex_pos.y * w * 5.0)) * 0.5 + (1.0 + sin(u_time * 2.0)) * 0.5) / 2.0;
+    float r = (1.0 - fs_in.tex_pos.y) * w + w * (1.0 - fs_in.tex_pos.y) + 0.2 * (1.0 + sin(u_time)) * (1.0 - fs_in.tex_pos.y);
+    float g = sign(w) * pow(w, 2.0) - fs_in.tex_pos.y;
+    float b = (fs_in.tex_pos.y) * (1.0 - w);
     color = vec4(r, g, b, 1.0);
 }
