@@ -18,4 +18,3 @@
 #include "hdr.h"
 #include "model.h"
 #include "program.h"
-#include "point_shadows.h"

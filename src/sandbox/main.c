@@ -128,7 +128,7 @@ int main(void) {
     glCullFace(GL_BACK);
 
     while (!glfwWindowShouldClose(window)) {
-        glClearColor(0.8, 0.1, 0.1, 1.0);
+        glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(sphere_program.gl_program);
