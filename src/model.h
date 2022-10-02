@@ -45,13 +45,24 @@ bool model_create(
     model->ebo = ebo;
     model->n_elements = faces_size / sizeof(faces[0]);
 
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
     return true;
 }
 
 void model_draw_patches(Model* model, size_t n_vertices) {
     glPatchParameteri(GL_PATCH_VERTICES, n_vertices);
     glBindVertexArray(model->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, model->vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->ebo);
     glDrawElements(GL_PATCHES, model->n_elements, GL_UNSIGNED_BYTE, 0);
 }
 
+void model_draw_triangles(Model* model) {
+    glBindVertexArray(model->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, model->vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->ebo);
+    glDrawElements(GL_TRIANGLES, model->n_elements, GL_UNSIGNED_BYTE, 0);
+}

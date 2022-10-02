@@ -4,8 +4,8 @@ in VertexData {
     vec4 model_pos;
 } tesc_in[];
 
-layout(location = 1) uniform float u_tess_lvl_inner = 32.0;
-layout(location = 2) uniform float u_tess_lvl_outer = 32.0;
+layout(location = 1) uniform float u_tess_lvl_inner = 12.0;
+layout(location = 2) uniform float u_tess_lvl_outer = 12.0;
 layout(vertices = 3) out;
 
 out VertexData {

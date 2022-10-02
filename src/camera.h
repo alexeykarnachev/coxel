@@ -18,7 +18,7 @@ bool cam_create(Camera* cam) {
     Vec3 view_dir = { {0.0, 0.0, -1.0} };
     Vec3 pos = { {0.0f, 0.0f, 0.0f} };
     
-    cam->fov = 45.0f;
+    cam->fov = deg2rad(45.0);
     cam->near = 0.1f;
     cam->far = 1024.0f;
     cam->aspect = 1.777f;

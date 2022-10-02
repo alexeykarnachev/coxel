@@ -14,6 +14,11 @@ typedef struct Mat4 {
     float data[16];
 } Mat4;
 
+void mat4_print(Mat4* m);
+void mat3_print(Mat3* m);
+void vec3_print(Vec3* v);
+void vec4_print(Vec4* v);
+
 Vec3 vec3_pos_x = {{1.0, 0.0, 0.0}};
 Vec3 vec3_neg_x = {{-1.0, 0.0, 0.0}};
 Vec3 vec3_pos_y = {{0.0, 1.0, 0.0}};
@@ -238,8 +243,8 @@ Mat3 mat3_rotation(float xa, float ya, float za) {
     Mat3 y_r = mat3_get_y_rotation(ya);
     Mat3 z_r = mat3_get_z_rotation(za);
 
-    Mat3 r1 = mat3_mat3_mul(&z_r, &y_r);
-    Mat3 m = mat3_mat3_mul(&r1, &x_r);
+    Mat3 r1 = mat3_mat3_mul(&y_r, &x_r);
+    Mat3 m = mat3_mat3_mul(&z_r, &r1);
 
     return m;
 }

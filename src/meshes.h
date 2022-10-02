@@ -36,3 +36,10 @@ const float ICOSAHEDRON_VERTS[] = {
      0.000f,  0.000f, -1.000f
 };
 
+const unsigned char PLANE_FACES[] = {2, 1, 0, 3, 2, 0};
+const float PLANE_VERTS[] = {
+     -0.5f,  -0.5f,  0.0f,
+     -0.5f,  0.5f,  0.0f,
+     0.5f,  0.5f,  0.0f,
+     0.5f,  -0.5f,  0.0f
+};
