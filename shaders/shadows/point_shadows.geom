@@ -3,13 +3,21 @@
 layout (triangles) in;
 in VertexData {
     vec4 model_pos;
+    vec4 world_pos;
+    vec4 proj_pos;
+    vec4 light_pos;
+    vec2 tex_pos;
 } gs_in[];
 
-uniform mat4 vp_light_mats[6];
+uniform mat4 light_vp_mats[6];
 
 layout (triangle_strip, max_vertices=18) out;
 out VertexData {
     vec4 model_pos;
+    vec4 world_pos;
+    vec4 proj_pos;
+    vec4 light_pos;
+    vec2 tex_pos;
 } gs_out;
 
 void main() {
@@ -17,7 +25,11 @@ void main() {
         for(int i = 0; i < 3; ++i) {
             gl_Layer = face;
             gs_out.model_pos = gs_in[i].model_pos;
-            gl_Position = vp_light_mats[face] * gs_out.model_pos;
+            gs_out.world_pos = gs_in[i].world_pos;
+            gs_out.proj_pos = gs_in[i].proj_pos;
+            gs_out.light_pos = gs_in[i].light_pos;
+            gs_out.tex_pos = gs_in[i].tex_pos;
+            gl_Position = light_vp_mats[face] * gs_out.world_pos;
             EmitVertex();
         }    
         EndPrimitive();

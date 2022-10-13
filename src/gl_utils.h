@@ -1,5 +1,7 @@
-void gl_create_depth_buffer(GLuint* rbo, size_t width, size_t height);
-void gl_create_rgba16f_buffer(GLuint* tex, size_t width, size_t height);
+void gl_create_depth_rbo(GLuint* rbo, size_t width, size_t height);
+void gl_create_rgba16f_tex(GLuint* tex, size_t width, size_t height);
+bool gl_create_fbo_with_2d_depth_tex(GLuint* fbo, GLuint* tex, size_t width, size_t height);
+bool gl_create_fbo_with_cube_tex(GLuint* fbo, GLuint* tex, size_t width, size_t height);
 
 bool gl_link_program(
     GLuint program,
@@ -29,19 +31,71 @@ bool gl_set_program_uniform_2f(GLuint program, const char* name, GLfloat v1, GLf
 bool gl_set_program_uniform_3fv(GLuint program, const char* name, GLfloat* data, size_t n_vectors);
 bool gl_set_program_uniform_matrix_4fv(GLuint program, const char* name, GLfloat* data, size_t n_matrices, GLboolean transpose);
 
+#define _CHECK_FRAMEBUFFER \
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {\
+                fprintf(stderr, "ERROR: framebuffer not complete\n");\
+                return false;\
+            }\
 
-void gl_create_rgba16f_buffer(GLuint* tex, size_t width, size_t height) {
+bool gl_create_fbo_with_2d_depth_tex(GLuint* fbo, GLuint* tex, size_t width, size_t height) {
+    glGenFramebuffers(1, fbo);
+    glGenTextures(1, tex);
+    
+    glBindTexture(GL_TEXTURE_2D, *tex);
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, *tex, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    _CHECK_FRAMEBUFFER
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+bool gl_create_fbo_with_cube_tex(GLuint* fbo, GLuint* tex, size_t width, size_t height) {
+    glGenFramebuffers(1, fbo);
+    glGenTextures(1, tex);
+    
+    glBindTexture(GL_TEXTURE_CUBE_MAP, *tex);
+    for (size_t i = 0; i < 6; ++i) {
+        glTexImage2D(
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, *tex, 0);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glReadBuffer(GL_NONE);
+    _CHECK_FRAMEBUFFER
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void gl_create_depth_rbo(GLuint* rbo, size_t width, size_t height) {
+    glGenRenderbuffers(1, rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, *rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+}
+
+void gl_create_rgba16f_tex(GLuint* tex, size_t width, size_t height) {
     glGenTextures(1, tex);
     glBindTexture(GL_TEXTURE_2D, *tex);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-}
-
-void gl_create_depth_buffer(GLuint* rbo, size_t width, size_t height) {
-    glGenRenderbuffers(1, rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, *rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 }
 
 bool gl_compile_shader_source(const GLchar* sources[], size_t n_sources, GLenum shader_type, GLuint* shader) {

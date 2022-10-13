@@ -1,10 +1,10 @@
 typedef struct HDR {
     GLuint fbo;
-    GLuint rgba16f_buffer;
+    GLuint rgba16f_tex;
     GLuint program;
 } HDR;
 
-bool hdr_create_fbo(GLuint* fbo, GLuint* rgba16f_buffer, size_t scr_width, size_t scr_height);
+bool hdr_create_fbo(GLuint* fbo, GLuint* rgba16f_tex, size_t scr_width, size_t scr_height);
 bool hdr_create_program(GLuint* program);
 bool hdr_create(HDR* hdr, size_t scr_width, size_t scr_height);
 void hdr_bind(HDR* hdr);
@@ -14,18 +14,18 @@ bool hdr_create(HDR* hdr, size_t scr_width, size_t scr_height) {
     memset(hdr, 0, sizeof(*hdr));
 
     GLuint fbo;
-    GLuint rgba16f_buffer;
+    GLuint rgba16f_tex;
     GLuint program = glCreateProgram();
 
     if (
-        !hdr_create_fbo(&fbo, &rgba16f_buffer, scr_width, scr_height)
+        !hdr_create_fbo(&fbo, &rgba16f_tex, scr_width, scr_height)
         || !hdr_create_program(&program)
     ) {
         return false;
     }
 
     hdr->fbo = fbo;
-    hdr->rgba16f_buffer = rgba16f_buffer;
+    hdr->rgba16f_tex = rgba16f_tex;
     hdr->program = program;
     return true;
 }
@@ -41,19 +41,19 @@ void hdr_draw(HDR* hdr, GLuint fbo) {
 
     glUseProgram(hdr->program);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, hdr->rgba16f_buffer);
+    glBindTexture(GL_TEXTURE_2D, hdr->rgba16f_tex);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-bool hdr_create_fbo(GLuint* fbo, GLuint* rgba16f_buffer, size_t scr_width, size_t scr_height) {
+bool hdr_create_fbo(GLuint* fbo, GLuint* rgba16f_tex, size_t scr_width, size_t scr_height) {
     GLuint depth_buffer;
 
     glGenFramebuffers(1, fbo);
-    gl_create_rgba16f_buffer(rgba16f_buffer, scr_width, scr_height);
-    gl_create_depth_buffer(&depth_buffer, scr_width, scr_height);
+    gl_create_rgba16f_tex(rgba16f_tex, scr_width, scr_height);
+    gl_create_depth_rbo(&depth_buffer, scr_width, scr_height);
 
     glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *rgba16f_buffer, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, *rgba16f_tex, 0);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_buffer);
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {

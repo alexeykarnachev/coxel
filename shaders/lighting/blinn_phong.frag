@@ -8,29 +8,28 @@ in VertexData {
     vec2 tex_pos;
 } fs_in;
 
+uniform float far;
 uniform vec3 eye_world_pos;
-uniform vec3 light_world_pos = vec3(0.0, 4.0, 0.0);
-uniform vec3 diffuse_color = vec3(0.8, 0.8, 0.8);
-uniform vec3 light_color = vec3(200.0);
+uniform vec3 light_world_pos;
+uniform vec3 diffuse_color = vec3(0.3, 0.3, 0.3);
+uniform vec3 light_color = vec3(300.0);
 uniform bool with_shadows = false;
-uniform sampler2D shadow_tex;
+uniform samplerCube shadow_tex;
 
 uniform float ambient_weight = 0.0005;
-uniform float specular_power = 128.0;
+uniform float specular_power = 256.0;
 
 out vec4 frag_color;
 
 float get_shadow() {
-    vec3 pos = fs_in.light_pos.xyz / fs_in.light_pos.w;
-    pos = pos * 0.5 + 0.5;
-    float current_depth = pos.z;
-    float closest_depth = texture(shadow_tex, pos.xy).r; 
-    float bias = 0.005;
-    float shadow = current_depth - bias > closest_depth ? 1.0 : 0.0;
-
-    return shadow;
+    vec3 frag_to_light = normalize(fs_in.world_pos.xyz - light_world_pos);
+    float curr_depth = length(frag_to_light);
+    float closest_depth = texture(shadow_tex, frag_to_light).r * far;
+    float bias = 0.1;
+    float shadow = curr_depth - bias > closest_depth ? 1.0 : 0.0;
+    // return shadow;
+    return closest_depth / far;
 }
-
 
 void main() {
     vec3 world_pos = fs_in.world_pos.xyz;
@@ -53,9 +52,10 @@ void main() {
     vec3 specular = specular_weight * light_color / light_dist;
 
     // Shadows:
-    float shadow = with_shadows ? get_shadow() : 0.0;
+    frag_color = vec4(1.0 - get_shadow());
+    // float shadow = with_shadows ? get_shadow() : 0.0;
 
-    // Combined:
-    vec3 color = (ambient +  (1.0 - shadow) * (diffuse + specular)) * diffuse_color;
-    frag_color = vec4(color, 1.0);
+    // // Combined:
+    // vec3 color = (ambient +  (1.0 - shadow) * (diffuse + specular)) * diffuse_color;
+    // frag_color = vec4(color, 1.0);
 }

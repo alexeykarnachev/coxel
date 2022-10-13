@@ -6,7 +6,7 @@ static size_t SCR_HEIGHT = 1080;
 static size_t SHADOW_WIDTH = 1024;
 static size_t SHADOW_HEIGHT = 1024;
 static size_t SHADOW_NEAR = 1.0;
-static size_t SHADOW_FAR = 1000.0;
+static size_t SHADOW_FAR = 20.0;
 static float SIDE_TRANSLATION_SENS = 10.0;
 static float FORWARD_TRANSLATION_SENS = 1.0;
 static float ROTATION_SENS = 1.0;
@@ -98,13 +98,13 @@ int main(void) {
     GLFWwindow *window = create_window();
 
     GLuint sphere_material_program = glCreateProgram();
-    GLuint plane_material_program = glCreateProgram();
     GLuint sphere_shadow_program = glCreateProgram();
+    GLuint plane_material_program = glCreateProgram();
     const char* deps_file_paths[] = {GLSL_RANDOM};
 
     gl_link_program(
         sphere_material_program,
-        VERT_MODEL_SPACE, TESC_TRIANGLES, TESE_PERLIN_TRIANGLES, NULL, FRAG_BLINN_PHONG, 1, deps_file_paths);
+        VERT_MODEL_SPACE, TESC_TRIANGLE, TESE_PERLIN_TRIANGLES, NULL, FRAG_BLINN_PHONG, 1, deps_file_paths);
 
     gl_link_program(
         plane_material_program,
@@ -112,42 +112,37 @@ int main(void) {
 
     gl_link_program(
         sphere_shadow_program,
-        VERT_MODEL_SPACE, TESC_TRIANGLES, TESE_PERLIN_TRIANGLES, NULL, FRAG_EMPTY, 1, deps_file_paths);
+        VERT_MODEL_SPACE, TESC_TRIANGLE, TESE_PERLIN_TRIANGLES, GEOM_POINT_SHADOWS, FRAG_SHADOWS_DEPTH, 1, deps_file_paths);
 
     GLuint shadow_fbo;
     GLuint shadow_tex;
-    glGenFramebuffers(1, &shadow_fbo);
-    glGenTextures(1, &shadow_tex);
-    glBindTexture(GL_TEXTURE_2D, shadow_tex);
-    glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_tex, 0);
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        fprintf(stderr, "ERROR: shadow framebuffer not complete\n");
-        return false;
+    gl_create_fbo_with_cube_tex(&shadow_fbo, &shadow_tex, SHADOW_WIDTH, SHADOW_HEIGHT);
+
+    Vec3 light_world_pos = {{ 0.0, 2.0, 2.0 }};
+    Mat4 light_proj_mat = get_perspective_projection_mat(
+        deg2rad(90.0), SHADOW_NEAR, SHADOW_FAR, SHADOW_WIDTH / SHADOW_HEIGHT);
+
+    Mat4 light_view_mats[6];
+    Mat4 light_vp_mats[6];
+    light_view_mats[0] = get_view_mat(&vec3_pos_x, &vec3_neg_y, &light_world_pos);
+    light_view_mats[1] = get_view_mat(&vec3_neg_x, &vec3_neg_y, &light_world_pos);
+    light_view_mats[2] = get_view_mat(&vec3_pos_y, &vec3_pos_z, &light_world_pos);
+    light_view_mats[3] = get_view_mat(&vec3_neg_y, &vec3_neg_z, &light_world_pos);
+    light_view_mats[4] = get_view_mat(&vec3_pos_z, &vec3_neg_y, &light_world_pos);
+    light_view_mats[5] = get_view_mat(&vec3_neg_z, &vec3_neg_y, &light_world_pos);
+    for (size_t i = 0; i < 6; ++i) {
+        light_vp_mats[i] = mat4_mat4_mul(&light_proj_mat, &light_view_mats[i]);
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    Vec3 light_world_pos = {{ 0.0, 2.0, 2.0 }};
-    Mat4 light_view_mat = get_view_mat(&vec3_neg_z, &vec3_pos_y, &light_world_pos);
-    Mat4 light_proj_mat = get_perspective_projection_mat(
-        90.0, SHADOW_NEAR, SHADOW_FAR, SHADOW_WIDTH / SHADOW_HEIGHT);
     Vec3 sphere_center_model_pos = {{ 0.0, 0.0, 0.0 }};
     Vec3 sphere_scale = {{ 1.0, 1.0, 1.0 }};
     Vec3 sphere_rotation = {{ 0.0, 0.0, 0.0 }};
-    Vec3 sphere_translation = {{ 0.0, 0.0, -5.0 }};
+    Vec3 sphere_translation = {{ 0.0, 0.0, -4.0 }};
     Mat4 sphere_world_mat = get_world_mat(&sphere_scale, &sphere_rotation, &sphere_translation);
 
     Vec3 plane_scale = {{ 10.0, 10.0, 10.0 }};
     Vec3 plane_rotation = {{ 0.0, 0.0, 0.0 }};
-    Vec3 plane_translation = {{ 0.0, 0.0, -7.0 }};
+    Vec3 plane_translation = {{ 0.0, 0.0, -10.0 }};
     Mat4 plane_world_mat = get_world_mat(&plane_scale, &plane_rotation, &plane_translation);
 
     Model sphere_model;
@@ -159,28 +154,33 @@ int main(void) {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window)) {
         cam_update();
 
         glBindFramebuffer(GL_FRAMEBUFFER, shadow_fbo);
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glClear(GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(sphere_shadow_program);
         gl_set_program_attribute(sphere_shadow_program, "model_pos", 3, GL_FLOAT);
         gl_set_program_uniform_matrix_4fv(sphere_shadow_program, "world_mat", sphere_world_mat.data, 1, GL_TRUE);
-        gl_set_program_uniform_matrix_4fv(sphere_shadow_program, "view_mat", light_view_mat.data, 1, GL_TRUE);
-        gl_set_program_uniform_matrix_4fv(sphere_shadow_program, "proj_mat", light_proj_mat.data, 1, GL_TRUE);
+        gl_set_program_uniform_matrix_4fv(sphere_shadow_program, "light_vp_mats[0]", light_vp_mats[0].data, 1, GL_TRUE);
+        gl_set_program_uniform_matrix_4fv(sphere_shadow_program, "light_vp_mats[1]", light_vp_mats[1].data, 1, GL_TRUE);
+        gl_set_program_uniform_matrix_4fv(sphere_shadow_program, "light_vp_mats[2]", light_vp_mats[2].data, 1, GL_TRUE);
+        gl_set_program_uniform_matrix_4fv(sphere_shadow_program, "light_vp_mats[3]", light_vp_mats[3].data, 1, GL_TRUE);
+        gl_set_program_uniform_matrix_4fv(sphere_shadow_program, "light_vp_mats[4]", light_vp_mats[4].data, 1, GL_TRUE);
+        gl_set_program_uniform_matrix_4fv(sphere_shadow_program, "light_vp_mats[5]", light_vp_mats[5].data, 1, GL_TRUE);
+        gl_set_program_uniform_3fv(sphere_shadow_program, "light_world_pos", light_world_pos.data, 1);
         gl_set_program_uniform_3fv(sphere_shadow_program, "center_model_pos", sphere_center_model_pos.data, 1);
+        gl_set_program_uniform_1f(sphere_shadow_program, "far", SHADOW_FAR);
         model_draw_patches(&sphere_model, 3);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
         glActiveTexture(0);
-        glBindTexture(GL_TEXTURE_2D, shadow_tex);
-        glClearColor(0.8, 0.0, 0.0, 1.0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, shadow_tex);
+        glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUseProgram(sphere_material_program);
@@ -188,25 +188,23 @@ int main(void) {
         gl_set_program_uniform_matrix_4fv(sphere_material_program, "world_mat", sphere_world_mat.data, 1, GL_TRUE);
         gl_set_program_uniform_matrix_4fv(sphere_material_program, "view_mat", CAM_VIEW_MAT.data, 1, GL_TRUE);
         gl_set_program_uniform_matrix_4fv(sphere_material_program, "proj_mat", CAM_PROJ_MAT.data, 1, GL_TRUE);
-        gl_set_program_uniform_matrix_4fv(sphere_material_program, "light_view_mat", light_view_mat.data, 1, GL_TRUE);
-        gl_set_program_uniform_matrix_4fv(sphere_material_program, "light_proj_mat", light_proj_mat.data, 1, GL_TRUE);
         gl_set_program_uniform_3fv(sphere_material_program, "center_model_pos", sphere_center_model_pos.data, 1);
+        gl_set_program_uniform_1f(sphere_material_program, "far", SHADOW_FAR);
         gl_set_program_uniform_3fv(sphere_material_program, "light_world_pos", light_world_pos.data, 1);
         gl_set_program_uniform_3fv(sphere_material_program, "eye_world_pos", CAMERA.translation.data, 1);
         gl_set_program_uniform_1i(sphere_material_program, "with_shadows", 1);
         model_draw_patches(&sphere_model, 3);
 
-        glUseProgram(plane_material_program);
-        gl_set_program_attribute(plane_material_program, "model_pos", 3, GL_FLOAT);
-        gl_set_program_uniform_matrix_4fv(plane_material_program, "world_mat", plane_world_mat.data, 1, GL_TRUE);
-        gl_set_program_uniform_matrix_4fv(plane_material_program, "view_mat", CAM_VIEW_MAT.data, 1, GL_TRUE);
-        gl_set_program_uniform_matrix_4fv(plane_material_program, "proj_mat", CAM_PROJ_MAT.data, 1, GL_TRUE);
-        gl_set_program_uniform_matrix_4fv(plane_material_program, "light_view_mat", light_view_mat.data, 1, GL_TRUE);
-        gl_set_program_uniform_matrix_4fv(plane_material_program, "light_proj_mat", light_proj_mat.data, 1, GL_TRUE);
-        gl_set_program_uniform_3fv(plane_material_program, "light_world_pos", light_world_pos.data, 1);
-        gl_set_program_uniform_3fv(plane_material_program, "eye_world_pos", CAMERA.translation.data, 1);
-        gl_set_program_uniform_1i(plane_material_program, "with_shadows", 1);
-        model_draw_triangles(&plane_model);
+        // glUseProgram(plane_material_program);
+        // gl_set_program_attribute(plane_material_program, "model_pos", 3, GL_FLOAT);
+        // gl_set_program_uniform_matrix_4fv(plane_material_program, "world_mat", plane_world_mat.data, 1, GL_TRUE);
+        // gl_set_program_uniform_matrix_4fv(plane_material_program, "view_mat", CAM_VIEW_MAT.data, 1, GL_TRUE);
+        // gl_set_program_uniform_matrix_4fv(plane_material_program, "proj_mat", CAM_PROJ_MAT.data, 1, GL_TRUE);
+        // gl_set_program_uniform_1f(plane_material_program, "far", SHADOW_FAR);
+        // gl_set_program_uniform_3fv(plane_material_program, "light_world_pos", light_world_pos.data, 1);
+        // gl_set_program_uniform_3fv(plane_material_program, "eye_world_pos", CAMERA.translation.data, 1);
+        // gl_set_program_uniform_1i(plane_material_program, "with_shadows", 1);
+        // model_draw_triangles(&plane_model);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

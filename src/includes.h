@@ -3,11 +3,14 @@
 #define rad2deg(r) ((r) * 180.0 / PI)
 
 const char* VERT_MODEL_SPACE = "./shaders/space/model.vert";
+const char* VERT_WORLD_SPACE = "./shaders/space/world.vert";
 const char* VERT_PROJ_SPACE = "./shaders/space/proj.vert";
 const char* VERT_PLANE = "./shaders/space/plane.vert";
-const char* TESC_TRIANGLES = "./shaders/tessellation/triangles.tesc";
+const char* TESC_TRIANGLE = "./shaders/tessellation/triangle.tesc";
 const char* TESE_PERLIN_TRIANGLES = "./shaders/tessellation/perlin_triangles.tese";
+const char* GEOM_POINT_SHADOWS = "./shaders/shadows/point_shadows.geom";
 const char* FRAG_BLINN_PHONG = "./shaders/lighting/blinn_phong.frag";
+const char* FRAG_SHADOWS_DEPTH = "./shaders/shadows/shadows_depth.frag";
 const char* FRAG_EMPTY = "./shaders/common/empty.frag";
 const char* GLSL_RANDOM = "./shaders/common/random.glsl";
 
