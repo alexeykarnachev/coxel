@@ -22,13 +22,12 @@ uniform float specular_power = 256.0;
 out vec4 frag_color;
 
 float get_shadow() {
-    vec3 frag_to_light = normalize(fs_in.world_pos.xyz - light_world_pos);
+    vec3 frag_to_light = fs_in.world_pos.xyz - light_world_pos;
     float curr_depth = length(frag_to_light);
     float closest_depth = texture(shadow_tex, frag_to_light).r * far;
-    float bias = 0.1;
+    float bias = 0.05;
     float shadow = curr_depth - bias > closest_depth ? 1.0 : 0.0;
-    // return shadow;
-    return closest_depth / far;
+    return shadow;
 }
 
 void main() {
@@ -52,10 +51,9 @@ void main() {
     vec3 specular = specular_weight * light_color / light_dist;
 
     // Shadows:
-    frag_color = vec4(1.0 - get_shadow());
-    // float shadow = with_shadows ? get_shadow() : 0.0;
+    float shadow = with_shadows ? get_shadow() : 0.0;
 
-    // // Combined:
-    // vec3 color = (ambient +  (1.0 - shadow) * (diffuse + specular)) * diffuse_color;
-    // frag_color = vec4(color, 1.0);
+    // Combined:
+    vec3 color = (ambient +  (1.0 - shadow) * (diffuse + specular)) * diffuse_color;
+    frag_color = vec4(color, 1.0);
 }
