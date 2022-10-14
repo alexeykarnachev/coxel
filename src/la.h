@@ -383,13 +383,23 @@ void vec4_print(Vec4* v) {
 }
 
 Vec3 vec3_zeros() {
-    Vec3 vec = { {0.0, 0.0, 0.0} };
+    Vec3 vec = {{0.0f, 0.0f, 0.0f}};
     return vec;
 }
 
 Vec3 vec3_ones() {
-    Vec3 vec = { {1.0, 1.0, 1.0} };
+    Vec3 vec = {{1.0f, 1.0f, 1.0f}};
     return vec;
+}
+
+Mat4 mat4_identity() {
+    Mat4 mat = {
+        {1.0f, 0.0f, 0.0f, 0.0f},
+        {0.0f, 1.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f, 1.0f},
+    };
+    return mat;
 }
 
 void mat4_pack(float data[], Mat4 mats[], size_t n_mats) {

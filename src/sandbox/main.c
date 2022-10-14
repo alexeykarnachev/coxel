@@ -147,9 +147,8 @@ int main(void) {
 
     Model sphere_model;
     Model plane_model;
-    model_create(
-        &sphere_model, ICOSAHEDRON_FACES, sizeof(ICOSAHEDRON_FACES), ICOSAHEDRON_VERTS, sizeof(ICOSAHEDRON_VERTS));
-    model_create(&plane_model, PLANE_FACES, sizeof(PLANE_FACES), PLANE_VERTS, sizeof(PLANE_VERTS));
+    model_create(&sphere_model, ICOSAHEDRON_FACES, ICOSAHEDRON_VERTS);
+    model_create(&plane_model, PLANE_FACES, PLANE_VERTS);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
