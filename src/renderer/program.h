@@ -1,3 +1,4 @@
+bool program_create_material(GLuint program);
 bool program_create(
     GLuint program,
     const char* vert_file_path,
@@ -26,60 +27,12 @@ bool program_set_uniform_3fv(GLuint program, const char* name, GLfloat* data, si
 bool program_set_uniform_matrix_4fv(
         GLuint program, const char* name, GLfloat* data, size_t n_matrices, GLboolean transpose);
 
+static const char* VERT_PROJECTION_SHADER = "./assets/shaders/projection.vert";
+static const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
 
-bool program_compile_source(const GLchar* sources[], size_t n_sources, GLenum shader_type, GLuint* shader) {
-    *shader = glCreateShader(shader_type);
-    glShaderSource(*shader, n_sources, sources, NULL);
-    glCompileShader(*shader);
 
-    GLint is_compiled;
-    glGetShaderiv(*shader, GL_COMPILE_STATUS, &is_compiled);
-    if (is_compiled != GL_TRUE) {
-        GLchar message[1024];
-        GLsizei message_size = 0;
-        glGetShaderInfoLog(*shader, sizeof(message), &message_size, message);
-        fprintf(stderr, "ERROR: failed to compile the shader source %s\n", message);
-        return false;
-    }
-    return true;
-}
-
-bool program_compile_file(
-        const char* file_path,
-        const char* deps_file_paths[],
-        const size_t n_deps,
-        GLenum shader_type,
-        GLuint* shader
-) {
-    const char* sources[n_deps + 1];
-    sources[0] = read_cstr_file(file_path);
-    if (sources[0] == NULL) {
-        fprintf(stderr, "ERROR: failed to read the shader source file `%s`: %s\n", file_path, strerror(errno));
-        errno = 0;
-        return false;
-    }
-
-    for (size_t i = 0; i < n_deps; ++i) {
-        sources[i + 1] = read_cstr_file(deps_file_paths[i]);
-        if (sources[i + 1] == NULL) {
-            fprintf(stderr, "ERROR: failed to read the shader deps source file `%s`: %s\n", deps_file_paths[i], strerror(errno));
-            errno = 0;
-            return false;
-        }
-    }
-
-    bool is_compiled = program_compile_source(sources, 1 + n_deps, shader_type, shader);
-
-    for (size_t i = 0; i < 1 + n_deps; ++i) {
-        free((char*)sources[i]);
-    }
-
-    if (!is_compiled) {
-        fprintf(stderr, "ERROR: failed to compile the shader source file (or deps files) `%s`\n", file_path);
-        return false;
-    }
-
-    return true;
+bool program_create_material(GLuint program) {
+    return program_create(program, VERT_PROJECTION_SHADER, NULL, NULL, NULL, FRAG_MATERIAL_SHADER, 0, NULL);
 }
 
 bool program_create(
@@ -151,6 +104,61 @@ bool program_create(
     return true;
 }
 
+bool program_compile_source(const GLchar* sources[], size_t n_sources, GLenum shader_type, GLuint* shader) {
+    *shader = glCreateShader(shader_type);
+    glShaderSource(*shader, n_sources, sources, NULL);
+    glCompileShader(*shader);
+
+    GLint is_compiled;
+    glGetShaderiv(*shader, GL_COMPILE_STATUS, &is_compiled);
+    if (is_compiled != GL_TRUE) {
+        GLchar message[1024];
+        GLsizei message_size = 0;
+        glGetShaderInfoLog(*shader, sizeof(message), &message_size, message);
+        fprintf(stderr, "ERROR: failed to compile the shader source %s\n", message);
+        return false;
+    }
+    return true;
+}
+
+bool program_compile_file(
+        const char* file_path,
+        const char* deps_file_paths[],
+        const size_t n_deps,
+        GLenum shader_type,
+        GLuint* shader
+) {
+    const char* sources[n_deps + 1];
+    sources[0] = read_cstr_file(file_path);
+    if (sources[0] == NULL) {
+        fprintf(stderr, "ERROR: failed to read the shader source file `%s`: %s\n", file_path, strerror(errno));
+        errno = 0;
+        return false;
+    }
+
+    for (size_t i = 0; i < n_deps; ++i) {
+        sources[i + 1] = read_cstr_file(deps_file_paths[i]);
+        if (sources[i + 1] == NULL) {
+            fprintf(stderr, "ERROR: failed to read the shader deps source file `%s`: %s\n", deps_file_paths[i], strerror(errno));
+            errno = 0;
+            return false;
+        }
+    }
+
+    bool is_compiled = program_compile_source(sources, 1 + n_deps, shader_type, shader);
+
+    for (size_t i = 0; i < 1 + n_deps; ++i) {
+        free((char*)sources[i]);
+    }
+
+    if (!is_compiled) {
+        fprintf(stderr, "ERROR: failed to compile the shader source file (or deps files) `%s`\n", file_path);
+        return false;
+    }
+
+    return true;
+}
+
 bool program_get_attrib_location(GLuint program, GLuint* loc, const char* name) {
     GLuint _loc = glGetAttribLocation(program, name);
     *loc = _loc;
@@ -183,7 +191,7 @@ bool program_set_attribute(GLuint program, const char* name, size_t n_components
     glUseProgram(program);
 
     GLuint loc;
-    if (!program_get_attrib_location(&loc, program, name)) {
+    if (!program_get_attrib_location(program, &loc, name)) {
         return false;
     }
 
@@ -196,7 +204,7 @@ bool program_set_attribute(GLuint program, const char* name, size_t n_components
 #define _GET_UNIFORM_LOC \
     glUseProgram(program);\
     GLuint loc;\
-    if (!program_get_uniform_location(&loc, program, name)) {\
+    if (!program_get_uniform_location(program, &loc, name)) {\
         return false;\
     }\
 

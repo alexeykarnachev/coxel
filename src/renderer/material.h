@@ -1,7 +1,22 @@
 typedef struct Material {
-    Vec4 diffuse_color = {1.0, 1.0, 1.0, 1.0};
-    Vec4 ambient_color = {1.0, 1.0, 1.0, 1.0};
-    Vec4 specular_color = {1.0, 1.0, 1.0, 1.0};
-    float shininess = 256.0;
+    Vec3 diffuse_color;
+    Vec3 ambient_color;
+    Vec3 specular_color;
+    float shininess;
 } Material;
+
+void material_create(
+    Material* material,
+    Vec3 diffuse_color,
+    Vec3 ambient_color,
+    Vec3 specular_color,
+    float shininess
+) {
+    clear_struct(material);
+
+    material->diffuse_color = diffuse_color;
+    material->ambient_color = ambient_color;
+    material->specular_color = specular_color;
+    material->shininess = shininess;
+}
 

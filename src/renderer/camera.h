@@ -14,18 +14,29 @@ typedef struct Camera {
     Mat4 proj_mat;
 } Camera;
 
+bool camera_create(Camera* cam, float fov, float near, float far, float aspect, Vec3 start_pos);
+static Mat3 camera_get_basis_mat(Camera* cam);
+void camera_translate(Camera* cam, float xd, float yd, float zd);
+void camera_rotate(Camera* cam, float pitch, float yaw);
+static void camera_update_view_mat(Camera* cam);
+static void camera_update_proj_mat(Camera* cam);
+
+
 bool camera_create(Camera* cam, float fov, float near, float far, float aspect, Vec3 start_pos) {
     clear_struct(cam);
 
-    cam->fov = fov;
+    Vec3 up = {{0.0, 1.0, 0.0}};
+    Vec3 view_dir = {{0.0, 0.0, -1.0}};
+
+    cam->fov = deg2rad(fov);
     cam->near = near;
     cam->far = far;
     cam->aspect = aspect;
     cam->start_pos = start_pos;
     cam->rotation = vec3_zeros();
     cam->translation = vec3_zeros();
-    cam->up = {{0.0f, 1.0f, 0.0f}};
-    cam->view_dir = {{0.0, 0.0, -1.0f}};
+    cam->up = up;
+    cam->view_dir = view_dir;
 
     camera_update_view_mat(cam);
     camera_update_proj_mat(cam);
@@ -67,9 +78,9 @@ void camera_rotate(Camera* cam, float pitch, float yaw) {
 
 static void camera_update_view_mat(Camera* cam) {
     Vec3 pos = {{
-        cam->pos.data[0] + cam->translation.data[0],
-        cam->pos.data[1] + cam->translation.data[1],
-        cam->pos.data[2] + cam->translation.data[2]
+        cam->start_pos.data[0] + cam->translation.data[0],
+        cam->start_pos.data[1] + cam->translation.data[1],
+        cam->start_pos.data[2] + cam->translation.data[2]
     }};
 
     Mat3 rotation = mat3_rotation(cam->rotation.data[0], cam->rotation.data[1], 0.0f);
