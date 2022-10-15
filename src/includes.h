@@ -27,3 +27,4 @@
 #include "renderer/light.h"
 #include "renderer/program.h"
 #include "renderer/renderer.h"
+#include "renderer/window.h"
