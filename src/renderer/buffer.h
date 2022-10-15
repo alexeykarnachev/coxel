@@ -1,4 +1,4 @@
-bool buffer_create_depth_cube(GLuint* fbo, GLuint* tex, size_t width, size_t height);
+bool buffer_create_cubemap_depth(GLuint* fbo, GLuint* tex);
 
 
 #define _CHECK_FRAMEBUFFER \
@@ -7,8 +7,7 @@ bool buffer_create_depth_cube(GLuint* fbo, GLuint* tex, size_t width, size_t hei
                 return false;\
             }\
 
-bool buffer_create_depth_cube(GLuint* fbo, GLuint* tex, size_t width, size_t height) {
-    texture_create_depth_cube(tex, width, height);
+bool buffer_create_cubemap_depth(GLuint* fbo, GLuint* tex) {
     glGenFramebuffers(1, fbo);
 
     glBindFramebuffer(GL_FRAMEBUFFER, *fbo);

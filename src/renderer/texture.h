@@ -1,7 +1,7 @@
-void texture_create_depth_cube(GLuint* tex, size_t width, size_t height);
+void texture_create_cubemap_depth(GLuint* tex, size_t width, size_t height);
 
 
-void texture_create_depth_cube(GLuint* tex, size_t width, size_t height) {
+void texture_create_cubemap_depth(GLuint* tex, size_t width, size_t height) {
     glGenTextures(1, tex);
     GLuint internal_format = GL_DEPTH_COMPONENT;
     GLenum type = GL_DEPTH_COMPONENT;

@@ -1,4 +1,5 @@
 bool program_create_material(GLuint program);
+bool program_create_cubemap_depth(GLuint program);
 bool program_create(
     GLuint program,
     const char* vert_file_path,
@@ -28,11 +29,19 @@ bool program_set_uniform_matrix_4fv(
         GLuint program, const char* name, GLfloat* data, size_t n_matrices, GLboolean transpose);
 
 static const char* VERT_PROJECTION_SHADER = "./assets/shaders/projection.vert";
+static const char* GEOM_CUBEMAP_SHADER = "./assets/shaders/cubemap.geom";
 static const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
+static const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
 
 
 bool program_create_material(GLuint program) {
-    return program_create(program, VERT_PROJECTION_SHADER, NULL, NULL, NULL, FRAG_MATERIAL_SHADER, 0, NULL);
+    return program_create(
+        program, VERT_PROJECTION_SHADER, NULL, NULL, NULL, FRAG_MATERIAL_SHADER, 0, NULL);
+}
+
+bool program_create_cubemap_depth(GLuint program) {
+    return program_create(
+        program, VERT_PROJECTION_SHADER, NULL, NULL, GEOM_CUBEMAP_SHADER, FRAG_DEPTH_SHADER, 0, NULL);
 }
 
 bool program_create(

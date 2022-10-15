@@ -29,6 +29,15 @@ int main(void) {
     GLuint material_program = glCreateProgram();
     program_create_material(material_program);
 
+    GLuint cubemap_depth_program = glCreateProgram();
+    program_create_cubemap_depth(cubemap_depth_program);
+
+    GLuint cubemap_depth_tex;
+    texture_create_cubemap_depth(&cubemap_depth_tex, 1024, 1024);
+
+    GLuint cubemap_depth_fbo;
+    buffer_create_cubemap_depth(&cubemap_depth_fbo, &cubemap_depth_tex);
+
     PointLight point_light;
     Vec3 point_light_world_pos = {{0.0, 1.0, 3.0}};
     Vec3 point_light_color = {{1.0, 1.0, 1.0}};
@@ -85,7 +94,7 @@ int main(void) {
     mesh_create_plane(&plane_mesh, &plane_material, &plane_transformation);
 
     Renderer renderer;
-    renderer_create(&renderer, material_program);
+    renderer_create(&renderer);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -95,12 +104,32 @@ int main(void) {
         glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        renderer_bind_scene(&renderer, &camera, &point_light);
+        // Render to the depth cubemap buffer:
+        renderer_set_program(&renderer, cubemap_depth_program);
+        renderer_set_fbo(&renderer, cubemap_depth_fbo);
 
-        renderer_bind_mesh(&renderer, &sphere_mesh);
+        renderer_set_mesh(&renderer, &sphere_mesh);
         renderer_draw_triangles(&renderer);
 
-        renderer_bind_mesh(&renderer, &plane_mesh);
+        renderer_set_mesh(&renderer, &plane_mesh);
+        renderer_draw_triangles(&renderer);
+
+        // Render to the main buffer:
+        renderer_set_program(&renderer, material_program);
+        renderer_set_fbo(&renderer, 0);
+
+        glViewport(0, 0, 1920, 1080);
+        glActiveTexture(0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap_depth_tex);
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        renderer_set_scene(&renderer, &camera, &point_light);
+
+        renderer_set_mesh(&renderer, &sphere_mesh);
+        renderer_draw_triangles(&renderer);
+
+        renderer_set_mesh(&renderer, &plane_mesh);
         renderer_draw_triangles(&renderer);
 
         glfwSwapBuffers(window.glfw_window);
