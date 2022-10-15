@@ -15,9 +15,13 @@ out VertexData {
 
 
 void main() {
-    vs_out.model_pos = vec4(model_pos, 1.0);
-    vs_out.world_pos = world_mat * vec4(model_pos, 1.0);
-    vs_out.proj_pos = proj_mat * view_mat * vs_out.world_pos;
-    gl_Position = vs_out.proj_pos;
+    vec4 m = vec4(model_pos, 1.0);
+    vec4 w = world_mat * m; 
+    vec4 p = proj_mat * view_mat * w; 
+
+    vs_out.model_pos = m;
+    vs_out.world_pos = w;
+    vs_out.proj_pos = p;
+    gl_Position = p;
 }
 

@@ -22,10 +22,10 @@ bool renderer_bind_scene(Renderer* renderer, Camera* camera, PointLight* point_l
     return
         program_set_uniform_matrix_4fv(p, "view_mat", camera->view_mat.data, 1, GL_TRUE)
         && program_set_uniform_matrix_4fv(p, "proj_mat", camera->proj_mat.data, 1, GL_TRUE)
+        && program_set_uniform_3fv(p, "eye_world_pos", camera->pos.data, 1)
         && program_set_uniform_3fv(p, "point_light_world_pos", point_light->world_pos.data, 1)
         && program_set_uniform_3fv(p, "point_light_color", point_light->color.data, 1)
-        && program_set_uniform_1f(p, "point_light_energy", point_light->energy)
-        && program_set_uniform_1f(p, "point_light_radius", point_light->radius);
+        && program_set_uniform_1f(p, "point_light_energy", point_light->energy);
 }
 
 bool renderer_draw_triangles(Renderer* renderer) {

@@ -9,7 +9,7 @@ typedef struct Camera {
 
     Vec3 start_pos;
     Vec3 rotation;
-    Vec3 translation;
+    Vec3 pos;
     Vec3 up;
     Vec3 view_dir;
 
@@ -60,7 +60,7 @@ bool camera_create(
     cam->rotation_sens = rotation_sens;
     cam->start_pos = start_pos;
     cam->rotation = vec3_zeros();
-    cam->translation = vec3_zeros();
+    cam->pos = cam->start_pos;
     cam->up = up;
     cam->view_dir = view_dir;
 
@@ -87,9 +87,9 @@ void camera_translate(Camera* cam, float dx, float dy, float dz) {
     Vec3 z = mat3_get_row(&basis, 2);
     z = vec3_scale(&z, dz * cam->straight_sens);
 
-    cam->translation.data[0] += x.data[0] + y.data[0] + z.data[0];
-    cam->translation.data[1] += x.data[1] + y.data[1] + z.data[1];
-    cam->translation.data[2] += x.data[2] + y.data[2] + z.data[2];
+    cam->pos.data[0] += x.data[0] + y.data[0] + z.data[0];
+    cam->pos.data[1] += x.data[1] + y.data[1] + z.data[1];
+    cam->pos.data[2] += x.data[2] + y.data[2] + z.data[2];
 
     camera_update_view_mat(cam);
 }
@@ -108,16 +108,10 @@ void camera_set_aspect(Camera* cam, float aspect) {
 }
 
 static void camera_update_view_mat(Camera* cam) {
-    Vec3 pos = {{
-        cam->start_pos.data[0] + cam->translation.data[0],
-        cam->start_pos.data[1] + cam->translation.data[1],
-        cam->start_pos.data[2] + cam->translation.data[2]
-    }};
-
     Mat3 rotation = mat3_rotation(cam->rotation.data[0], cam->rotation.data[1], 0.0f);
     Vec3 view_dir = mat3_vec3_mul(&rotation, &cam->view_dir);
 
-    cam->view_mat = get_view_mat(&view_dir, &cam->up, &pos);
+    cam->view_mat = get_view_mat(&view_dir, &cam->up, &cam->pos);
 }
 
 static void camera_update_proj_mat(Camera* cam) {

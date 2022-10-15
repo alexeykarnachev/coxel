@@ -21,18 +21,8 @@ uniform float shininess;
 uniform vec3 point_light_world_pos;
 uniform vec3 point_light_color;
 uniform float point_light_energy;
-uniform float point_light_radius;
 
 out vec4 frag_color;
-
-float get_point_shadow() {
-    vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos;
-    float curr_depth = length(light_to_frag);
-    float closest_depth = texture(shadow_tex, light_to_frag).r * point_light_radius;
-    float bias = 0.05;
-    float shadow = curr_depth - bias > closest_depth ? 1.0 : 0.0;
-    return shadow;
-}
 
 void main() {
     vec3 world_pos = fs_in.world_pos.xyz;
@@ -45,19 +35,23 @@ void main() {
     // Diffuse:
     vec3 point_light_dir = normalize(world_pos - point_light_world_pos);
     float diffuse_weight = max(dot(-point_light_dir, normal), 0.0);
-    vec3 diffuse = diffuse_weight * point_light_energy *point_light_color / point_light_dist;
+    vec3 diffuse = diffuse_weight * point_light_energy * point_light_color / point_light_dist;
 
     // Specular:
     vec3 view_dir = normalize(world_pos - eye_world_pos);
     vec3 halfway_dir = normalize(-point_light_dir - view_dir);
     float specular_weight = pow(max(dot(normal, halfway_dir), 0.0), shininess);
-    vec3 specular = specular_weight * specular_color / point_light_dist;
+    vec3 specular = specular_weight * specular_color * point_light_energy / point_light_dist;
 
-    // Shadows:
-    float shadow = with_shadows ? get_point_shadow() : 0.0;
+    // // Shadows:
+    // vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos;
+    // float curr_depth = length(light_to_frag);
+    // float closest_depth = texture(shadow_tex, light_to_frag).r * point_light_radius;
+    // float bias = 0.05;
+    // float shadow = curr_depth - bias > closest_depth ? 1.0 : 0.0;
+    float shadow = 0.0;
 
     // Combined:
     vec3 color = (ambient +  (1.0 - shadow) * (diffuse + specular)) * diffuse_color;
     frag_color = vec4(color, 1.0);
-    
 }

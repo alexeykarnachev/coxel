@@ -32,14 +32,12 @@ int main(void) {
     PointLight point_light;
     Vec3 point_light_world_pos = {{0.0, 1.0, 3.0}};
     Vec3 point_light_color = {{1.0, 1.0, 1.0}};
-    float point_light_energy = 100.0;
-    float point_light_radius = 100.0;
+    float point_light_energy = 200.0;
     point_light_create(
         &point_light,
         point_light_world_pos,
         point_light_color,
-        point_light_energy,
-        point_light_radius
+        point_light_energy
     );
 
     Material sphere_material;
@@ -98,7 +96,11 @@ int main(void) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         renderer_bind_scene(&renderer, &camera, &point_light);
+
         renderer_bind_mesh(&renderer, &sphere_mesh);
+        renderer_draw_triangles(&renderer);
+
+        renderer_bind_mesh(&renderer, &plane_mesh);
         renderer_draw_triangles(&renderer);
 
         glfwSwapBuffers(window.glfw_window);

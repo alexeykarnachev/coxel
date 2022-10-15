@@ -179,7 +179,7 @@ bool program_get_uniform_location(GLuint program, GLuint* loc, const char* name)
 
     if (_loc == -1) {
         #ifndef IGNORE_SHADER_LOC_ERRORS
-        fprintf(stderr, "ERROR: failed to get the location of the attribute `%s`\n", name);
+        fprintf(stderr, "ERROR: failed to get the location of the uniform `%s`\n", name);
         return false;
         #endif
     }
