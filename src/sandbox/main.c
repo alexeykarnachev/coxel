@@ -2,6 +2,11 @@
 
 
 int main(void) {
+
+    float point_shadow_max_dist = 20.0;
+    Renderer renderer;
+    renderer_create(&renderer, point_shadow_max_dist);
+
     Camera camera;
     float camera_fov = 45.0;
     float camera_near = 0.1;
@@ -29,17 +34,11 @@ int main(void) {
     GLuint material_program = glCreateProgram();
     program_create_material(material_program);
 
-    GLuint cubemap_depth_program = glCreateProgram();
-    program_create_cubemap_depth(cubemap_depth_program);
-
-    GLuint cubemap_depth_tex;
-    texture_create_cubemap_depth(&cubemap_depth_tex, 1024, 1024);
-
-    GLuint cubemap_depth_fbo;
-    buffer_create_cubemap_depth(&cubemap_depth_fbo, &cubemap_depth_tex);
+    GLuint depth_cubemap_program = glCreateProgram();
+    program_create_depth_cubemap(depth_cubemap_program);
 
     PointLight point_light;
-    Vec3 point_light_world_pos = {{0.0, 1.0, 3.0}};
+    Vec3 point_light_world_pos = {{0.0, 0.0, 5.0}};
     Vec3 point_light_color = {{1.0, 1.0, 1.0}};
     float point_light_energy = 200.0;
     point_light_create(
@@ -48,6 +47,16 @@ int main(void) {
         point_light_color,
         point_light_energy
     );
+
+    GLuint depth_cubemap_tex;
+    texture_create_depth_cubemap(&depth_cubemap_tex, 1024);
+
+    GLuint depth_cubemap_fbo;
+    buffer_create_depth_cubemap(&depth_cubemap_fbo, &depth_cubemap_tex);
+
+    DepthCubemap depth_cubemap;
+    depth_cubemap_create(&depth_cubemap, 0.1, point_shadow_max_dist);
+    depth_cubemap_set_origin_world_pos(&depth_cubemap, point_light_world_pos);
 
     Material sphere_material;
     Vec3 sphere_diffuse_color = {{0.8, 0.2, 0.3}};
@@ -93,20 +102,20 @@ int main(void) {
     Mesh plane_mesh;
     mesh_create_plane(&plane_mesh, &plane_material, &plane_transformation);
 
-    Renderer renderer;
-    renderer_create(&renderer);
-
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
 
     while (!glfwWindowShouldClose(window.glfw_window)) {
+
+        // Render to the depth cubemap buffer:
+        glBindFramebuffer(GL_FRAMEBUFFER, depth_cubemap_fbo);
+        glViewport(0, 0, 1024, 1024);
         glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Render to the depth cubemap buffer:
-        renderer_set_program(&renderer, cubemap_depth_program);
-        renderer_set_fbo(&renderer, cubemap_depth_fbo);
+        renderer_set_program(&renderer, depth_cubemap_program);
+        renderer_set_depth_cubemap(&renderer, &depth_cubemap);
 
         renderer_set_mesh(&renderer, &sphere_mesh);
         renderer_draw_triangles(&renderer);
@@ -115,21 +124,21 @@ int main(void) {
         renderer_draw_triangles(&renderer);
 
         // Render to the main buffer:
-        renderer_set_program(&renderer, material_program);
-        renderer_set_fbo(&renderer, 0);
-
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, 1920, 1080);
-        glActiveTexture(0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap_depth_tex);
         glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        renderer_set_program(&renderer, material_program);
+        glActiveTexture(0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, depth_cubemap_tex);
+
         renderer_set_scene(&renderer, &camera, &point_light);
 
-        renderer_set_mesh(&renderer, &sphere_mesh);
+        renderer_set_mesh(&renderer, &plane_mesh);
         renderer_draw_triangles(&renderer);
 
-        renderer_set_mesh(&renderer, &plane_mesh);
+        renderer_set_mesh(&renderer, &sphere_mesh);
         renderer_draw_triangles(&renderer);
 
         glfwSwapBuffers(window.glfw_window);

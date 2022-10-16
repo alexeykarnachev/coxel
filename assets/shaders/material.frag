@@ -7,8 +7,6 @@ in VertexData {
 } fs_in;
 
 uniform vec3 eye_world_pos;
-uniform bool with_shadows = false;
-uniform samplerCube shadow_tex;
 
 // Material:
 uniform vec3 diffuse_color;
@@ -20,6 +18,11 @@ uniform float shininess;
 uniform vec3 point_light_world_pos;
 uniform vec3 point_light_color;
 uniform float point_light_energy;
+
+// Point shadow:
+uniform float point_shadow_max_dist;
+uniform bool with_shadows = false;
+uniform samplerCube shadow_tex;
 
 out vec4 frag_color;
 
@@ -42,13 +45,12 @@ void main() {
     float specular_weight = pow(max(dot(normal, halfway_dir), 0.0), shininess);
     vec3 specular = specular_weight * specular_color * point_light_energy / point_light_dist;
 
-    // // Shadows:
-    // vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos;
-    // float curr_depth = length(light_to_frag);
-    // float closest_depth = texture(shadow_tex, light_to_frag).r * point_light_radius;
-    // float bias = 0.05;
-    // float shadow = curr_depth - bias > closest_depth ? 1.0 : 0.0;
-    float shadow = 0.0;
+    // Shadows:
+    vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos;
+    float curr_depth = length(light_to_frag);
+    float closest_depth = texture(shadow_tex, light_to_frag).r * point_shadow_max_dist;
+    float bias = 0.05;
+    float shadow = curr_depth - bias > closest_depth ? 1.0 : 0.0;
 
     // Combined:
     vec3 color = (ambient +  (1.0 - shadow) * (diffuse + specular)) * diffuse_color;

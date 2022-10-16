@@ -20,10 +20,11 @@ void main() {
     for(int face = 0; face < 6; ++face) {
         for(int i = 0; i < 3; ++i) {
             gl_Layer = face;
+
             gs_out.model_pos = gs_in[i].model_pos;
             gs_out.world_pos = gs_in[i].world_pos;
             gs_out.proj_pos = gs_in[i].proj_pos;
-            gl_Position = view_proj_mats[face] * gs_out.world_pos;
+            gl_Position = view_proj_mats[face] * gs_in[i].world_pos;
             EmitVertex();
         }    
         EndPrimitive();

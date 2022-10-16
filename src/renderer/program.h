@@ -1,5 +1,5 @@
 bool program_create_material(GLuint program);
-bool program_create_cubemap_depth(GLuint program);
+bool program_create_depth_cubemap(GLuint program);
 bool program_create(
     GLuint program,
     const char* vert_file_path,
@@ -39,7 +39,7 @@ bool program_create_material(GLuint program) {
         program, VERT_PROJECTION_SHADER, NULL, NULL, NULL, FRAG_MATERIAL_SHADER, 0, NULL);
 }
 
-bool program_create_cubemap_depth(GLuint program) {
+bool program_create_depth_cubemap(GLuint program) {
     return program_create(
         program, VERT_PROJECTION_SHADER, NULL, NULL, GEOM_CUBEMAP_SHADER, FRAG_DEPTH_SHADER, 0, NULL);
 }
