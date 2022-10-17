@@ -5,7 +5,7 @@ typedef struct Renderer {
 
     float shadow_min_dist;
     float shadow_max_dist;
-    DepthCubemap shadow_cubemap;
+    DepthCubemap cube_shadowmap;
 } Renderer;
 
 bool renderer_create(Renderer* renderer, size_t shadow_size, float shadow_min_dist, float shadow_max_dist);
@@ -31,15 +31,15 @@ bool renderer_create(Renderer* renderer, size_t shadow_size, float shadow_min_di
     
     renderer->shadow_min_dist = shadow_min_dist;
     renderer->shadow_max_dist = shadow_max_dist;
-    depth_cubemap_create(&renderer->shadow_cubemap, shadow_size);
+    depth_cubemap_create(&renderer->cube_shadowmap, shadow_size);
 }
 
 bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh) {
     _renderer_set_fbo(
         renderer,
-        renderer->shadow_cubemap.fbo,
-        renderer->shadow_cubemap.size, 
-        renderer->shadow_cubemap.size
+        renderer->cube_shadowmap.fbo,
+        renderer->cube_shadowmap.size, 
+        renderer->cube_shadowmap.size
     );
 
     mesh_bind(mesh);
@@ -82,7 +82,7 @@ bool renderer_draw_materials(
 
 bool renderer_set_scene(Renderer* renderer, Camera* camera, PointLight* point_light) {
     depth_cubemap_set_view(
-        &renderer->shadow_cubemap,
+        &renderer->cube_shadowmap,
         point_light->world_pos,
         renderer->shadow_min_dist,
         renderer->shadow_max_dist
@@ -99,8 +99,8 @@ bool renderer_set_scene(Renderer* renderer, Camera* camera, PointLight* point_li
     ok &= program_set_uniform_1f(p, "shadow_max_dist", renderer->shadow_max_dist);
 
     p = renderer->shadow_program;
-    ok &= program_set_uniform_matrix_4fv(p, "view_proj_mats", renderer->shadow_cubemap.view_proj_mats, 6, GL_TRUE);
-    ok &= program_set_uniform_3fv(p, "world_pos", renderer->shadow_cubemap.world_pos.data, 1);
+    ok &= program_set_uniform_matrix_4fv(p, "view_proj_mats", renderer->cube_shadowmap.view_proj_mats, 6, GL_TRUE);
+    ok &= program_set_uniform_3fv(p, "world_pos", renderer->cube_shadowmap.world_pos.data, 1);
     ok &= program_set_uniform_1f(p, "max_dist", renderer->shadow_max_dist);
 
     return ok;

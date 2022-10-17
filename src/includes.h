@@ -20,7 +20,6 @@
 #include "renderer/camera.h"
 #include "renderer/primitives.h"
 #include "renderer/buffer.h"
-#include "renderer/texture.h"
 #include "renderer/depth_cubemap.h"
 #include "renderer/material.h"
 #include "renderer/transformation.h"

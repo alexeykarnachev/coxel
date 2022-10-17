@@ -32,11 +32,13 @@ static const char* VERT_PROJECTION_SHADER = "./assets/shaders/projection.vert";
 static const char* GEOM_CUBEMAP_SHADER = "./assets/shaders/cubemap.geom";
 static const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
 static const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
+static const char* GLSL_COMMON_SHADER = "./assets/shaders/common.glsl";
 
 
 bool program_create_material(GLuint program) {
+    const char* deps_file_paths[] = {GLSL_COMMON_SHADER};
     return program_create(
-        program, VERT_PROJECTION_SHADER, NULL, NULL, NULL, FRAG_MATERIAL_SHADER, 0, NULL);
+        program, VERT_PROJECTION_SHADER, NULL, NULL, NULL, FRAG_MATERIAL_SHADER, 1, deps_file_paths);
 }
 
 bool program_create_depth_cubemap(GLuint program) {

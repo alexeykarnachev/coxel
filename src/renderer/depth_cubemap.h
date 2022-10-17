@@ -15,8 +15,7 @@ void depth_cubemap_create(DepthCubemap* depth_cubemap, size_t size) {
     clear_struct(depth_cubemap);
 
     depth_cubemap->size = size;
-    texture_create_depth_cubemap(&depth_cubemap->tex, size);
-    buffer_create_depth_cubemap(&depth_cubemap->fbo, &depth_cubemap->tex);
+    buffer_create_cube_shadowmap(&depth_cubemap->fbo, &depth_cubemap->tex, size);
 }
 
 void depth_cubemap_set_view(DepthCubemap* depth_cubemap, Vec3 world_pos, float min_dist, float max_dist) {
