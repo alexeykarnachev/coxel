@@ -6,7 +6,7 @@ typedef struct Transformation {
     Vec3 translation;
 } Transformation;
 
-void transformation_create(Transformation* t, Vec3 scale, Vec3 rotation, Vec3 translation);
+Transformation transformation_create(Vec3 scale, Vec3 rotation, Vec3 translation);
 void transformation_set_scale(Transformation* t, float x, float y, float z);
 void transformation_scale(Transformation* t, float dx, float dy, float dz);
 void transformation_set_rotation(Transformation* t, float x, float y, float z);
@@ -15,13 +15,15 @@ void transformation_translate(Transformation* t, float dx, float dy, float dz);
 void transformation_rotate(Transformation* t, float dx, float dy, float dz);
 void transformation_scale(Transformation* t, float dx, float dy, float dz);
 
-void transformation_create(Transformation* t, Vec3 scale, Vec3 rotation, Vec3 translation) {
-    clear_struct(t);
+Transformation transformation_create(Vec3 scale, Vec3 rotation, Vec3 translation) {
+    Transformation t;
 
-    t->scale = scale;
-    t->rotation = rotation;
-    t->translation = translation;
-    t->world_mat = get_world_mat(&t->scale, &t->rotation, &t->translation);
+    t.scale = scale;
+    t.rotation = rotation;
+    t.translation = translation;
+    t.world_mat = get_world_mat(&t.scale, &t.rotation, &t.translation);
+
+    return t;
 }
 
 void transformation_set_scale(Transformation* t, float x, float y, float z) {

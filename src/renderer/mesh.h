@@ -1,6 +1,6 @@
 typedef struct Mesh {
-    Material* material;
-    Transformation* transformation;
+    Material material;
+    Transformation transformation;
     GLuint vao;
     GLuint vbo;
     GLuint ebo;
@@ -9,8 +9,8 @@ typedef struct Mesh {
 
 void mesh_create(
     Mesh* mesh,
-    Material* material,
-    Transformation* transformation,
+    Material material,
+    Transformation transformation,
     const unsigned char* faces,
     size_t faces_size,
     const float* vertices,
@@ -19,20 +19,20 @@ void mesh_create(
 
 void mesh_create_icosahedron(
     Mesh* mesh,
-    Material* material,
-    Transformation* transformation
+    Material material,
+    Transformation transformation
 );
 
 void mesh_create_plane(
     Mesh* mesh,
-    Material* material,
-    Transformation* transformation
+    Material material,
+    Transformation transformation
 );
 
 void mesh_create(
     Mesh* mesh,
-    Material* material,
-    Transformation* transformation,
+    Material material,
+    Transformation transformation,
     const unsigned char* faces,
     size_t faces_size,
     const float* vertices,
@@ -69,8 +69,8 @@ void mesh_create(
 
 void mesh_create_icosahedron(
     Mesh* mesh,
-    Material* material,
-    Transformation* transformation
+    Material material,
+    Transformation transformation
 ) {
     mesh_create(
         mesh,
@@ -85,8 +85,8 @@ void mesh_create_icosahedron(
 
 void mesh_create_plane(
     Mesh* mesh,
-    Material* material,
-    Transformation* transformation
+    Material material,
+    Transformation transformation
 ) {
     mesh_create(
         mesh,
@@ -100,13 +100,19 @@ void mesh_create_plane(
 }
 
 void mesh_rotate(Mesh* mesh, float dx, float dy, float dz) {
-    transformation_rotate(mesh->transformation, dx, dy, dz);
+    transformation_rotate(&mesh->transformation, dx, dy, dz);
 }
 
 void mesh_translate(Mesh* mesh, float dx, float dy, float dz) {
-    transformation_translate(mesh->transformation, dx, dy, dz);
+    transformation_translate(&mesh->transformation, dx, dy, dz);
 }
 
 void mesh_scale(Mesh* mesh, float dx, float dy, float dz) {
-    transformation_scale(mesh->transformation, dx, dy, dz);
+    transformation_scale(&mesh->transformation, dx, dy, dz);
+}
+
+void mesh_bind(Mesh* mesh) {
+    glBindVertexArray(mesh->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
 }

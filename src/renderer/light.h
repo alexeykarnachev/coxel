@@ -17,3 +17,4 @@ void point_light_create(
     point_light->color = color;
     point_light->energy = energy;
 }
+

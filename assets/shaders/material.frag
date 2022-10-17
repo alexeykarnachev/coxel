@@ -19,10 +19,9 @@ uniform vec3 point_light_world_pos;
 uniform vec3 point_light_color;
 uniform float point_light_energy;
 
-// Point shadow:
-uniform float point_shadow_max_dist;
-uniform bool with_shadows = false;
-uniform samplerCube shadow_tex;
+// Shadow:
+uniform float shadow_max_dist;
+uniform samplerCube shadow_cube_tex;
 
 out vec4 frag_color;
 
@@ -48,7 +47,7 @@ void main() {
     // Shadows:
     vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos;
     float curr_depth = length(light_to_frag);
-    float closest_depth = texture(shadow_tex, light_to_frag).r * point_shadow_max_dist;
+    float closest_depth = texture(shadow_cube_tex, light_to_frag).r * shadow_max_dist;
     float bias = 0.05;
     float shadow = curr_depth - bias > closest_depth ? 1.0 : 0.0;
 
