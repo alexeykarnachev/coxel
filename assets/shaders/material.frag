@@ -26,9 +26,37 @@ uniform samplerCubeShadow cube_shadow_tex;
 out vec4 frag_color;
 
 
-vec2 poisson_disc64(int idx);
-float random(vec3 v);
-vec2 rotate(vec2 v, float rad);
+vec2 poisson_disk64(int idx);
+float sum(vec3 v) {
+    return v.x + v.y + v.z;
+}
+
+float get_point_shadow(vec3 light_to_frag, int n_samples, float disk_radius, float bias) {
+    float curr_depth = length(light_to_frag) / shadow_max_dist - bias;
+    light_to_frag = normalize(light_to_frag);
+
+    // vec3 stm;
+    // vec3 a = abs(light_to_frag);
+    // if (a.x >= max(a.y, a.z)) {
+    //     stm = light_to_frag.zyx;
+    // } if (a.y >= max(a.x, a.z)) {
+    //     stm = light_to_frag.xzy;
+    // } else {
+    //     stm = light_to_frag.xyz;
+    // }
+    // vec2 st = 0.5 * (stm.st / stm.z + 1);
+
+    float shadow = 0.0;
+    for(int i = 0; i < n_samples; ++i) {
+        vec2 rnd_vec = poisson_disk64(i) * disk_radius;
+        // vec2 p = m * (2 * (rnd_vec + st) - 1);
+        // vec3 v = p.s * s_mask + p.t * t_mask + m * m_mask;
+
+        shadow += texture(cube_shadow_tex, vec4(light_to_frag + vec3(rnd_vec, 0.0), curr_depth));
+    }
+    shadow /= float(n_samples); 
+    return shadow;
+}
 
 void main() {
     vec3 world_pos = fs_in.world_pos.xyz;
@@ -51,23 +79,7 @@ void main() {
 
     // Shadows:
     vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos;
-    float curr_depth = length(light_to_frag) / shadow_max_dist;
-
-    float shadow = 0.0;
-    int n_samples  = 16;
-    float disk_radius = 0.1;
-    float rnd = random(fs_in.world_pos.xyz);
-    int offs = int(63.0 * rnd); 
-    for(int i = 0; i < n_samples; ++i)
-    {
-        int idx = (i + offs) % 64;
-        vec2 p = rotate(poisson_disc64(i), rnd * 2.0) * disk_radius + light_to_frag.xy;
-        
-        shadow += texture(
-                cube_shadow_tex, 
-                vec4(p.x, p.y, light_to_frag.z, curr_depth - 0.001));
-    }
-    shadow /= float(n_samples); 
+    float shadow = get_point_shadow(light_to_frag, 64, 0.005, 0.001);
     // Combined:
     vec3 color = (ambient +  shadow * (diffuse + specular)) * diffuse_color;
     frag_color = vec4(color, 1.0);

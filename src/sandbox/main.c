@@ -31,7 +31,7 @@ int main(void) {
     );
 
     PointLight point_light;
-    Vec3 point_light_world_pos = {{0.0, 0.0, 5.0}};
+    Vec3 point_light_world_pos = {{0.0, 8.0, -20.0}};
     Vec3 point_light_color = {{1.0, 1.0, 1.0}};
     point_light_create(
         &point_light,
@@ -55,9 +55,9 @@ int main(void) {
         256.0  // shininess
     );
 
-    Vec3 plane_scale = {{1000.0, 10.0, 0.0}};
-    Vec3 plane_rotation = {{0.0, 0.0, 0.0}};
-    Vec3 plane_translation = {{0.0, 0.0, -10.0}};
+    Vec3 plane_scale = {{1000.0, 1000.0, 1000.0}};
+    Vec3 plane_rotation = {{-PI / 2, 0.0, 0.0}};
+    Vec3 plane_translation = {{0.0, -2.0, 0.0}};
     Transformation plane_transformation = transformation_create(
         plane_scale, plane_rotation, plane_translation);
     mesh_create_plane(&meshes[n_meshes - 1], plane_material, plane_transformation);

@@ -294,7 +294,7 @@ Mat4 get_world_mat(Vec3* scale, Vec3* rotation, Vec3* translation) {
         rotation->data[1],
         rotation->data[2]
     );
-    Mat3 rs_mat = mat3_mat3_mul(&scale_mat, &rotation_mat);
+    Mat3 rs_mat = mat3_mat3_mul(&rotation_mat, &scale_mat);
     Mat4 world_mat = {{
         rs_mat.data[0], rs_mat.data[1], rs_mat.data[2], translation->data[0],
         rs_mat.data[3], rs_mat.data[4], rs_mat.data[5], translation->data[1],
