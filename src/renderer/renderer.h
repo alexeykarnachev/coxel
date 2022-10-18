@@ -3,12 +3,23 @@ typedef struct Renderer {
     GLuint shadow_program;
     GLuint current_fbo;
 
-    float shadow_min_dist;
-    float shadow_max_dist;
+    float shadow_near_plane;
+    float shadow_far_plane;
+    float shadow_disk_radius;
+    float shadow_bias;
+    size_t shadow_n_samples;
     DepthCubemap cube_shadowmap;
 } Renderer;
 
-bool renderer_create(Renderer* renderer, size_t shadow_size, float shadow_min_dist, float shadow_max_dist);
+bool renderer_create(
+    Renderer* renderer,
+    size_t shadow_size,
+    float shadow_near_plane,
+    float shadow_far_plane,
+    float shadow_disk_radius,
+    float shadow_bias,
+    size_t shadow_n_samples
+);
 void renderer_set_program(Renderer* renderer, GLuint program);
 bool renderer_draw_mesh(Renderer* renderer, Mesh* mesh);
 bool renderer_set_scene(Renderer* renderer, Camera* camera, PointLight* point_light);
@@ -19,7 +30,15 @@ void renderer_draw_patches(Renderer* renderer, size_t n_vertices_in_patch);
 void _renderer_set_fbo(Renderer* renderer, GLuint fbo, size_t viewport_width, size_t viewport_height);
 
 
-bool renderer_create(Renderer* renderer, size_t shadow_size, float shadow_min_dist, float shadow_max_dist) {
+bool renderer_create(
+    Renderer* renderer,
+    size_t shadow_size,
+    float shadow_near_plane,
+    float shadow_far_plane,
+    float shadow_disk_radius,
+    float shadow_bias,
+    size_t shadow_n_samples
+) {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
@@ -29,8 +48,11 @@ bool renderer_create(Renderer* renderer, size_t shadow_size, float shadow_min_di
     program_create_material(renderer->material_program);
     program_create_depth_cubemap(renderer->shadow_program);
     
-    renderer->shadow_min_dist = shadow_min_dist;
-    renderer->shadow_max_dist = shadow_max_dist;
+    renderer->shadow_near_plane = shadow_near_plane;
+    renderer->shadow_far_plane = shadow_far_plane;
+    renderer->shadow_disk_radius = shadow_disk_radius;
+    renderer->shadow_bias = shadow_bias;
+    renderer->shadow_n_samples = shadow_n_samples;
     depth_cubemap_create(&renderer->cube_shadowmap, shadow_size);
 }
 
@@ -84,8 +106,8 @@ bool renderer_set_scene(Renderer* renderer, Camera* camera, PointLight* point_li
     depth_cubemap_set_view(
         &renderer->cube_shadowmap,
         point_light->world_pos,
-        renderer->shadow_min_dist,
-        renderer->shadow_max_dist
+        renderer->shadow_near_plane,
+        renderer->shadow_far_plane
     );
 
     bool ok = true;
@@ -96,12 +118,15 @@ bool renderer_set_scene(Renderer* renderer, Camera* camera, PointLight* point_li
     ok &= program_set_uniform_3fv(p, "point_light_world_pos", point_light->world_pos.data, 1);
     ok &= program_set_uniform_3fv(p, "point_light_color", point_light->color.data, 1);
     ok &= program_set_uniform_1f(p, "point_light_energy", point_light->energy);
-    ok &= program_set_uniform_1f(p, "shadow_max_dist", renderer->shadow_max_dist);
+    ok &= program_set_uniform_1f(p, "shadow_far_plane", renderer->shadow_far_plane);
+    ok &= program_set_uniform_1i(p, "shadow_n_samples", renderer->shadow_n_samples);
+    ok &= program_set_uniform_1f(p, "shadow_disk_radius", renderer->shadow_disk_radius);
+    ok &= program_set_uniform_1f(p, "shadow_bias", renderer->shadow_bias);
 
     p = renderer->shadow_program;
     ok &= program_set_uniform_matrix_4fv(p, "view_proj_mats", renderer->cube_shadowmap.view_proj_mats, 6, GL_TRUE);
     ok &= program_set_uniform_3fv(p, "world_pos", renderer->cube_shadowmap.world_pos.data, 1);
-    ok &= program_set_uniform_1f(p, "max_dist", renderer->shadow_max_dist);
+    ok &= program_set_uniform_1f(p, "max_dist", renderer->shadow_far_plane);
 
     return ok;
 }

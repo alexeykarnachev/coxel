@@ -20,8 +20,11 @@ uniform vec3 point_light_color;
 uniform float point_light_energy;
 
 // Shadow:
-uniform float shadow_max_dist;
 uniform samplerCubeShadow cube_shadow_tex;
+uniform float shadow_far_plane;
+uniform int shadow_n_samples;
+uniform float shadow_disk_radius;
+uniform float shadow_bias;
 
 out vec4 frag_color;
 
@@ -32,27 +35,16 @@ float sum(vec3 v) {
 }
 
 float get_point_shadow(vec3 light_to_frag, int n_samples, float disk_radius, float bias) {
-    float curr_depth = length(light_to_frag) / shadow_max_dist - bias;
+    float curr_depth = length(light_to_frag) / shadow_far_plane - bias;
     light_to_frag = normalize(light_to_frag);
-
-    // vec3 stm;
-    // vec3 a = abs(light_to_frag);
-    // if (a.x >= max(a.y, a.z)) {
-    //     stm = light_to_frag.zyx;
-    // } if (a.y >= max(a.x, a.z)) {
-    //     stm = light_to_frag.xzy;
-    // } else {
-    //     stm = light_to_frag.xyz;
-    // }
-    // vec2 st = 0.5 * (stm.st / stm.z + 1);
 
     float shadow = 0.0;
     for(int i = 0; i < n_samples; ++i) {
         vec2 rnd_vec = poisson_disk64(i) * disk_radius;
-        // vec2 p = m * (2 * (rnd_vec + st) - 1);
-        // vec3 v = p.s * s_mask + p.t * t_mask + m * m_mask;
-
-        shadow += texture(cube_shadow_tex, vec4(light_to_frag + vec3(rnd_vec, 0.0), curr_depth));
+        shadow += texture(
+            cube_shadow_tex,
+            vec4(light_to_frag + vec3(rnd_vec, 0.0), curr_depth)
+        );
     }
     shadow /= float(n_samples); 
     return shadow;
@@ -79,8 +71,13 @@ void main() {
 
     // Shadows:
     vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos;
-    float shadow = get_point_shadow(light_to_frag, 64, 0.005, 0.001);
+    float shadow = get_point_shadow(
+        light_to_frag,
+        shadow_n_samples,
+        shadow_disk_radius,
+        shadow_bias
+    );
     // Combined:
-    vec3 color = (ambient +  shadow * (diffuse + specular)) * diffuse_color;
+    vec3 color = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color;
     frag_color = vec4(color, 1.0);
 }

@@ -27,7 +27,10 @@ int main(void) {
         &renderer,
         1024,  // shadow_size
         0.1,  // shadow_min_dist
-        1000.0  // shadow_max_dist
+        1000.0,  // shadow_max_dist
+        0.005,  // shadow_disk_radius
+        0.001,  // shadow_bias
+        64  // shadow_n_samples
     );
 
     PointLight point_light;
