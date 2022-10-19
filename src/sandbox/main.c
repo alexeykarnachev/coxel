@@ -34,15 +34,17 @@ void create_renderer(Renderer* renderer) {
     );
 }
 
-void create_point_light(PointLight* point_light) {
-    Vec3 point_light_world_pos = {{0.0, 8.0, -20.0}};
-    Vec3 point_light_color = {{1.0, 1.0, 1.0}};
-    point_light_create(
-        point_light,
-        point_light_world_pos,
-        point_light_color,
-        200.0  // energy
-    );
+void create_point_lights(PointLight point_lights[], size_t n_point_lights) {
+    for (size_t i = 0; i < n_point_lights; ++i) {
+        Vec3 point_light_world_pos = {{i * 5.0, 8.0, -20.0}};
+        Vec3 point_light_color = {{1.0, 1.0, 1.0}};
+        point_light_create(
+            &point_lights[i],
+            point_light_world_pos,
+            point_light_color,
+            200.0  // energy
+        );
+    }
 }
 
 void create_meshes(Mesh meshes[], size_t n_meshes) {
@@ -96,8 +98,9 @@ int main(void) {
     Window window;
     create_window(&window, &camera);
 
-    PointLight point_light;
-    create_point_light(&point_light);
+    size_t n_point_lights = 2;
+    PointLight point_lights[n_point_lights];
+    create_point_lights(point_lights, n_point_lights);
 
     Renderer renderer;
     create_renderer(&renderer);
@@ -107,15 +110,13 @@ int main(void) {
     create_meshes(meshes, n_meshes);
 
     while (!glfwWindowShouldClose(window.glfw_window)) {
-        renderer_set_scene(&renderer, &camera, &point_light);
+        renderer_set_scene(&renderer, &camera, meshes, n_meshes, point_lights, n_point_lights);
+        renderer_draw_shadows(&renderer);
+        renderer_draw_materials(&renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
         for (size_t i = 0; i < n_meshes; ++i) {
-            renderer_draw_shadows(&renderer, &meshes[i]);
             if (i != n_meshes - 1) {
                 mesh_rotate(&meshes[i], 0.01, 0.01, 0.01);
             }
-        }
-        for (size_t i = 0; i < n_meshes; ++i) {
-            renderer_draw_materials(&renderer, &meshes[i], SCREEN_WIDTH, SCREEN_HEIGHT);
         }
 
         glfwSwapBuffers(window.glfw_window);
