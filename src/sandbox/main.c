@@ -107,7 +107,7 @@ int main(void) {
     create_meshes(meshes, n_meshes);
 
     while (!glfwWindowShouldClose(window.glfw_window)) {
-        renderer_set_scene(&renderer, camera, point_light);
+        renderer_set_scene(&renderer, &camera, &point_light);
         for (size_t i = 0; i < n_meshes; ++i) {
             renderer_draw_shadows(&renderer, &meshes[i]);
             if (i != n_meshes - 1) {

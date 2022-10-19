@@ -22,7 +22,7 @@ bool renderer_create(
 );
 void renderer_set_program(Renderer* renderer, GLuint program);
 bool renderer_draw_mesh(Renderer* renderer, Mesh* mesh);
-bool renderer_set_scene(Renderer* renderer, Camera camera, PointLight point_light);
+bool renderer_set_scene(Renderer* renderer, Camera* camera, PointLight* point_light);
 bool renderer_set_depth_cubemap_fbo(Renderer* renderer, DepthCubemap* depth_cubemap);
 void renderer_draw_triangles(Renderer* renderer);
 void renderer_draw_patches(Renderer* renderer, size_t n_vertices_in_patch);
@@ -102,22 +102,22 @@ bool renderer_draw_materials(
     return ok;
 }
 
-bool renderer_set_scene(Renderer* renderer, Camera camera, PointLight point_light) {
+bool renderer_set_scene(Renderer* renderer, Camera* camera, PointLight* point_light) {
     depth_cubemap_set_view(
         &renderer->cube_shadowmap,
-        point_light.world_pos,
+        point_light->world_pos,
         renderer->shadow_near_plane,
         renderer->shadow_far_plane
     );
 
     bool ok = true;
     GLuint p = renderer->material_program;
-    ok &= program_set_uniform_matrix_4fv(p, "view_mat", camera.view_mat.data, 1, GL_TRUE);
-    ok &= program_set_uniform_matrix_4fv(p, "proj_mat", camera.proj_mat.data, 1, GL_TRUE);
-    ok &= program_set_uniform_3fv(p, "eye_world_pos", camera.pos.data, 1);
-    ok &= program_set_uniform_3fv(p, "point_light_world_pos", point_light.world_pos.data, 1);
-    ok &= program_set_uniform_3fv(p, "point_light_color", point_light.color.data, 1);
-    ok &= program_set_uniform_1f(p, "point_light_energy", point_light.energy);
+    ok &= program_set_uniform_matrix_4fv(p, "view_mat", camera->view_mat.data, 1, GL_TRUE);
+    ok &= program_set_uniform_matrix_4fv(p, "proj_mat", camera->proj_mat.data, 1, GL_TRUE);
+    ok &= program_set_uniform_3fv(p, "eye_world_pos", camera->pos.data, 1);
+    ok &= program_set_uniform_3fv(p, "point_light_world_pos", point_light->world_pos.data, 1);
+    ok &= program_set_uniform_3fv(p, "point_light_color", point_light->color.data, 1);
+    ok &= program_set_uniform_1f(p, "point_light_energy", point_light->energy);
     ok &= program_set_uniform_1f(p, "shadow_far_plane", renderer->shadow_far_plane);
     ok &= program_set_uniform_1i(p, "shadow_n_samples", renderer->shadow_n_samples);
     ok &= program_set_uniform_1f(p, "shadow_disk_radius", renderer->shadow_disk_radius);
