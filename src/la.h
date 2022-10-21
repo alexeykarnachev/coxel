@@ -402,9 +402,14 @@ Mat4 mat4_identity() {
     return mat;
 }
 
-void mat4_pack(float data[], Mat4 mats[], size_t n_mats) {
+void mat4_pack(float dst[], Mat4 mats[], size_t n_mats) {
     for (size_t i = 0; i < n_mats; ++i) {
-        memcpy(&data[i * 16], mats[i].data, sizeof(mats[i].data[0]) * 16);
+        memcpy(&dst[i * 16], mats[i].data, sizeof(mats[i].data[0]) * 16);
     } 
 }
 
+void vec3_pack(float dst[], Vec3 vecs[], size_t n_vecs) {
+    for (size_t i = 0; i < n_vecs; ++i) {
+        memcpy(&dst[i * 3], vecs[i].data, sizeof(vecs[i].data[0]) * 3);
+    } 
+}

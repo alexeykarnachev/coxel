@@ -25,10 +25,10 @@ void create_window(Window* window, Camera* camera) {
 void create_renderer(Renderer* renderer) {
     renderer_create(
         renderer,
-        1024,  // shadow_size
+        512,  // shadow_size
         0.1,  // shadow_min_dist
         1000.0,  // shadow_max_dist
-        0.005,  // shadow_disk_radius
+        0.025,  // shadow_disk_radius
         0.001,  // shadow_bias
         64  // shadow_n_samples
     );
@@ -36,13 +36,13 @@ void create_renderer(Renderer* renderer) {
 
 void create_point_lights(PointLight point_lights[], size_t n_point_lights) {
     for (size_t i = 0; i < n_point_lights; ++i) {
-        Vec3 point_light_world_pos = {{i * 5.0, 8.0, -20.0}};
+        Vec3 point_light_world_pos = {{i * 50.0, 8.0, -20.0}};
         Vec3 point_light_color = {{1.0, 1.0, 1.0}};
         point_light_create(
             &point_lights[i],
             point_light_world_pos,
             point_light_color,
-            200.0  // energy
+            150.0  // energy
         );
     }
 }
@@ -105,14 +105,17 @@ int main(void) {
     Renderer renderer;
     create_renderer(&renderer);
 
-    size_t n_meshes = 10;
+    size_t n_meshes = 5;
     Mesh meshes[n_meshes];
     create_meshes(meshes, n_meshes);
 
+    bool ok = true;
     while (!glfwWindowShouldClose(window.glfw_window)) {
         renderer_set_scene(&renderer, &camera, meshes, n_meshes, point_lights, n_point_lights);
-        renderer_draw_shadows(&renderer);
-        renderer_draw_materials(&renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
+        ok &= renderer_draw_scene(&renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
+        if (!ok) {
+            return 1;
+        }
         for (size_t i = 0; i < n_meshes; ++i) {
             if (i != n_meshes - 1) {
                 mesh_rotate(&meshes[i], 0.01, 0.01, 0.01);

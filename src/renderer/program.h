@@ -231,6 +231,12 @@ bool program_set_uniform_1f(GLuint program, const char* name, GLfloat val) {
     return true;
 }
 
+bool program_set_uniform_1fv(GLuint program, const char* name, GLfloat* data, size_t n_values) {
+    _GET_UNIFORM_LOC
+    glUniform1fv(loc, n_values, data);
+    return true;
+}
+
 bool program_set_uniform_2f(GLuint program, const char* name, GLfloat v1, GLfloat v2) {
     _GET_UNIFORM_LOC
     glUniform2f(loc, v1, v2);
