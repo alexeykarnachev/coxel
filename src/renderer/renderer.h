@@ -100,12 +100,13 @@ bool renderer_draw_scene(Renderer* renderer, size_t viewport_width, size_t viewp
 }
 
 bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh, PointLight point_lights[], size_t n_point_lights) {
+    n_point_lights = min(n_point_lights, MAX_N_POINT_SHADOWS);
     GLuint p = renderer->shadow_program;
     glUseProgram(p);
     mesh_bind(mesh);
 
-    static Vec3 world_pos[MAX_N_POINT_LIGHTS];
-    for (size_t i = 0; i < min(n_point_lights, MAX_N_POINT_LIGHTS); ++i) {
+    static Vec3 world_pos[MAX_N_POINT_SHADOWS];
+    for (size_t i = 0; i < n_point_lights; ++i) {
         world_pos[i] = point_lights[i].world_pos;
     }
 
@@ -137,14 +138,14 @@ bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh, PointLight point_ligh
 }
 
 bool renderer_draw_materials(Renderer* renderer, Mesh* mesh, PointLight point_lights[], size_t n_point_lights) {
-    n_point_lights = min(n_point_lights, MAX_N_POINT_LIGHTS);
+    n_point_lights = min(n_point_lights, MAX_N_POINT_SHADOWS);
     GLuint p = renderer->material_program;
     glUseProgram(p);
     mesh_bind(mesh);
 
-    float point_light_world_pos[3 * MAX_N_POINT_LIGHTS];
-    float point_light_color[3 * MAX_N_POINT_LIGHTS];
-    float point_light_energy[MAX_N_POINT_LIGHTS];
+    float point_light_world_pos[3 * MAX_N_POINT_SHADOWS];
+    float point_light_color[3 * MAX_N_POINT_SHADOWS];
+    float point_light_energy[MAX_N_POINT_SHADOWS];
 
     for (size_t i = 0; i < n_point_lights; ++i) {
         memcpy(

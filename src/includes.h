@@ -1,5 +1,5 @@
 #define PI 3.14159265358979323846264338327950288
-#define MAX_N_POINT_LIGHTS 4
+#define MAX_N_POINT_SHADOWS 16
 #define deg2rad(d) ((d) * PI / 180.0)
 #define rad2deg(r) ((r) * 180.0 / PI)
 #define clear_struct(s) (memset(s, 0, sizeof(*s)))

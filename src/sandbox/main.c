@@ -25,10 +25,10 @@ void create_window(Window* window, Camera* camera) {
 void create_renderer(Renderer* renderer) {
     renderer_create(
         renderer,
-        512,  // shadow_size
+        1024,  // shadow_size
         0.1,  // shadow_min_dist
         1000.0,  // shadow_max_dist
-        0.025,  // shadow_disk_radius
+        0.01,  // shadow_disk_radius
         0.001,  // shadow_bias
         64  // shadow_n_samples
     );
@@ -98,7 +98,7 @@ int main(void) {
     Window window;
     create_window(&window, &camera);
 
-    size_t n_point_lights = 2;
+    size_t n_point_lights = 16;
     PointLight point_lights[n_point_lights];
     create_point_lights(point_lights, n_point_lights);
 

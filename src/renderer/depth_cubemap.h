@@ -1,8 +1,6 @@
-#define MAX_N_VIEWS 4
-
 typedef struct DepthCubemap {
-    float view_proj_mats[96 * MAX_N_VIEWS];
-    float world_pos[3 * MAX_N_VIEWS];
+    float view_proj_mats[96 * MAX_N_POINT_SHADOWS];
+    float world_pos[3 * MAX_N_POINT_SHADOWS];
     size_t size;
 
     GLuint tex;
@@ -23,7 +21,7 @@ void depth_cubemap_create(DepthCubemap* depth_cubemap, size_t size) {
     clear_struct(depth_cubemap);
 
     depth_cubemap->size = size;
-    buffer_create_cube_shadowmap(&depth_cubemap->fbo, &depth_cubemap->tex, size, MAX_N_VIEWS);
+    buffer_create_cube_shadowmap(&depth_cubemap->fbo, &depth_cubemap->tex, size, MAX_N_POINT_SHADOWS);
 }
 
 void depth_cubemap_set_views(
@@ -37,7 +35,7 @@ void depth_cubemap_set_views(
 
     Mat4 view_mats[6];
     Mat4 view_proj_mats[6];
-    for (size_t i = 0; i < min(n_views, MAX_N_VIEWS); ++i) {
+    for (size_t i = 0; i < min(n_views, MAX_N_POINT_SHADOWS); ++i) {
         Vec3* world_pos = &(view_world_pos[i]);
         view_mats[0] = get_view_mat(&vec3_pos_x, &vec3_neg_y, world_pos);
         view_mats[1] = get_view_mat(&vec3_neg_x, &vec3_neg_y, world_pos);

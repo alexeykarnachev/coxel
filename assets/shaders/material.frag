@@ -1,6 +1,6 @@
 #version 460 core
 
-#define MAX_N_POINT_LIGHTS 4
+#define MAX_N_POINT_SHADOWS 16
 
 in VertexData {
     vec4 model_pos;
@@ -18,9 +18,9 @@ uniform float shininess;
 
 // Point light:
 uniform int n_point_lights;
-uniform vec3 point_light_world_pos[MAX_N_POINT_LIGHTS];
-uniform vec3 point_light_color[MAX_N_POINT_LIGHTS];
-uniform float point_light_energy[MAX_N_POINT_LIGHTS];
+uniform vec3 point_light_world_pos[MAX_N_POINT_SHADOWS];
+uniform vec3 point_light_color[MAX_N_POINT_SHADOWS];
+uniform float point_light_energy[MAX_N_POINT_SHADOWS];
 
 // Shadow:
 uniform samplerCubeArrayShadow cube_shadow_tex;
@@ -34,18 +34,9 @@ out vec4 frag_color;
 vec2 poisson_disk64(int idx);
 
 float get_point_shadow() {
-    // int i = 1;
-    // vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos[i];
-    // float curr_depth = length(light_to_frag) / shadow_far_plane - shadow_bias;
-    // light_to_frag = normalize(light_to_frag);
-    // return texture(cube_shadow_tex, vec4(light_to_frag, i), curr_depth);
-
-
-    // -----------------------
-
     float shadow = 0.0;
     
-    for(int i_light = 0; i_light < min(n_point_lights, MAX_N_POINT_LIGHTS); ++i_light) {
+    for(int i_light = 0; i_light < min(n_point_lights, MAX_N_POINT_SHADOWS); ++i_light) {
         vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos[i_light];
         float curr_depth = length(light_to_frag) / shadow_far_plane - shadow_bias;
         light_to_frag = normalize(light_to_frag);
@@ -96,6 +87,5 @@ void main() {
 
     // Combined:
     vec3 color = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color;
-    // frag_color = vec4(color, 1.0);
-    frag_color = vec4(shadow);
+    frag_color = vec4(color, 1.0);
 }

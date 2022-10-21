@@ -1,16 +1,16 @@
 #version 460 core
 
-#define MAX_N_VIEWS 4
+#define MAX_N_POINT_SHADOWS 16
 
-layout (triangles, invocations=MAX_N_VIEWS) in;
+layout (triangles, invocations=MAX_N_POINT_SHADOWS) in;
 in VertexData {
     vec4 model_pos;
     vec4 world_pos;
     vec4 proj_pos;
 } gs_in[];
 
-uniform mat4 view_proj_mats[6 * MAX_N_VIEWS];
-uniform vec3 world_pos[MAX_N_VIEWS];
+uniform mat4 view_proj_mats[6 * MAX_N_POINT_SHADOWS];
+uniform vec3 world_pos[MAX_N_POINT_SHADOWS];
 uniform int n_views;
 uniform float max_dist;
 
@@ -21,7 +21,7 @@ out VertexData {
 
 void main() {
     int layer = gl_InvocationID;
-    if (layer < min(n_views, MAX_N_VIEWS)) {
+    if (layer < min(n_views, MAX_N_POINT_SHADOWS)) {
         for(int face = 0; face < 6; ++face) {
             int global_face = face + 6 * layer;
 
