@@ -122,8 +122,7 @@ bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh, PointLight point_ligh
     ok &= program_set_uniform_matrix_4fv(p, "world_mat", mesh->transformation.world_mat.data, 1, GL_TRUE);
 
     ok &= program_set_uniform_1f(p, "max_dist", renderer->shadow_far_plane);
-    // ok &= program_set_uniform_3fv(p, "world_pos", renderer->cube_shadowmap.world_pos, n_point_lights);
-    ok &= program_set_uniform_3fv(p, "world_pos", point_lights[1].world_pos.data, 1);
+    ok &= program_set_uniform_3fv(p, "world_pos", renderer->cube_shadowmap.world_pos, n_point_lights);
     ok &= program_set_uniform_matrix_4fv(
         p, "view_proj_mats", renderer->cube_shadowmap.view_proj_mats, 6 * n_point_lights, GL_TRUE);
     ok &= program_set_uniform_1i(p, "n_views", n_point_lights);

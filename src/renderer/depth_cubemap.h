@@ -2,7 +2,7 @@
 
 typedef struct DepthCubemap {
     float view_proj_mats[96 * MAX_N_VIEWS];
-    float world_pos[MAX_N_VIEWS];
+    float world_pos[3 * MAX_N_VIEWS];
     size_t size;
 
     GLuint tex;
@@ -50,5 +50,5 @@ void depth_cubemap_set_views(
         }
         mat4_pack(&(depth_cubemap->view_proj_mats[96 * i]), view_proj_mats, 6);
     }
-    // vec3_pack(depth_cubemap->world_pos, view_world_pos, n_views);
+    vec3_pack(depth_cubemap->world_pos, view_world_pos, n_views);
 }
