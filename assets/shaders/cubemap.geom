@@ -1,7 +1,3 @@
-#version 460 core
-
-#define MAX_N_POINT_SHADOWS 16
-
 layout (triangles, invocations=MAX_N_POINT_SHADOWS) in;
 in VertexData {
     vec4 model_pos;
@@ -36,3 +32,4 @@ void main() {
         }
     }
 } 
+

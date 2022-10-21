@@ -1,5 +1,3 @@
-#version 460 core
-
 in vec3 model_pos;
 
 uniform mat4 world_mat;

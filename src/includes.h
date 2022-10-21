@@ -1,5 +1,5 @@
 #define PI 3.14159265358979323846264338327950288
-#define MAX_N_POINT_SHADOWS 16
+
 #define deg2rad(d) ((d) * PI / 180.0)
 #define rad2deg(r) ((r) * 180.0 / PI)
 #define clear_struct(s) (memset(s, 0, sizeof(*s)))
@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
+#include "constants.h"
 #include "utils.h"
 #include "la.h"
 #include "renderer/camera.h"

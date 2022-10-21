@@ -1,7 +1,3 @@
-#version 460 core
-
-#define MAX_N_POINT_SHADOWS 16
-
 in VertexData {
     vec4 model_pos;
     vec4 world_pos;
@@ -18,39 +14,53 @@ uniform float shininess;
 
 // Point light:
 uniform int n_point_lights;
-uniform vec3 point_light_world_pos[MAX_N_POINT_SHADOWS];
-uniform vec3 point_light_color[MAX_N_POINT_SHADOWS];
-uniform float point_light_energy[MAX_N_POINT_SHADOWS];
+uniform vec3 point_light_world_pos[MAX_N_POINT_LIGHTS];
+uniform vec3 point_light_color[MAX_N_POINT_LIGHTS];
+uniform float point_light_energy[MAX_N_POINT_LIGHTS];
 
 // Shadow:
 uniform samplerCubeArrayShadow cube_shadow_tex;
 uniform float shadow_far_plane;
-uniform int shadow_n_samples;
+uniform int shadow_max_n_samples;
+uniform int shadow_min_n_samples;
 uniform float shadow_disk_radius;
-uniform float shadow_bias;
+uniform float shadow_bias_min;
+uniform float shadow_bias_max;
 
 out vec4 frag_color;
 
 vec2 poisson_disk64(int idx);
 
-float get_point_shadow() {
+float get_point_shadow(vec3 normal) {
     float shadow = 0.0;
     
     for(int i_light = 0; i_light < min(n_point_lights, MAX_N_POINT_SHADOWS); ++i_light) {
         vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos[i_light];
-        float curr_depth = length(light_to_frag) / shadow_far_plane - shadow_bias;
+        float light_to_frag_length = length(light_to_frag);
         light_to_frag = normalize(light_to_frag);
 
+        float bias = max(shadow_bias_max * (1.0 - dot(normal, -light_to_frag)), shadow_bias_min);
+        float curr_depth = light_to_frag_length / shadow_far_plane - bias;
+
         float curr_shadow = 0;
-        for(int i_sample = 0; i_sample < shadow_n_samples; ++i_sample) {
+        int n_samples = 0;
+        for(int i_sample = 0; i_sample < shadow_max_n_samples; ++i_sample) {
             vec2 rnd_vec = poisson_disk64(i_sample) * shadow_disk_radius;
             curr_shadow += texture(
                 cube_shadow_tex,
                 vec4(light_to_frag + vec3(rnd_vec, 0.0), i_light),
                 curr_depth
             );
+            n_samples += 1;
+
+            if (
+                (n_samples == shadow_min_n_samples)
+                && (abs(curr_shadow) < 0.001 || abs(curr_shadow) - 1.0 < 0.001)
+            ) {
+                break;
+            }
         }
-        shadow += curr_shadow / float(shadow_n_samples);
+        shadow += curr_shadow / n_samples;
     }
     return shadow / n_point_lights;
 }
@@ -64,7 +74,7 @@ void main() {
     vec3 ambient = 0.005 * ambient_color;
 
     // Shadows:
-    float shadow = get_point_shadow();
+    float shadow = get_point_shadow(normal);
 
     // Diffuse:
     vec3 diffuse = vec3(0);

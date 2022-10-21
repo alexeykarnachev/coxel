@@ -33,17 +33,20 @@ static const char* GEOM_CUBEMAP_SHADER = "./assets/shaders/cubemap.geom";
 static const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
 static const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
 static const char* GLSL_COMMON_SHADER = "./assets/shaders/common.glsl";
+static const char* VERSION_SHADER = "./assets/shaders/version.glsl";
+static const char* CONSTANTS_SHADER = "./src/constants.h";
 
 
 bool program_create_material(GLuint program) {
-    const char* deps_file_paths[] = {GLSL_COMMON_SHADER};
+    const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
     return program_create(
-        program, VERT_PROJECTION_SHADER, NULL, NULL, NULL, FRAG_MATERIAL_SHADER, 1, deps_file_paths);
+        program, VERT_PROJECTION_SHADER, NULL, NULL, NULL, FRAG_MATERIAL_SHADER, 3, deps_file_paths);
 }
 
 bool program_create_depth_cubemap(GLuint program) {
+    const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER};
     return program_create(
-        program, VERT_PROJECTION_SHADER, NULL, NULL, GEOM_CUBEMAP_SHADER, FRAG_DEPTH_SHADER, 0, NULL);
+        program, VERT_PROJECTION_SHADER, NULL, NULL, GEOM_CUBEMAP_SHADER, FRAG_DEPTH_SHADER, 2, deps_file_paths);
 }
 
 bool program_create(
@@ -61,7 +64,6 @@ bool program_create(
     GLuint tese_shader = 0;
     GLuint geom_shader = 0;
     GLuint frag_shader = 0;
-    GLuint deps_shaders[n_deps];
 
     bool is_compiled = true;
 
@@ -98,9 +100,6 @@ bool program_create(
     glDetachShader(program, tese_shader);
     glDetachShader(program, geom_shader);
     glDetachShader(program, frag_shader);
-    for (size_t i = 0; i < n_deps; ++i) {
-        glDetachShader(program, deps_shaders[i]);
-    }
 
     GLint is_linked;
     glGetProgramiv(program, GL_LINK_STATUS, &is_linked);
@@ -140,16 +139,16 @@ bool program_compile_file(
         GLuint* shader
 ) {
     const char* sources[n_deps + 1];
-    sources[0] = read_cstr_file(file_path);
-    if (sources[0] == NULL) {
+    sources[n_deps] = read_cstr_file(file_path);
+    if (sources[n_deps] == NULL) {
         fprintf(stderr, "ERROR: failed to read the shader source file `%s`: %s\n", file_path, strerror(errno));
         errno = 0;
         return false;
     }
 
     for (size_t i = 0; i < n_deps; ++i) {
-        sources[i + 1] = read_cstr_file(deps_file_paths[i]);
-        if (sources[i + 1] == NULL) {
+        sources[i] = read_cstr_file(deps_file_paths[i]);
+        if (sources[i] == NULL) {
             fprintf(stderr, "ERROR: failed to read the shader deps source file `%s`: %s\n", deps_file_paths[i], strerror(errno));
             errno = 0;
             return false;

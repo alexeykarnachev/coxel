@@ -1,0 +1,2 @@
+#define MAX_N_POINT_SHADOWS 8
+#define MAX_N_POINT_LIGHTS 1024

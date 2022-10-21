@@ -1,5 +1,3 @@
-#version 460 core
-
 in VertexData {
     float depth;
 } fs_in;
