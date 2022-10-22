@@ -5,18 +5,24 @@ in VertexData {
 } fs_in;
 
 uniform vec3 eye_world_pos;
+uniform int material_id;
 
-layout (std140, binding=MATERIAL_BINDING_IDX) uniform Material {
+struct PointLight {
+    vec4 world_pos;
+    vec4 color;
+    float energy;
+};
+
+struct Material {
     vec4 diffuse_color;
     vec4 ambient_color;
     vec4 specular_color;
     float shininess;
 };
 
-struct PointLight {
-    vec4 world_pos;
-    vec4 color;
-    float energy;
+layout (std140, binding=MATERIAL_BINDING_IDX) uniform Materials {
+    Material materials[MAX_N_MATERIALS];
+    int n_materials;
 };
 
 layout (std140, binding=POINT_LIGHTS_BINDING_IDX) uniform PointLights {
@@ -72,6 +78,12 @@ vec2 poisson_disk64(int idx);
 // }
 
 void main() {
+    Material material = materials[material_id];
+    vec3 diffuse_color = material.diffuse_color.rgb;
+    vec3 ambient_color = material.ambient_color.rgb;
+    vec3 specular_color = material.specular_color.rgb;
+    float shininess = material.shininess;
+
     vec3 world_pos = fs_in.world_pos.xyz;
     vec3 normal = normalize(cross(dFdx(world_pos), dFdy(world_pos)));
     vec3 view_dir = normalize(world_pos - eye_world_pos);

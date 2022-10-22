@@ -58,11 +58,7 @@ void mesh_create(
     mesh->n_elements = faces_size / sizeof(faces[0]);
 }
 
-void mesh_create_icosahedron(
-    Mesh* mesh,
-    Material* material,
-    Transformation transformation
-) {
+void mesh_create_icosahedron(Mesh* mesh, Material* material, Transformation transformation) {
     mesh_create(
         mesh,
         material,
@@ -74,11 +70,7 @@ void mesh_create_icosahedron(
     );
 }
 
-void mesh_create_plane(
-    Mesh* mesh,
-    Material* material,
-    Transformation transformation
-) {
+void mesh_create_plane(Mesh* mesh, Material* material, Transformation transformation) {
     mesh_create(
         mesh,
         material,

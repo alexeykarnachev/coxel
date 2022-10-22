@@ -6,10 +6,10 @@ typedef struct Material {
     Vec3 ambient_color;
     Vec3 specular_color;
     float shininess;
-
-    GLuint ubo;
+    size_t id;
 } Material;
 
+int MATERIAL_UBO = -1;
 Material _MATERIAL_ARENA[MAX_N_MATERIALS];
 size_t _MATERIAL_ARENA_IDX = 0;
 
@@ -33,24 +33,44 @@ Material* material_create(
         return NULL;
     }
     Material* material = &_MATERIAL_ARENA[_MATERIAL_ARENA_IDX];
-    _MATERIAL_ARENA_IDX += 1;
 
     material->diffuse_color = diffuse_color;
     material->ambient_color = ambient_color;
     material->specular_color = specular_color;
     material->shininess = shininess;
+    material->id = _MATERIAL_ARENA_IDX;
 
     static float data[_MATERIAL_UBO_N_ELEMENTS];
     material_pack(material, data);
 
-    glGenBuffers(1, &material->ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, material->ubo);
-    glBufferData(GL_UNIFORM_BUFFER, _MATERIAL_UBO_N_BYTES, data, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    if (MATERIAL_UBO == -1) {
+        glGenBuffers(1, &MATERIAL_UBO);
+        glBindBuffer(GL_UNIFORM_BUFFER, MATERIAL_UBO);
+        glBufferData(
+            GL_UNIFORM_BUFFER,
+            _MATERIAL_UBO_N_BYTES * MAX_N_MATERIALS + 16,
+            NULL,
+            GL_DYNAMIC_DRAW
+        );
+    }
 
+    glBufferSubData(
+        GL_UNIFORM_BUFFER,
+        _MATERIAL_ARENA_IDX * _MATERIAL_UBO_N_BYTES,
+        _MATERIAL_UBO_N_BYTES,
+        data
+    );
+    _MATERIAL_ARENA_IDX += 1;
+
+    glBufferSubData(
+        GL_UNIFORM_BUFFER,
+        MAX_N_MATERIALS * _MATERIAL_UBO_N_BYTES,
+        16,
+        &_MATERIAL_ARENA_IDX
+    );
+
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferBase(GL_UNIFORM_BUFFER, MATERIAL_BINDING_IDX, MATERIAL_UBO);
     return material;
 }
 
-void material_bind(Material* material) {
-    glBindBufferBase(GL_UNIFORM_BUFFER, MATERIAL_BINDING_IDX, material->ubo);
-}

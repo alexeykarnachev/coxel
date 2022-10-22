@@ -26,7 +26,7 @@ bool renderer_create(
     size_t shadow_max_n_samples
 );
 void renderer_set_program(Renderer* renderer, GLuint program);
-bool renderer_draw_materials(Renderer* renderer, Mesh* mesh);
+bool renderer_draw_material(Renderer* renderer, Mesh* mesh);
 bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh);
 void renderer_set_scene(
     Renderer* renderer,
@@ -86,7 +86,7 @@ bool renderer_draw_scene(Renderer* renderer, size_t viewport_width, size_t viewp
     glActiveTexture(0);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, renderer->cube_shadowmap.tex);
     for (size_t i = 0; i < renderer->n_meshes; ++i) {
-        ok &= renderer_draw_materials(renderer, &(renderer->meshes[i]));
+        ok &= renderer_draw_material(renderer, &(renderer->meshes[i]));
     }
 
     if (!ok) {
@@ -134,11 +134,10 @@ bool renderer_draw_scene(Renderer* renderer, size_t viewport_width, size_t viewp
 //     return true;
 // }
 
-bool renderer_draw_materials(Renderer* renderer, Mesh* mesh) {
+bool renderer_draw_material(Renderer* renderer, Mesh* mesh) {
     GLuint p = PROGRAM_MATERIAL;
     glUseProgram(p);
     mesh_bind(mesh);
-    material_bind(mesh->material);
 
     bool ok = true;
     ok &= program_set_attribute(p, "model_pos", 3, GL_FLOAT); 
@@ -146,6 +145,7 @@ bool renderer_draw_materials(Renderer* renderer, Mesh* mesh) {
     ok &= program_set_uniform_matrix_4fv(p, "proj_mat", renderer->camera->proj_mat.data, 1, GL_TRUE);
     ok &= program_set_uniform_matrix_4fv(p, "world_mat", mesh->transformation.world_mat.data, 1, GL_TRUE);
     ok &= program_set_uniform_3fv(p, "eye_world_pos", renderer->camera->pos.data, 1);
+    ok &= program_set_uniform_1i(p, "material_id", mesh->material->id);
 
     ok &= program_set_uniform_1f(p, "shadow_far_plane", renderer->shadow_far_plane);
     ok &= program_set_uniform_1i(p, "shadow_min_n_samples", renderer->shadow_min_n_samples);
