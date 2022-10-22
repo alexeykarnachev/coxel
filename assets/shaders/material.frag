@@ -6,11 +6,12 @@ in VertexData {
 
 uniform vec3 eye_world_pos;
 
-// Material:
-uniform vec3 diffuse_color;
-uniform vec3 ambient_color;
-uniform vec3 specular_color;
-uniform float shininess;
+layout (std140) uniform Material {
+    vec4 diffuse_color;
+    vec4 ambient_color;
+    vec4 specular_color;
+    float shininess;
+};
 
 // Point light:
 uniform int n_point_lights;
@@ -71,7 +72,7 @@ void main() {
     vec3 view_dir = normalize(world_pos - eye_world_pos);
 
     // Ambient:
-    vec3 ambient = 0.005 * ambient_color;
+    vec3 ambient = 0.005 * ambient_color.rgb;
 
     // Shadows:
     float shadow = get_point_shadow(normal);
@@ -92,10 +93,10 @@ void main() {
         vec3 point_light_dir = normalize(world_pos - point_light_world_pos[i]);
         vec3 halfway_dir = normalize(-point_light_dir - view_dir);
         float specular_weight = pow(max(dot(normal, halfway_dir), 0.0), shininess);
-        specular += specular_weight * specular_color * point_light_energy[i] / point_light_dist;
+        specular += specular_weight * specular_color.rgb * point_light_energy[i] / point_light_dist;
     }
 
     // Combined:
-    vec3 color = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color;
+    vec3 color = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color.rgb;
     frag_color = vec4(color, 1.0);
 }

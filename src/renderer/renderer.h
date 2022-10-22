@@ -2,6 +2,8 @@ typedef struct Renderer {
     GLuint material_program;
     GLuint shadow_program;
 
+    MaterialUBO material_ubo;
+
     float shadow_near_plane;
     float shadow_far_plane;
     float shadow_disk_radius;
@@ -60,8 +62,10 @@ bool renderer_create(
 ) {
     renderer->material_program = glCreateProgram();
     renderer->shadow_program = glCreateProgram();
-    program_create_material(renderer->material_program);
+    material_create_program(renderer->material_program);
     program_create_depth_cubemap(renderer->shadow_program);
+
+    material_create_ubo(&renderer->material_ubo);
     
     renderer->shadow_near_plane = shadow_near_plane;
     renderer->shadow_far_plane = shadow_far_plane;
@@ -175,10 +179,7 @@ bool renderer_draw_materials(Renderer* renderer, Mesh* mesh, PointLight point_li
     ok &= program_set_uniform_matrix_4fv(p, "world_mat", mesh->transformation.world_mat.data, 1, GL_TRUE);
     ok &= program_set_uniform_3fv(p, "eye_world_pos", renderer->camera->pos.data, 1);
     
-    ok &= program_set_uniform_3fv(p, "diffuse_color", mesh->material.diffuse_color.data, 1);
-    ok &= program_set_uniform_3fv(p, "ambient_color", mesh->material.ambient_color.data, 1);
-    ok &= program_set_uniform_3fv(p, "specular_color", mesh->material.specular_color.data, 1);
-    ok &= program_set_uniform_1f(p, "shininess", mesh->material.shininess);
+    ok &= material_bind(&mesh->material, p, &renderer->material_ubo);
 
     ok &= program_set_uniform_1i(p, "n_point_lights", n_point_lights);
     ok &= program_set_uniform_3fv(p, "point_light_world_pos", point_light_world_pos, n_point_lights);

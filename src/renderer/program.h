@@ -1,4 +1,3 @@
-bool program_create_material(GLuint program);
 bool program_create_depth_cubemap(GLuint program);
 bool program_create(
     GLuint program,
@@ -28,20 +27,14 @@ bool program_set_uniform_3fv(GLuint program, const char* name, GLfloat* data, si
 bool program_set_uniform_matrix_4fv(
         GLuint program, const char* name, GLfloat* data, size_t n_matrices, GLboolean transpose);
 
-static const char* VERT_PROJECTION_SHADER = "./assets/shaders/projection.vert";
-static const char* GEOM_CUBEMAP_SHADER = "./assets/shaders/cubemap.geom";
-static const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
-static const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
-static const char* GLSL_COMMON_SHADER = "./assets/shaders/common.glsl";
-static const char* VERSION_SHADER = "./assets/shaders/version.glsl";
-static const char* CONSTANTS_SHADER = "./src/constants.h";
+const char* VERT_PROJECTION_SHADER = "./assets/shaders/projection.vert";
+const char* GEOM_CUBEMAP_SHADER = "./assets/shaders/cubemap.geom";
+const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
+const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
+const char* GLSL_COMMON_SHADER = "./assets/shaders/common.glsl";
+const char* VERSION_SHADER = "./assets/shaders/version.glsl";
+const char* CONSTANTS_SHADER = "./src/constants.h";
 
-
-bool program_create_material(GLuint program) {
-    const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
-    return program_create(
-        program, VERT_PROJECTION_SHADER, NULL, NULL, NULL, FRAG_MATERIAL_SHADER, 3, deps_file_paths);
-}
 
 bool program_create_depth_cubemap(GLuint program) {
     const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER};
