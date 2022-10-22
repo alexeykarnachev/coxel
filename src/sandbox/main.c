@@ -50,15 +50,23 @@ void create_point_lights(PointLight point_lights[], size_t n_point_lights) {
 }
 
 void create_meshes(Mesh meshes[], size_t n_meshes) {
-    Material plane_material;
     Vec3 plane_diffuse_color = {{0.8, 0.8, 0.8}};
     Vec3 plane_ambient_color = plane_diffuse_color;
     Vec3 plane_specular_color = {{1.0, 1.0, 1.0}};
-    material_create(
-        &plane_material,
+    Material* plane_material = material_create(
         plane_diffuse_color,
         plane_ambient_color,
         plane_specular_color,
+        256.0  // shininess
+    );
+
+    Vec3 sphere_diffuse_color = {{0.8, 0.2, 0.3}};
+    Vec3 sphere_ambient_color = sphere_diffuse_color;
+    Vec3 sphere_specular_color = {{1.0, 1.0, 1.0}};
+    Material* sphere_material = material_create(
+        sphere_diffuse_color,
+        sphere_ambient_color,
+        sphere_specular_color,
         256.0  // shininess
     );
 
@@ -68,20 +76,7 @@ void create_meshes(Mesh meshes[], size_t n_meshes) {
     Transformation plane_transformation = transformation_create(
         plane_scale, plane_rotation, plane_translation);
     mesh_create_plane(&meshes[n_meshes - 1], plane_material, plane_transformation);
-
     for (size_t i = 0; i < n_meshes - 1; ++i) {
-        Material sphere_material;
-        Vec3 sphere_diffuse_color = {{0.8, 0.2, 0.3}};
-        Vec3 sphere_ambient_color = sphere_diffuse_color;
-        Vec3 sphere_specular_color = {{1.0, 1.0, 1.0}};
-        material_create(
-            &sphere_material,
-            sphere_diffuse_color,
-            sphere_ambient_color,
-            sphere_specular_color,
-            256.0  // shininess
-        );
-
         Vec3 sphere_scale = {{1.0, 1.0, 1.0}};
         Vec3 sphere_rotation = {{0.0, 0.0, 0.0}};
         Vec3 sphere_translation = {{i * 3.0, 0.0, -5.0}};

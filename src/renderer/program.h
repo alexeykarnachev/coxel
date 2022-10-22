@@ -1,4 +1,4 @@
-bool program_create_depth_cubemap(GLuint program);
+bool program_create_all();
 bool program_create(
     GLuint program,
     const char* vert_file_path,
@@ -35,12 +35,35 @@ const char* GLSL_COMMON_SHADER = "./assets/shaders/common.glsl";
 const char* VERSION_SHADER = "./assets/shaders/version.glsl";
 const char* CONSTANTS_SHADER = "./src/constants.h";
 
+GLuint PROGRAM_MATERIAL;
+GLuint PROGRAM_DEPTH_CUBEMAP;
 
-bool program_create_depth_cubemap(GLuint program) {
-    const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER};
-    return program_create(
-        program, VERT_PROJECTION_SHADER, NULL, NULL, GEOM_CUBEMAP_SHADER, FRAG_DEPTH_SHADER, 2, deps_file_paths);
+bool program_create_all() {
+    const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
+    bool ok = true;
+
+    PROGRAM_MATERIAL = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_MATERIAL,
+        VERT_PROJECTION_SHADER,
+        NULL, NULL, NULL,
+        FRAG_MATERIAL_SHADER,
+        3, deps_file_paths
+    );
+
+    PROGRAM_DEPTH_CUBEMAP = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_DEPTH_CUBEMAP,
+        VERT_PROJECTION_SHADER,
+        NULL, NULL,
+        GEOM_CUBEMAP_SHADER,
+        FRAG_DEPTH_SHADER,
+        2, deps_file_paths
+    );
+
+    return ok;
 }
+
 
 bool program_create(
     GLuint program,

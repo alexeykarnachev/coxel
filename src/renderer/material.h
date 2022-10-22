@@ -1,12 +1,19 @@
+#define _MATERIAL_MAX_N 1024
+#define _MATERIAL_UBO_N_BYTES 52
+#define _MATERIAL_UBO_N_ELEMENTS 13
+
 typedef struct Material {
     Vec3 diffuse_color;
     Vec3 ambient_color;
     Vec3 specular_color;
     float shininess;
+
+    GLuint ubo;
 } Material;
 
-#define _MATERIAL_UBO_N_BYTES 52
-#define _MATERIAL_UBO_N_ELEMENTS 13
+Material _MATERIAL_ARENA[_MATERIAL_MAX_N];
+size_t _MATERIAL_ARENA_IDX = 0;
+
 
 void material_pack(Material* material, float dst[]) {
     size_t size = sizeof(float);
@@ -16,64 +23,36 @@ void material_pack(Material* material, float dst[]) {
     dst[12] = material->shininess;
 }
 
-void material_create(
-    Material* material,
+Material* material_create(
     Vec3 diffuse_color,
     Vec3 ambient_color,
     Vec3 specular_color,
     float shininess
 ) {
-    clear_struct(material);
+    if (_MATERIAL_ARENA_IDX == _MATERIAL_MAX_N) {
+        fprintf(stderr, "ERROR: max number of materials is reached. Material won't be created");
+        return NULL;
+    }
+    Material* material = &_MATERIAL_ARENA[_MATERIAL_ARENA_IDX];
+    _MATERIAL_ARENA_IDX += 1;
 
     material->diffuse_color = diffuse_color;
     material->ambient_color = ambient_color;
     material->specular_color = specular_color;
     material->shininess = shininess;
-}
-
-typedef struct MaterialUBO {
-    GLuint ubo;
-} MaterialUBO;
-
-
-bool material_create_program(GLuint program) {
-    const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
-    return program_create(
-        program, VERT_PROJECTION_SHADER, NULL, NULL, NULL, FRAG_MATERIAL_SHADER, 3, deps_file_paths);
-}
-
-bool material_create_ubo(MaterialUBO* material_ubo) {
-    clear_struct(material_ubo);
-
-    GLuint ubo;
-    glGenBuffers(1, &ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
-    glBufferData(GL_UNIFORM_BUFFER, _MATERIAL_UBO_N_BYTES, NULL, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    material_ubo->ubo = ubo;
-
-    return true;
-}
-
-bool material_bind(Material* material, GLuint material_program, MaterialUBO* material_ubo) {
-    GLuint idx = glGetUniformBlockIndex(material_program, "Material");
-    if (idx == -1) {
-        fprintf(stderr, "ERROR: can't find `Material` uniform block in the program");
-        return false;
-    }
-
-    glUniformBlockBinding(material_program, idx, 0);
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, material_ubo->ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, material_ubo->ubo);
 
     static float data[_MATERIAL_UBO_N_ELEMENTS];
     material_pack(material, data);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, _MATERIAL_UBO_N_BYTES, data);
 
+    glGenBuffers(1, &material->ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, material->ubo);
+    glBufferData(GL_UNIFORM_BUFFER, _MATERIAL_UBO_N_BYTES, data, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-    return true;
+    return material;
 }
 
-
+void material_bind(Material* material) {
+    glBindBufferBase(GL_UNIFORM_BUFFER, MATERIAL_BINDING_IDX, material->ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, material->ubo);
+}

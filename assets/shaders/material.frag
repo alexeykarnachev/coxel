@@ -6,7 +6,7 @@ in VertexData {
 
 uniform vec3 eye_world_pos;
 
-layout (std140) uniform Material {
+layout (std140, binding=MATERIAL_BINDING_IDX) uniform Material {
     vec4 diffuse_color;
     vec4 ambient_color;
     vec4 specular_color;

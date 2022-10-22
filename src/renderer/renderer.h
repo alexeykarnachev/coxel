@@ -1,9 +1,4 @@
 typedef struct Renderer {
-    GLuint material_program;
-    GLuint shadow_program;
-
-    MaterialUBO material_ubo;
-
     float shadow_near_plane;
     float shadow_far_plane;
     float shadow_disk_radius;
@@ -60,13 +55,6 @@ bool renderer_create(
     size_t shadow_min_n_samples,
     size_t shadow_max_n_samples
 ) {
-    renderer->material_program = glCreateProgram();
-    renderer->shadow_program = glCreateProgram();
-    material_create_program(renderer->material_program);
-    program_create_depth_cubemap(renderer->shadow_program);
-
-    material_create_ubo(&renderer->material_ubo);
-    
     renderer->shadow_near_plane = shadow_near_plane;
     renderer->shadow_far_plane = shadow_far_plane;
     renderer->shadow_disk_radius = shadow_disk_radius;
@@ -74,7 +62,12 @@ bool renderer_create(
     renderer->shadow_bias_max = shadow_bias_max;
     renderer->shadow_min_n_samples = shadow_min_n_samples;
     renderer->shadow_max_n_samples = shadow_max_n_samples;
-    depth_cubemap_create(&renderer->cube_shadowmap, shadow_size);
+
+    bool ok = true;
+    ok &= program_create_all();
+    ok &= depth_cubemap_create(&renderer->cube_shadowmap, shadow_size); 
+
+    return ok;
 }
 
 bool renderer_draw_scene(Renderer* renderer, size_t viewport_width, size_t viewport_height) {
@@ -112,7 +105,7 @@ bool renderer_draw_scene(Renderer* renderer, size_t viewport_width, size_t viewp
 
 bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh, PointLight point_lights[], size_t n_point_lights) {
     size_t n_point_shadows = min(n_point_lights, MAX_N_POINT_SHADOWS);
-    GLuint p = renderer->shadow_program;
+    GLuint p = PROGRAM_DEPTH_CUBEMAP;
     glUseProgram(p);
     mesh_bind(mesh);
 
@@ -150,9 +143,10 @@ bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh, PointLight point_ligh
 
 bool renderer_draw_materials(Renderer* renderer, Mesh* mesh, PointLight point_lights[], size_t n_point_lights) {
     n_point_lights = min(n_point_lights, MAX_N_POINT_LIGHTS);
-    GLuint p = renderer->material_program;
+    GLuint p = PROGRAM_MATERIAL;
     glUseProgram(p);
     mesh_bind(mesh);
+    material_bind(mesh->material);
 
     static float point_light_world_pos[3 * MAX_N_POINT_LIGHTS];
     static float point_light_color[3 * MAX_N_POINT_LIGHTS];
@@ -178,8 +172,6 @@ bool renderer_draw_materials(Renderer* renderer, Mesh* mesh, PointLight point_li
     ok &= program_set_uniform_matrix_4fv(p, "proj_mat", renderer->camera->proj_mat.data, 1, GL_TRUE);
     ok &= program_set_uniform_matrix_4fv(p, "world_mat", mesh->transformation.world_mat.data, 1, GL_TRUE);
     ok &= program_set_uniform_3fv(p, "eye_world_pos", renderer->camera->pos.data, 1);
-    
-    ok &= material_bind(&mesh->material, p, &renderer->material_ubo);
 
     ok &= program_set_uniform_1i(p, "n_point_lights", n_point_lights);
     ok &= program_set_uniform_3fv(p, "point_light_world_pos", point_light_world_pos, n_point_lights);

@@ -7,7 +7,7 @@ typedef struct DepthCubemap {
     GLuint fbo;
 } DepthCubemap;
 
-void depth_cubemap_create(DepthCubemap* depth_cubemap, size_t size);
+bool depth_cubemap_create(DepthCubemap* depth_cubemap, size_t size);
 void depth_cubemap_set_views(
     DepthCubemap* depth_cubemap,
     Vec3 view_world_pos[],
@@ -17,11 +17,10 @@ void depth_cubemap_set_views(
 );
 
 
-void depth_cubemap_create(DepthCubemap* depth_cubemap, size_t size) {
+bool depth_cubemap_create(DepthCubemap* depth_cubemap, size_t size) {
     clear_struct(depth_cubemap);
-
     depth_cubemap->size = size;
-    buffer_create_cube_shadowmap(&depth_cubemap->fbo, &depth_cubemap->tex, size, MAX_N_POINT_SHADOWS);
+    return buffer_create_cube_shadowmap(&depth_cubemap->fbo, &depth_cubemap->tex, size, MAX_N_POINT_SHADOWS);
 }
 
 void depth_cubemap_set_views(

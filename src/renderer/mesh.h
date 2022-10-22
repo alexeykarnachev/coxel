@@ -1,5 +1,5 @@
 typedef struct Mesh {
-    Material material;
+    Material* material;
     Transformation transformation;
     GLuint vao;
     GLuint vbo;
@@ -9,7 +9,7 @@ typedef struct Mesh {
 
 void mesh_create(
     Mesh* mesh,
-    Material material,
+    Material* material,
     Transformation transformation,
     const unsigned char* faces,
     size_t faces_size,
@@ -17,21 +17,12 @@ void mesh_create(
     size_t vertices_size
 );
 
-void mesh_create_icosahedron(
-    Mesh* mesh,
-    Material material,
-    Transformation transformation
-);
-
-void mesh_create_plane(
-    Mesh* mesh,
-    Material material,
-    Transformation transformation
-);
+void mesh_create_icosahedron(Mesh* mesh, Material* material, Transformation transformation);
+void mesh_create_plane(Mesh* mesh, Material* material, Transformation transformation);
 
 void mesh_create(
     Mesh* mesh,
-    Material material,
+    Material* material,
     Transformation transformation,
     const unsigned char* faces,
     size_t faces_size,
@@ -69,7 +60,7 @@ void mesh_create(
 
 void mesh_create_icosahedron(
     Mesh* mesh,
-    Material material,
+    Material* material,
     Transformation transformation
 ) {
     mesh_create(
@@ -85,7 +76,7 @@ void mesh_create_icosahedron(
 
 void mesh_create_plane(
     Mesh* mesh,
-    Material material,
+    Material* material,
     Transformation transformation
 ) {
     mesh_create(
