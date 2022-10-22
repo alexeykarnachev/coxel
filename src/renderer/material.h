@@ -1,6 +1,5 @@
-#define _MATERIAL_MAX_N 1024
-#define _MATERIAL_UBO_N_BYTES 52
-#define _MATERIAL_UBO_N_ELEMENTS 13
+#define _MATERIAL_UBO_N_BYTES 64
+#define _MATERIAL_UBO_N_ELEMENTS 16
 
 typedef struct Material {
     Vec3 diffuse_color;
@@ -11,7 +10,7 @@ typedef struct Material {
     GLuint ubo;
 } Material;
 
-Material _MATERIAL_ARENA[_MATERIAL_MAX_N];
+Material _MATERIAL_ARENA[MAX_N_MATERIALS];
 size_t _MATERIAL_ARENA_IDX = 0;
 
 
@@ -29,7 +28,7 @@ Material* material_create(
     Vec3 specular_color,
     float shininess
 ) {
-    if (_MATERIAL_ARENA_IDX == _MATERIAL_MAX_N) {
+    if (_MATERIAL_ARENA_IDX == MAX_N_MATERIALS) {
         fprintf(stderr, "ERROR: max number of materials is reached. Material won't be created");
         return NULL;
     }
@@ -54,5 +53,4 @@ Material* material_create(
 
 void material_bind(Material* material) {
     glBindBufferBase(GL_UNIFORM_BUFFER, MATERIAL_BINDING_IDX, material->ubo);
-    glBindBuffer(GL_UNIFORM_BUFFER, material->ubo);
 }

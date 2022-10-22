@@ -36,12 +36,11 @@ void create_renderer(Renderer* renderer) {
     );
 }
 
-void create_point_lights(PointLight point_lights[], size_t n_point_lights) {
+void create_point_lights(size_t n_point_lights) {
     for (size_t i = 0; i < n_point_lights; ++i) {
         Vec3 point_light_world_pos = {{i * 5, 8.0, -20.0}};
         Vec3 point_light_color = {{1.0, 1.0, 1.0}};
         point_light_create(
-            &point_lights[i],
             point_light_world_pos,
             point_light_color,
             500.0  // energy
@@ -95,9 +94,7 @@ int main(void) {
     Window window;
     create_window(&window, &camera);
 
-    size_t n_point_lights = 1;
-    PointLight point_lights[n_point_lights];
-    create_point_lights(point_lights, n_point_lights);
+    create_point_lights(1);
 
     Renderer renderer;
     create_renderer(&renderer);
@@ -108,16 +105,16 @@ int main(void) {
 
     bool ok = true;
     while (!glfwWindowShouldClose(window.glfw_window)) {
-        renderer_set_scene(&renderer, &camera, meshes, n_meshes, point_lights, n_point_lights);
+        renderer_set_scene(&renderer, &camera, meshes, n_meshes);
         ok &= renderer_draw_scene(&renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
         if (!ok) {
             return 1;
         }
-        // for (size_t i = 0; i < n_meshes; ++i) {
-        //     if (i != n_meshes - 1) {
-        //         mesh_rotate(&meshes[i], 0.01, 0.01, 0.01);
-        //     }
-        // }
+        for (size_t i = 0; i < n_meshes; ++i) {
+            if (i != n_meshes - 1) {
+                mesh_rotate(&meshes[i], 0.01, 0.01, 0.01);
+            }
+        }
 
         glfwSwapBuffers(window.glfw_window);
         glfwPollEvents();

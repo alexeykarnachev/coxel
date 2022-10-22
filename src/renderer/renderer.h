@@ -12,9 +12,6 @@ typedef struct Renderer {
 
     Mesh* meshes;
     size_t n_meshes;
-
-    PointLight* point_lights;
-    size_t n_point_lights;
 } Renderer;
 
 bool renderer_create(
@@ -29,15 +26,13 @@ bool renderer_create(
     size_t shadow_max_n_samples
 );
 void renderer_set_program(Renderer* renderer, GLuint program);
-bool renderer_draw_materials(Renderer* renderer, Mesh* mesh, PointLight point_lights[], size_t n_point_lights);
-bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh, PointLight point_lights[], size_t n_point_lights);
+bool renderer_draw_materials(Renderer* renderer, Mesh* mesh);
+bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh);
 void renderer_set_scene(
     Renderer* renderer,
     Camera* camera,
     Mesh* meshes,
-    size_t n_meshes,
-    PointLight* point_lights,
-    size_t n_point_lights
+    size_t n_meshes
 );
 bool renderer_set_depth_cubemap_fbo(Renderer* renderer, DepthCubemap* depth_cubemap);
 void renderer_draw_triangles(Renderer* renderer);
@@ -81,8 +76,7 @@ bool renderer_draw_scene(Renderer* renderer, size_t viewport_width, size_t viewp
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (size_t i = 0; i < renderer->n_meshes; ++i) {
-        ok &= renderer_draw_shadows(
-            renderer, &(renderer->meshes[i]), renderer->point_lights, renderer->n_point_lights);
+        // ok &= renderer_draw_shadows(renderer, &(renderer->meshes[i]));
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -92,8 +86,7 @@ bool renderer_draw_scene(Renderer* renderer, size_t viewport_width, size_t viewp
     glActiveTexture(0);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, renderer->cube_shadowmap.tex);
     for (size_t i = 0; i < renderer->n_meshes; ++i) {
-        ok &= renderer_draw_materials(
-            renderer, &(renderer->meshes[i]), renderer->point_lights, renderer->n_point_lights);
+        ok &= renderer_draw_materials(renderer, &(renderer->meshes[i]));
     }
 
     if (!ok) {
@@ -103,68 +96,49 @@ bool renderer_draw_scene(Renderer* renderer, size_t viewport_width, size_t viewp
     return true;
 }
 
-bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh, PointLight point_lights[], size_t n_point_lights) {
-    size_t n_point_shadows = min(n_point_lights, MAX_N_POINT_SHADOWS);
-    GLuint p = PROGRAM_DEPTH_CUBEMAP;
-    glUseProgram(p);
-    mesh_bind(mesh);
+// bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh) {
+//     GLuint p = PROGRAM_DEPTH_CUBEMAP;
+//     glUseProgram(p);
+//     mesh_bind(mesh);
+// 
+//     static Vec3 world_pos[MAX_N_POINT_SHADOWS];
+// 
+//     for (size_t i = 0; i < n_point_shadows; ++i) {
+//         world_pos[i] = point_lights[i].world_pos;
+//     }
+// 
+//     depth_cubemap_set_views(
+//         &renderer->cube_shadowmap,
+//         world_pos,
+//         n_point_shadows,
+//         renderer->shadow_near_plane,
+//         renderer->shadow_far_plane
+//     );
+// 
+//     bool ok = true;
+//     ok &= program_set_attribute(p, "model_pos", 3, GL_FLOAT); 
+//     ok &= program_set_uniform_matrix_4fv(p, "world_mat", mesh->transformation.world_mat.data, 1, GL_TRUE);
+// 
+//     ok &= program_set_uniform_1f(p, "max_dist", renderer->shadow_far_plane);
+//     ok &= program_set_uniform_3fv(p, "world_pos", renderer->cube_shadowmap.world_pos, n_point_shadows);
+//     ok &= program_set_uniform_matrix_4fv(
+//         p, "view_proj_mats", renderer->cube_shadowmap.view_proj_mats, 6 * n_point_shadows, GL_TRUE);
+//     ok &= program_set_uniform_1i(p, "n_views", n_point_shadows);
+// 
+//     if (!ok) {
+//         return false;
+//     }
+// 
+//     glDrawElements(GL_TRIANGLES, mesh->n_elements, GL_UNSIGNED_BYTE, 0);
+// 
+//     return true;
+// }
 
-    static Vec3 world_pos[MAX_N_POINT_SHADOWS];
-    for (size_t i = 0; i < n_point_shadows; ++i) {
-        world_pos[i] = point_lights[i].world_pos;
-    }
-
-    depth_cubemap_set_views(
-        &renderer->cube_shadowmap,
-        world_pos,
-        n_point_shadows,
-        renderer->shadow_near_plane,
-        renderer->shadow_far_plane
-    );
-
-    bool ok = true;
-    ok &= program_set_attribute(p, "model_pos", 3, GL_FLOAT); 
-    ok &= program_set_uniform_matrix_4fv(p, "world_mat", mesh->transformation.world_mat.data, 1, GL_TRUE);
-
-    ok &= program_set_uniform_1f(p, "max_dist", renderer->shadow_far_plane);
-    ok &= program_set_uniform_3fv(p, "world_pos", renderer->cube_shadowmap.world_pos, n_point_shadows);
-    ok &= program_set_uniform_matrix_4fv(
-        p, "view_proj_mats", renderer->cube_shadowmap.view_proj_mats, 6 * n_point_shadows, GL_TRUE);
-    ok &= program_set_uniform_1i(p, "n_views", n_point_shadows);
-
-    if (!ok) {
-        return false;
-    }
-
-    glDrawElements(GL_TRIANGLES, mesh->n_elements, GL_UNSIGNED_BYTE, 0);
-
-    return true;
-}
-
-bool renderer_draw_materials(Renderer* renderer, Mesh* mesh, PointLight point_lights[], size_t n_point_lights) {
-    n_point_lights = min(n_point_lights, MAX_N_POINT_LIGHTS);
+bool renderer_draw_materials(Renderer* renderer, Mesh* mesh) {
     GLuint p = PROGRAM_MATERIAL;
     glUseProgram(p);
     mesh_bind(mesh);
     material_bind(mesh->material);
-
-    static float point_light_world_pos[3 * MAX_N_POINT_LIGHTS];
-    static float point_light_color[3 * MAX_N_POINT_LIGHTS];
-    static float point_light_energy[MAX_N_POINT_LIGHTS];
-
-    for (size_t i = 0; i < n_point_lights; ++i) {
-        memcpy(
-            &(point_light_world_pos[i * 3]),
-            point_lights[i].world_pos.data,
-            sizeof(point_lights[i].world_pos.data[0]) * 3
-        );
-        memcpy(
-            &(point_light_color[i * 3]),
-            point_lights[i].color.data,
-            sizeof(point_lights[i].world_pos.data[0]) * 3
-        );
-        point_light_energy[i] = point_lights[i].energy;
-    }
 
     bool ok = true;
     ok &= program_set_attribute(p, "model_pos", 3, GL_FLOAT); 
@@ -172,11 +146,6 @@ bool renderer_draw_materials(Renderer* renderer, Mesh* mesh, PointLight point_li
     ok &= program_set_uniform_matrix_4fv(p, "proj_mat", renderer->camera->proj_mat.data, 1, GL_TRUE);
     ok &= program_set_uniform_matrix_4fv(p, "world_mat", mesh->transformation.world_mat.data, 1, GL_TRUE);
     ok &= program_set_uniform_3fv(p, "eye_world_pos", renderer->camera->pos.data, 1);
-
-    ok &= program_set_uniform_1i(p, "n_point_lights", n_point_lights);
-    ok &= program_set_uniform_3fv(p, "point_light_world_pos", point_light_world_pos, n_point_lights);
-    ok &= program_set_uniform_3fv(p, "point_light_color", point_light_color, n_point_lights);
-    ok &= program_set_uniform_1fv(p, "point_light_energy", point_light_energy, n_point_lights);
 
     ok &= program_set_uniform_1f(p, "shadow_far_plane", renderer->shadow_far_plane);
     ok &= program_set_uniform_1i(p, "shadow_min_n_samples", renderer->shadow_min_n_samples);
@@ -198,14 +167,10 @@ void renderer_set_scene(
     Renderer* renderer,
     Camera* camera,
     Mesh* meshes,
-    size_t n_meshes,
-    PointLight* point_lights,
-    size_t n_point_lights
+    size_t n_meshes
 ) {
     renderer->camera = camera;
     renderer->meshes = meshes;
     renderer->n_meshes = n_meshes;
-    renderer->point_lights = point_lights;
-    renderer->n_point_lights = n_point_lights;
 }
 

@@ -29,6 +29,6 @@
 #include "renderer/material.h"
 #include "renderer/transformation.h"
 #include "renderer/mesh.h"
-#include "renderer/light.h"
+#include "renderer/point_light.h"
 #include "renderer/renderer.h"
 #include "renderer/window.h"
