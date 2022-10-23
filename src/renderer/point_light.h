@@ -5,6 +5,7 @@ typedef struct PointLight {
     Vec3 world_pos;
     Vec3 color;
     float energy;
+    PointShadowCaster* point_shadow_caster;
 } PointLight;
 
 int POINT_LIGHT_UBO = -1;
@@ -44,6 +45,7 @@ PointLight* point_light_create(Vec3 world_pos, Vec3 color, float energy) {
         );
     }
 
+    glBindBuffer(GL_UNIFORM_BUFFER, POINT_LIGHT_UBO);
     glBufferSubData(
         GL_UNIFORM_BUFFER,
         _POINT_LIGHT_ARENA_IDX * _POINT_LIGHT_UBO_N_BYTES,
@@ -64,3 +66,15 @@ PointLight* point_light_create(Vec3 world_pos, Vec3 color, float energy) {
     return point_light;
 }
 
+void point_light_attach_point_shadow_caster(PointLight* point_light) {
+    point_light->point_shadow_caster = point_shadow_caster_create(
+        POINT_SHADOW_NEAR_PLANE,
+        POINT_SHADOW_FAR_PLANE,
+        POINT_SHADOW_MIN_N_SAMPLES,
+        POINT_SHADOW_MAX_N_SAMPLES,
+        POINT_SHADOW_DISK_RADIUS,
+        POINT_SHADOW_BIAS_MIN,
+        POINT_SHADOW_BIAS_MAX,
+        point_light->world_pos
+    );
+}

@@ -6,6 +6,14 @@ in VertexData {
 
 uniform vec3 eye_world_pos;
 uniform int material_id;
+uniform samplerCubeArrayShadow point_shadow_casters_tex;
+
+struct Material {
+    vec4 diffuse_color;
+    vec4 ambient_color;
+    vec4 specular_color;
+    float shininess;
+};
 
 struct PointLight {
     vec4 world_pos;
@@ -13,11 +21,16 @@ struct PointLight {
     float energy;
 };
 
-struct Material {
-    vec4 diffuse_color;
-    vec4 ambient_color;
-    vec4 specular_color;
-    float shininess;
+struct PointShadowCaster {
+    float near_plane;
+    float far_plane;
+    float min_n_samples;
+    float max_n_samples;
+    float disk_radius;
+    float bias_min;
+    float bias_max;
+    vec4 world_pos;
+    mat4 vew_proj_mats[6];
 };
 
 layout (std140, binding=MATERIAL_BINDING_IDX) uniform Materials {
@@ -30,52 +43,49 @@ layout (std140, binding=POINT_LIGHTS_BINDING_IDX) uniform PointLights {
     int n_point_lights;
 };
 
-// Shadow:
-uniform samplerCubeArrayShadow cube_shadow_tex;
-uniform float shadow_far_plane;
-uniform int shadow_max_n_samples;
-uniform int shadow_min_n_samples;
-uniform float shadow_disk_radius;
-uniform float shadow_bias_min;
-uniform float shadow_bias_max;
+layout (std140, binding=POINT_SHADOW_CASTERS_BINDING_IDX) uniform PointShadowCasters {
+    PointShadowCaster point_shadow_casters[MAX_N_POINT_SHADOW_CASTERS];
+    int n_point_shadow_casters;
+};
 
 out vec4 frag_color;
 
 vec2 poisson_disk64(int idx);
 
-// float get_point_shadow(vec3 normal) {
-//     float shadow = 0.0;
-//     
-//     for(int i_light = 0; i_light < min(n_point_lights, MAX_N_POINT_SHADOWS); ++i_light) {
-//         vec3 light_to_frag = fs_in.world_pos.xyz - point_light_world_pos[i_light];
-//         float light_to_frag_length = length(light_to_frag);
-//         light_to_frag = normalize(light_to_frag);
-// 
-//         float bias = max(shadow_bias_max * (1.0 - dot(normal, -light_to_frag)), shadow_bias_min);
-//         float curr_depth = light_to_frag_length / shadow_far_plane - bias;
-// 
-//         float curr_shadow = 0;
-//         int n_samples = 0;
-//         for(int i_sample = 0; i_sample < shadow_max_n_samples; ++i_sample) {
-//             vec2 rnd_vec = poisson_disk64(i_sample) * shadow_disk_radius;
-//             curr_shadow += texture(
-//                 cube_shadow_tex,
-//                 vec4(light_to_frag + vec3(rnd_vec, 0.0), i_light),
-//                 curr_depth
-//             );
-//             n_samples += 1;
-// 
-//             if (
-//                 (n_samples == shadow_min_n_samples)
-//                 && (abs(curr_shadow) < 0.001 || abs(curr_shadow) - 1.0 < 0.001)
-//             ) {
-//                 break;
-//             }
-//         }
-//         shadow += curr_shadow / n_samples;
-//     }
-//     return shadow / n_point_lights;
-// }
+float get_point_shadow(vec3 normal) {
+    float shadow = 0.0;
+    
+    for(int i_caster = 0; i_caster < n_point_shadow_casters; ++i_caster) {
+        PointShadowCaster caster = point_shadow_casters[i_caster];
+        vec3 ray = fs_in.world_pos.xyz - caster.world_pos.xyz;
+        float ray_len = length(ray);
+        ray = normalize(ray);
+
+        float bias = max(caster.bias_max * (1.0 - dot(normal, -ray)), caster.bias_min);
+        float curr_depth = ray_len / caster.far_plane - bias;
+
+        float curr_shadow = 0;
+        int n_samples = 0;
+        for(int i_sample = 0; i_sample < caster.max_n_samples; ++i_sample) {
+            vec2 rnd_vec = poisson_disk64(i_sample) * caster.disk_radius;
+            curr_shadow += texture(
+                point_shadow_casters_tex,
+                vec4(ray + vec3(rnd_vec, 0.0), i_caster),
+                curr_depth
+            );
+            n_samples += 1;
+
+            if (
+                (n_samples == caster.min_n_samples)
+                && (abs(curr_shadow) < 0.001 || abs(curr_shadow) - 1.0 < 0.001)
+            ) {
+                break;
+            }
+        }
+        shadow += curr_shadow / n_samples;
+    }
+    return shadow / n_point_shadow_casters;
+}
 
 void main() {
     Material material = materials[material_id];
@@ -92,8 +102,7 @@ void main() {
     vec3 ambient = 0.005 * ambient_color.rgb;
 
     // Shadows:
-    // float shadow = get_point_shadow(normal);
-    float shadow = 0.0;
+    float shadow = get_point_shadow(normal);
 
     vec3 diffuse = vec3(0);
     vec3 specular = vec3(0);

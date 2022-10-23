@@ -23,28 +23,19 @@ void create_window(Window* window, Camera* camera) {
 }
 
 void create_renderer(Renderer* renderer) {
-    renderer_create(
-        renderer,
-        512,  // shadow_size
-        0.1,  // shadow_min_dist
-        50.0,  // shadow_max_dist
-        0.01,  // shadow_disk_radius
-        0.005,  // shadow_bias_min
-        0.05,  // shadow_bias_max
-        16,  // shadow_min_n_samples
-        64  // shadow_max_n_samples
-    );
+    renderer_create(renderer);
 }
 
 void create_point_lights(size_t n_point_lights) {
     for (size_t i = 0; i < n_point_lights; ++i) {
         Vec3 point_light_world_pos = {{i * 5, 8.0, -20.0}};
         Vec3 point_light_color = {{1.0, 1.0, 1.0}};
-        point_light_create(
+        PointLight* point_light = point_light_create(
             point_light_world_pos,
             point_light_color,
             500.0  // energy
         );
+        point_light_attach_point_shadow_caster(point_light);
     }
 }
 
