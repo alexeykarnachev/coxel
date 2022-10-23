@@ -3,10 +3,9 @@
 size_t SCREEN_WIDTH = 1920;
 size_t SCREEN_HEIGHT = 1080;
 
-void create_camera(Camera* camera) {
+Camera* create_camera() {
     Vec3 camera_start_pos = {{0.0, 0.0, 0.0}};
-    camera_create(
-        camera,
+    return camera_create(
         45.0,  // fov
         0.1,  // near
         1000.0,  // far
@@ -18,8 +17,8 @@ void create_camera(Camera* camera) {
     );
 }
 
-void create_window(Window* window, Camera* camera) {
-    window_create(window, SCREEN_WIDTH, SCREEN_HEIGHT, camera);
+void create_window(Window* window) {
+    window_create(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 }
 
 void create_renderer(Renderer* renderer) {
@@ -80,11 +79,12 @@ void create_meshes(Mesh meshes[], size_t n_meshes) {
 
 
 int main(void) {
-    Camera camera;
-    create_camera(&camera);
-
     Window window;
-    create_window(&window, &camera);
+    create_window(&window);
+
+    Camera* camera = create_camera();
+    window_attach_camera(&window, camera);
+
 
     create_point_lights(4);
 
@@ -97,7 +97,7 @@ int main(void) {
 
     bool ok = true;
     while (!glfwWindowShouldClose(window.glfw_window)) {
-        renderer_set_scene(&renderer, &camera, meshes, n_meshes);
+        renderer_set_scene(&renderer, camera, meshes, n_meshes);
         ok &= renderer_draw_scene(&renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
         if (!ok) {
             return 1;

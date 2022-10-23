@@ -28,7 +28,7 @@ void point_shadow_caster_pack(PointShadowCaster* point_shadow_caster, float dst[
     dst[5] = point_shadow_caster->bias_min;
     dst[6] = point_shadow_caster->bias_max;
     memcpy(&dst[8], point_shadow_caster->world_pos.data, sizeof(float) * 3);
-    mat4_pack(&dst[12], point_shadow_caster->view_proj_mats, 6);
+    mat4_transpose_pack(&dst[12], point_shadow_caster->view_proj_mats, 6);
 }
 
 PointShadowCaster* point_shadow_caster_create(
@@ -112,8 +112,7 @@ PointShadowCaster* point_shadow_caster_create(
     view_mats[4] = get_view_mat(&vec3_pos_z, &vec3_neg_y, &world_pos);
     view_mats[5] = get_view_mat(&vec3_neg_z, &vec3_neg_y, &world_pos);
     for (size_t i = 0; i < 6; ++i) {
-        Mat4 view_proj_mat = mat4_mat4_mul(&proj_mat, &view_mats[i]);
-        point_shadow_caster->view_proj_mats[i] = mat4_transpose(&view_proj_mat);
+        point_shadow_caster->view_proj_mats[i] = mat4_mat4_mul(&proj_mat, &view_mats[i]);
     }
 
     static float data[_POINT_SHADOW_CASTER_UBO_N_BYTES / 4];
@@ -135,7 +134,7 @@ PointShadowCaster* point_shadow_caster_create(
         &_POINT_SHADOW_CASTER_ARENA_IDX
     );
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, POINT_SHADOW_CASTERS_BINDING_IDX, POINT_SHADOW_CASTER_UBO);
+    glBindBufferBase(GL_UNIFORM_BUFFER, POINT_SHADOW_CASTER_BINDING_IDX, POINT_SHADOW_CASTER_UBO);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     return point_shadow_caster;
 }

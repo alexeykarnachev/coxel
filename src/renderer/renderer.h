@@ -82,8 +82,6 @@ bool renderer_draw_material(Renderer* renderer, Mesh* mesh) {
 
     bool ok = true;
     ok &= program_set_attribute(p, "model_pos", 3, GL_FLOAT); 
-    ok &= program_set_uniform_matrix_4fv(p, "view_mat", renderer->camera->view_mat.data, 1, GL_TRUE);
-    ok &= program_set_uniform_matrix_4fv(p, "proj_mat", renderer->camera->proj_mat.data, 1, GL_TRUE);
     ok &= program_set_uniform_matrix_4fv(p, "world_mat", mesh->transformation.world_mat.data, 1, GL_TRUE);
     ok &= program_set_uniform_3fv(p, "eye_world_pos", renderer->camera->pos.data, 1);
     ok &= program_set_uniform_1i(p, "material_id", mesh->material->id);

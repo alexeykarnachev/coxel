@@ -38,12 +38,12 @@ layout (std140, binding=MATERIAL_BINDING_IDX) uniform Materials {
     int n_materials;
 };
 
-layout (std140, binding=POINT_LIGHTS_BINDING_IDX) uniform PointLights {
+layout (std140, binding=POINT_LIGHT_BINDING_IDX) uniform PointLights {
     PointLight point_lights[MAX_N_POINT_LIGHTS];
     int n_point_lights;
 };
 
-layout (std140, binding=POINT_SHADOW_CASTERS_BINDING_IDX) uniform PointShadowCasters {
+layout (std140, binding=POINT_SHADOW_CASTER_BINDING_IDX) uniform PointShadowCasters {
     PointShadowCaster point_shadow_casters[MAX_N_POINT_SHADOW_CASTERS];
     int n_point_shadow_casters;
 };

@@ -418,6 +418,18 @@ void mat4_pack(float dst[], Mat4 mats[], size_t n_mats) {
     } 
 }
 
+void mat4_transpose_pack(float dst[], Mat4 mats[], size_t n_mats) {
+    size_t i_loc = 0;
+    for (size_t i_mat = 0; i_mat < n_mats; ++i_mat) {
+        Mat4* mat = &mats[i_mat];
+        for (size_t i_col = 0; i_col < 4; ++i_col) {
+            for (size_t i_row = 0; i_row < 4; ++i_row) {
+                dst[i_loc++] = mat->data[i_row * 4 + i_col];
+            }
+        }
+    } 
+}
+
 void vec3_pack(float dst[], Vec3 vecs[], size_t n_vecs) {
     for (size_t i = 0; i < n_vecs; ++i) {
         memcpy(&dst[i * 3], vecs[i].data, sizeof(vecs[i].data[0]) * 3);

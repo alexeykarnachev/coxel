@@ -9,7 +9,7 @@ typedef struct Window {
     GLFWwindow* glfw_window;
 } Window;
 
-bool window_create(Window* window, size_t width, size_t height, Camera* camera);
+bool window_create(Window* window, size_t width, size_t height);
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 static void scroll_callback(GLFWwindow* window, double x, double y);
@@ -17,7 +17,7 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
 static void cursor_position_callback(GLFWwindow* window, double x, double y);
 
 
-bool window_create(Window* window, size_t width, size_t height, Camera* camera) {
+bool window_create(Window* window, size_t width, size_t height) {
     clear_struct(window);
 
     glfwInit();
@@ -38,7 +38,6 @@ bool window_create(Window* window, size_t width, size_t height, Camera* camera) 
     window->cursor_y = 0.0;
     window->mmb_pressed = false;
     window->lmb_pressed = false;
-    window->camera = camera;
     window->glfw_window = glfw_window;
 
     glfwMakeContextCurrent(glfw_window);
@@ -58,6 +57,9 @@ bool window_create(Window* window, size_t width, size_t height, Camera* camera) 
     return true;
 }
 
+void window_attach_camera(Window* window, Camera* camera) {
+    window->camera = camera;
+}
 
 static void cursor_position_callback(GLFWwindow* window, double x, double y) {
     Window* w = (Window*)(glfwGetWindowUserPointer(window));

@@ -17,7 +17,7 @@ struct PointShadowCaster {
     mat4 view_proj_mats[6];
 };
 
-layout (std140, binding=POINT_SHADOW_CASTERS_BINDING_IDX) uniform PointShadowCasters {
+layout (std140, binding=POINT_SHADOW_CASTER_BINDING_IDX) uniform PointShadowCasters {
     PointShadowCaster point_shadow_casters[MAX_N_POINT_SHADOW_CASTERS];
     int n_point_shadow_casters;
 };

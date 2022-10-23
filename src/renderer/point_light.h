@@ -1,5 +1,4 @@
 #define _POINT_LIGHT_UBO_N_BYTES 48
-#define _POINT_LIGHT_UBO_N_ELEMENTS 12
 
 typedef struct PointLight {
     Vec3 world_pos;
@@ -31,7 +30,7 @@ PointLight* point_light_create(Vec3 world_pos, Vec3 color, float energy) {
     point_light->color = color;
     point_light->energy = energy;
 
-    static float data[_POINT_LIGHT_UBO_N_ELEMENTS];
+    static float data[_POINT_LIGHT_UBO_N_BYTES / 4];
     point_light_pack(point_light, data);
 
     if (POINT_LIGHT_UBO == -1) {
@@ -61,7 +60,7 @@ PointLight* point_light_create(Vec3 world_pos, Vec3 color, float energy) {
         &_POINT_LIGHT_ARENA_IDX
     );
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, POINT_LIGHTS_BINDING_IDX, POINT_LIGHT_UBO);
+    glBindBufferBase(GL_UNIFORM_BUFFER, POINT_LIGHT_BINDING_IDX, POINT_LIGHT_UBO);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     return point_light;
 }
