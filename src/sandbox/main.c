@@ -27,8 +27,9 @@ void create_renderer(Renderer* renderer) {
 }
 
 void create_point_lights(size_t n_point_lights) {
-    for (size_t i = 0; i < n_point_lights; ++i) {
-        Vec3 point_light_world_pos = {{i * 30, 8.0, -20.0}};
+    for (int i = 0; i < n_point_lights; ++i) {
+        Vec3 point_light_world_pos = {{i * 20 * (i % 2 == 0 ? -1 : 1), 8.0, -20.0}};
+
         Vec3 point_light_color = {{1.0, 1.0, 1.0}};
         PointLight* point_light = point_light_create(
             point_light_world_pos,
@@ -62,7 +63,7 @@ void create_meshes(Mesh meshes[], size_t n_meshes) {
 
     Vec3 plane_scale = {{1000.0, 1000.0, 1.0}};
     Vec3 plane_rotation = {{-PI / 2, 0.0, 0.0}};
-    Vec3 plane_translation = {{0.0, -2.0, 0.0}};
+    Vec3 plane_translation = {{0.0, -1.0, 0.0}};
     Transformation plane_transformation = transformation_create(
         plane_scale, plane_rotation, plane_translation);
     mesh_create_plane(&meshes[n_meshes - 1], plane_material, plane_transformation);
@@ -85,7 +86,7 @@ int main(void) {
     Window window;
     create_window(&window, &camera);
 
-    create_point_lights(1);
+    create_point_lights(4);
 
     Renderer renderer;
     create_renderer(&renderer);
