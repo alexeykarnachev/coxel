@@ -35,7 +35,7 @@ void main() {
             gl_Layer = face + 6 * caster_idx;
 
             for(int i = 0; i < 3; ++i) {
-                gl_Position = transpose(caster.view_proj_mats[face]) * gs_in[i].world_pos;
+                gl_Position = caster.view_proj_mats[face] * gs_in[i].world_pos;
                 gs_out.depth = length(gs_in[i].world_pos.xyz - caster.world_pos.xyz) / caster.far_plane;
                 EmitVertex();
             }    

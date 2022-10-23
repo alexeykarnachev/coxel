@@ -42,8 +42,8 @@ PointShadowCaster* point_shadow_caster_create(
     Vec3 world_pos
 ) {
     if (_POINT_SHADOW_CASTER_ARENA_IDX == MAX_N_POINT_SHADOW_CASTERS) {
-        fprintf(stderr, "ERROR: max number of point shadow casters is reached. \
-                         Point shadow caster won't be created");
+        fprintf(stderr, "ERROR: max number of point shadow casters is reached. " \
+                        "Point shadow caster won't be created\n");
         return NULL;
     }
     PointShadowCaster* point_shadow_caster = &_POINT_SHADOW_CASTER_ARENA[_POINT_SHADOW_CASTER_ARENA_IDX];
@@ -81,6 +81,7 @@ PointShadowCaster* point_shadow_caster_create(
         glReadBuffer(GL_NONE);
 
         check_framebuffer(NULL);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glGenBuffers(1, &POINT_SHADOW_CASTER_UBO);
         glBindBuffer(GL_UNIFORM_BUFFER, POINT_SHADOW_CASTER_UBO);
@@ -111,11 +112,14 @@ PointShadowCaster* point_shadow_caster_create(
     view_mats[4] = get_view_mat(&vec3_pos_z, &vec3_neg_y, &world_pos);
     view_mats[5] = get_view_mat(&vec3_neg_z, &vec3_neg_y, &world_pos);
     for (size_t i = 0; i < 6; ++i) {
-        point_shadow_caster->view_proj_mats[i] = mat4_mat4_mul(&proj_mat, &view_mats[i]);
+        Mat4 view_proj_mat = mat4_mat4_mul(&proj_mat, &view_mats[i]);
+        point_shadow_caster->view_proj_mats[i] = mat4_transpose(&view_proj_mat);
     }
 
     static float data[_POINT_SHADOW_CASTER_UBO_N_BYTES / 4];
     point_shadow_caster_pack(point_shadow_caster, data);
+
+    glBindBuffer(GL_UNIFORM_BUFFER, POINT_SHADOW_CASTER_UBO);
     glBufferSubData(
         GL_UNIFORM_BUFFER,
         _POINT_SHADOW_CASTER_ARENA_IDX * _POINT_SHADOW_CASTER_UBO_N_BYTES,
@@ -131,8 +135,8 @@ PointShadowCaster* point_shadow_caster_create(
         &_POINT_SHADOW_CASTER_ARENA_IDX
     );
 
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glBindBufferBase(GL_UNIFORM_BUFFER, POINT_SHADOW_CASTERS_BINDING_IDX, POINT_SHADOW_CASTER_UBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
     return point_shadow_caster;
 }
 

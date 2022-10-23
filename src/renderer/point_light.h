@@ -61,8 +61,8 @@ PointLight* point_light_create(Vec3 world_pos, Vec3 color, float energy) {
         &_POINT_LIGHT_ARENA_IDX
     );
 
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glBindBufferBase(GL_UNIFORM_BUFFER, POINT_LIGHTS_BINDING_IDX, POINT_LIGHT_UBO);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
     return point_light;
 }
 

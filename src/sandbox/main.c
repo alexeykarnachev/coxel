@@ -28,7 +28,7 @@ void create_renderer(Renderer* renderer) {
 
 void create_point_lights(size_t n_point_lights) {
     for (size_t i = 0; i < n_point_lights; ++i) {
-        Vec3 point_light_world_pos = {{i * 5, 8.0, -20.0}};
+        Vec3 point_light_world_pos = {{i * 30, 8.0, -20.0}};
         Vec3 point_light_color = {{1.0, 1.0, 1.0}};
         PointLight* point_light = point_light_create(
             point_light_world_pos,

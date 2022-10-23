@@ -282,6 +282,16 @@ Vec4 mat4_vec3_mul(Mat4* m, Vec3* v) {
     return mat4_vec4_mul(m, &h);
 }
 
+Mat4 mat4_transpose(Mat4* m) {
+    Mat4 t;
+    for (size_t i = 0; i < 4; ++i) {
+        for (size_t j = 0; j < 4; ++j) {
+            t.data[i * 4 + j] = m->data[j * 4 + i];
+        }
+    }
+    return t;
+}
+
 Mat4 get_world_mat(Vec3* scale, Vec3* rotation, Vec3* translation) {
     Mat3 scale_mat = {{
         scale->data[0], 0.0, 0.0,
