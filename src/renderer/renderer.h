@@ -1,6 +1,4 @@
 typedef struct Renderer {
-    Camera* camera;
-
     Mesh* meshes;
     size_t n_meshes;
 } Renderer;
@@ -11,7 +9,6 @@ bool renderer_draw_material(Renderer* renderer, Mesh* mesh);
 bool renderer_draw_shadows(Renderer* renderer, Mesh* mesh);
 void renderer_set_scene(
     Renderer* renderer,
-    Camera* camera,
     Mesh* meshes,
     size_t n_meshes
 );
@@ -83,7 +80,6 @@ bool renderer_draw_material(Renderer* renderer, Mesh* mesh) {
     bool ok = true;
     ok &= program_set_attribute(p, "model_pos", 3, GL_FLOAT); 
     ok &= program_set_uniform_matrix_4fv(p, "world_mat", mesh->transformation.world_mat.data, 1, GL_TRUE);
-    ok &= program_set_uniform_3fv(p, "eye_world_pos", renderer->camera->pos.data, 1);
     ok &= program_set_uniform_1i(p, "material_id", mesh->material->id);
 
     if (!ok) {
@@ -97,11 +93,9 @@ bool renderer_draw_material(Renderer* renderer, Mesh* mesh) {
 
 void renderer_set_scene(
     Renderer* renderer,
-    Camera* camera,
     Mesh* meshes,
     size_t n_meshes
 ) {
-    renderer->camera = camera;
     renderer->meshes = meshes;
     renderer->n_meshes = n_meshes;
 }

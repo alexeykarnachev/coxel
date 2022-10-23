@@ -97,7 +97,7 @@ int main(void) {
 
     bool ok = true;
     while (!glfwWindowShouldClose(window.glfw_window)) {
-        renderer_set_scene(&renderer, camera, meshes, n_meshes);
+        renderer_set_scene(&renderer, meshes, n_meshes);
         ok &= renderer_draw_scene(&renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
         if (!ok) {
             return 1;

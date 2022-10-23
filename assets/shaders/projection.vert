@@ -4,6 +4,7 @@ uniform mat4 world_mat;
 uniform int camera_id;
 
 struct Camera {
+    vec3 world_pos;
     mat4 view_mat;
     mat4 proj_mat;
 };

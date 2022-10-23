@@ -4,9 +4,15 @@ in VertexData {
     vec4 proj_pos;
 } fs_in;
 
-uniform vec3 eye_world_pos;
 uniform int material_id;
+uniform int camera_id;
 uniform samplerCubeArrayShadow point_shadow_casters_tex;
+
+struct Camera {
+    vec3 world_pos;
+    mat4 view_mat;
+    mat4 proj_mat;
+};
 
 struct Material {
     vec4 diffuse_color;
@@ -31,6 +37,11 @@ struct PointShadowCaster {
     float bias_max;
     vec4 world_pos;
     mat4 vew_proj_mats[6];
+};
+
+layout (std140, binding=CAMERA_BINDING_IDX) uniform Cameras {
+    Camera cameras[MAX_N_CAMERAS];
+    int n_cameras;
 };
 
 layout (std140, binding=MATERIAL_BINDING_IDX) uniform Materials {
@@ -89,6 +100,7 @@ float get_point_shadow(vec3 normal) {
 
 void main() {
     Material material = materials[material_id];
+    vec3 camera_world_pos = cameras[camera_id].world_pos.xyz;
     vec3 diffuse_color = material.diffuse_color.rgb;
     vec3 ambient_color = material.ambient_color.rgb;
     vec3 specular_color = material.specular_color.rgb;
@@ -96,7 +108,7 @@ void main() {
 
     vec3 world_pos = fs_in.world_pos.xyz;
     vec3 normal = normalize(cross(dFdx(world_pos), dFdy(world_pos)));
-    vec3 view_dir = normalize(world_pos - eye_world_pos);
+    vec3 view_dir = normalize(world_pos - camera_world_pos);
 
     // Ambient:
     vec3 ambient = 0.005 * ambient_color.rgb;

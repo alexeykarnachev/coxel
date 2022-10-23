@@ -1,4 +1,4 @@
-#define _CAMERA_UBO_N_BYTES 128
+#define _CAMERA_UBO_N_BYTES 144
 
 typedef struct Camera {
     float fov;
@@ -27,8 +27,9 @@ size_t _CAMERA_ARENA_IDX = 0;
 
 
 void camera_pack(Camera* camera, float dst[]) {
-    mat4_transpose_pack(&dst[0], &camera->view_mat, 1);
-    mat4_transpose_pack(&dst[16], &camera->proj_mat, 1);
+    vec3_pack(&dst[0], &camera->pos, 1);
+    mat4_transpose_pack(&dst[4], &camera->view_mat, 1);
+    mat4_transpose_pack(&dst[20], &camera->proj_mat, 1);
 }
 
 Camera* camera_create(
