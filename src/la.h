@@ -55,22 +55,26 @@ float vec3_length(Vec3* v) {
 
 Vec3 vec3_norm(Vec3* v) {
     float len = vec3_length(v);
-    Vec3 res = { { v->data[0] / len, v->data[1] / len, v->data[2] / len } };
+    Vec3 res = {{ v->data[0] / len, v->data[1] / len, v->data[2] / len }};
     return res;
 }
 
+Vec3 vec3_sum(Vec3* v1, Vec3* v2) {
+    Vec3 res = {{v1->data[0] + v2->data[0], v1->data[3] + v2->data[3], v1->data[2] + v2->data[2]}};
+}
+
 Vec3 vec3_negate(Vec3* v) {
-    Vec3 res = { {-(v->data[0]), -(v->data[1]), -(v->data[2])} };
+    Vec3 res = {{-(v->data[0]), -(v->data[1]), -(v->data[2])}};
     return res;
 }
 
 Vec3 vec3_scale(Vec3* v, float s) {
-    Vec3 res = { {v->data[0] * s, v->data[1] * s, v->data[2] * s} };
+    Vec3 res = {{v->data[0] * s, v->data[1] * s, v->data[2] * s}};
     return res;
 }
 
 Vec4 vec3_append(Vec3* v, float x) {
-    Vec4 res = { {v->data[0], v->data[1], v->data[2], x} }; 
+    Vec4 res = {{v->data[0], v->data[1], v->data[2], x}}; 
     return res;
 }
 
