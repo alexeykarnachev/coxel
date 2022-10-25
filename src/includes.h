@@ -1,4 +1,5 @@
 #define PI 3.14159265358979323846264338327950288
+#define EPS 0.00001
 
 #define deg2rad(d) ((d) * PI / 180.0)
 #define rad2deg(r) ((r) * 180.0 / PI)
@@ -28,6 +29,7 @@
 #include "la.h"
 #include "program.h"
 #include "primitives.h"
+#include "input.h"
 #include "components/camera.h"
 #include "components/material.h"
 #include "components/transformation.h"
@@ -35,3 +37,6 @@
 #include "components/point_shadow_caster.h"
 #include "components/point_light.h"
 #include "window.h"
+#include "renderer.h"
+
+#include "sandbox/camera_controller.h"

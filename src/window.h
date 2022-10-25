@@ -1,52 +1,62 @@
-typedef struct Window {
-    size_t width;
-    size_t height;
-    float cursor_x;
-    float cursor_y;
-    bool mmb_pressed;
-    bool lmb_pressed;
-    Camera* camera;
-    GLFWwindow* glfw_window;
-} Window;
+static void cursor_position_callback(GLFWwindow* window, double x, double y) {
+    Input* inp = (Input*)(glfwGetWindowUserPointer(window));
+    inp->cursor_dx = inp->cursor_x - x; 
+    inp->cursor_dy = y - inp->cursor_y;
+    inp->cursor_x = x;
+    inp->cursor_y = y;
+}
 
-bool window_create(Window* window, size_t width, size_t height);
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-static void scroll_callback(GLFWwindow* window, double x, double y);
-static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
-static void cursor_position_callback(GLFWwindow* window, double x, double y);
+static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    Input* inp = (Input*)(glfwGetWindowUserPointer(window));
+    if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+        inp->mouse_middle_pressed = action == GLFW_PRESS;
+    } else if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        inp->mouse_left_pressed = action == GLFW_PRESS;
+    }
+}
 
+static void scroll_callback(GLFWwindow* window, double x, double y) {
+    Input* inp = (Input*)(glfwGetWindowUserPointer(window));
+    inp->scroll_dy = y;
+}
 
-bool window_create(Window* window, size_t width, size_t height) {
-    clear_struct(window);
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    Input* inp = (Input*)(glfwGetWindowUserPointer(window));
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GL_TRUE);
+        inp->window_should_close = true;
+    }
+}
 
+static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    Input* inp = (Input*)(glfwGetWindowUserPointer(window));
+    inp->window_width = width;
+    inp->window_height = height;
+}
+
+GLFWwindow* _WINDOW;
+
+bool window_create(size_t width, size_t height) {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* glfw_window = glfwCreateWindow(width, height, "Coxel", glfwGetPrimaryMonitor(), NULL);
-    if (glfw_window == NULL) {
+    _WINDOW = glfwCreateWindow(width, height, "Coxel", glfwGetPrimaryMonitor(), NULL);
+    if (_WINDOW == NULL) {
         printf("ERROR: failed to create GLFW window");
         glfwTerminate();
         return false;
     }
 
-    window->width = width;
-    window->height = height;
-    window->cursor_x = 0.0;
-    window->cursor_y = 0.0;
-    window->mmb_pressed = false;
-    window->lmb_pressed = false;
-    window->glfw_window = glfw_window;
+    glfwMakeContextCurrent(_WINDOW);
+    glfwSetWindowUserPointer(_WINDOW, &INPUT);
 
-    glfwMakeContextCurrent(glfw_window);
-    glfwSetWindowUserPointer(glfw_window, window);
-    glfwSetFramebufferSizeCallback(glfw_window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(glfw_window, cursor_position_callback);
-    glfwSetMouseButtonCallback(glfw_window, mouse_button_callback);
-    glfwSetScrollCallback(glfw_window, scroll_callback);
-    glfwSetKeyCallback(glfw_window, key_callback);
+    glfwSetFramebufferSizeCallback(_WINDOW, framebuffer_size_callback);
+    glfwSetCursorPosCallback(_WINDOW, cursor_position_callback);
+    glfwSetMouseButtonCallback(_WINDOW, mouse_button_callback);
+    glfwSetScrollCallback(_WINDOW, scroll_callback);
+    glfwSetKeyCallback(_WINDOW, key_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         printf("ERROR: failed to initialize GLAD");
@@ -57,51 +67,9 @@ bool window_create(Window* window, size_t width, size_t height) {
     return true;
 }
 
-void window_attach_camera(Window* window, Camera* camera) {
-    window->camera = camera;
-}
-
-static void cursor_position_callback(GLFWwindow* window, double x, double y) {
-    Window* w = (Window*)(glfwGetWindowUserPointer(window));
-    float xd = (w->cursor_x - x) / w->width;
-    float yd = (y - w->cursor_y) / w->height;
-    w->cursor_x = x;
-    w->cursor_y = y;
-    
-    if (w->mmb_pressed) {
-        camera_translate(w->camera, xd, yd, 0.0);
-    } 
-
-    if (w->lmb_pressed) {
-        camera_rotate(w->camera, yd, -xd);
-    }
-}
-
-static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    Window* w = (Window*)(glfwGetWindowUserPointer(window));
-    if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
-        w->mmb_pressed = action == GLFW_PRESS;
-    } else if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        w->lmb_pressed = action == GLFW_PRESS;
-    }
-}
-
-static void scroll_callback(GLFWwindow* window, double x, double y) {
-    Window* w = (Window*)(glfwGetWindowUserPointer(window));
-    camera_translate(w->camera, 0.0f, 0.0f, y);
-}
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-}
-
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    Window* w = (Window*)(glfwGetWindowUserPointer(window));
-    camera_set_aspect(w->camera, (float)width / (float)height);
-    w->width = width;
-    w->height = height;
-    glViewport(0, 0, width, height);
+void window_update() {
+    input_clear();
+    glfwSwapBuffers(_WINDOW);
+    glfwPollEvents();
 }
 

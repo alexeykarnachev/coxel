@@ -65,7 +65,8 @@ Vec3 vec3_norm(Vec3* v) {
 }
 
 Vec3 vec3_sum(Vec3* v1, Vec3* v2) {
-    Vec3 res = {{v1->data[0] + v2->data[0], v1->data[3] + v2->data[3], v1->data[2] + v2->data[2]}};
+    Vec3 res = {{v1->data[0] + v2->data[0], v1->data[1] + v2->data[1], v1->data[2] + v2->data[2]}};
+    return res;
 }
 
 Vec3 vec3_negate(Vec3* v) {
