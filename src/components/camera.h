@@ -38,7 +38,7 @@ void _camera_create_ubo() {
     glBindBuffer(GL_UNIFORM_BUFFER, _CAMERA_UBO);
     glBufferData(
         GL_UNIFORM_BUFFER,
-        _CAMERA_UBO_N_BYTES * MAX_N_CAMERAS + 16,
+        _CAMERA_UBO_N_BYTES * MAX_N_CAMERAS,
         NULL,
         GL_STATIC_DRAW
     );
@@ -61,13 +61,6 @@ void _camera_update_ubo(size_t camera_id) {
         camera_id * _CAMERA_UBO_N_BYTES,
         _CAMERA_UBO_N_BYTES,
         data
-    );
-
-    glBufferSubData(
-        GL_UNIFORM_BUFFER,
-        MAX_N_CAMERAS * _CAMERA_UBO_N_BYTES,
-        16,
-        &_CAMERA_ARENA_IDX
     );
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0);

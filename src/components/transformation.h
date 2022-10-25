@@ -1,4 +1,4 @@
-# define _TRANSFORMATION_UBO_N_BYTES 16
+# define _TRANSFORMATION_UBO_N_BYTES 64
 
 typedef struct Transformation {
     Vec3 scale;

@@ -1,7 +1,11 @@
 in vec3 model_pos;
 
-uniform mat4 world_mat;
 uniform int camera_id;
+uniform int transformation_id;
+
+struct Transformation {
+    mat4 world_mat;
+};
 
 struct Camera {
     vec3 world_pos;
@@ -9,9 +13,12 @@ struct Camera {
     mat4 proj_mat;
 };
 
+layout (std140, binding=TRANSFORMATION_BINDING_IDX) uniform Transformations {
+    Transformation transformations[MAX_N_TRANSFORMATIONS];
+};
+
 layout (std140, binding=CAMERA_BINDING_IDX) uniform Cameras {
     Camera cameras[MAX_N_CAMERAS];
-    int n_cameras;
 };
 
 out VertexData {
@@ -22,6 +29,7 @@ out VertexData {
 
 
 void main() {
+    mat4 world_mat = transformations[transformation_id].world_mat;
     mat4 view_mat = cameras[camera_id].view_mat;
     mat4 proj_mat = cameras[camera_id].proj_mat;
 

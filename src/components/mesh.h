@@ -7,6 +7,7 @@ typedef struct Mesh {
 
 Mesh _MESH_ARENA[MAX_N_MESHES];
 size_t _MESH_ARENA_IDX = 0;
+size_t _MESH_N_FACES = 0;
 
 
 int mesh_create(
@@ -53,7 +54,13 @@ int mesh_create_plane() {
 
 void mesh_bind(size_t mesh_id) {
     Mesh* mesh = &_MESH_ARENA[mesh_id];
+    _MESH_N_FACES = mesh->n_faces;
+
     glBindVertexArray(mesh->vao);
     glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
+}
+
+void mesh_draw() {
+    glDrawElements(GL_TRIANGLES, _MESH_N_FACES, GL_UNSIGNED_BYTE, 0);
 }

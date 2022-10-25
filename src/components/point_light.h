@@ -48,11 +48,12 @@ void _point_light_update_ubo(size_t point_light_id) {
         data
     );
 
+    size_t n_point_lights = _POINT_LIGHT_ARENA_IDX + 1;
     glBufferSubData(
         GL_UNIFORM_BUFFER,
         MAX_N_POINT_LIGHTS * _POINT_LIGHT_UBO_N_BYTES,
         16,
-        &_POINT_LIGHT_ARENA_IDX
+        &n_point_lights
     );
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0);

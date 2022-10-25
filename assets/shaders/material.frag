@@ -4,8 +4,8 @@ in VertexData {
     vec4 proj_pos;
 } fs_in;
 
-uniform int material_id;
 uniform int camera_id;
+uniform int material_id;
 uniform samplerCubeArrayShadow point_shadow_casters_tex;
 
 struct Camera {
@@ -41,12 +41,10 @@ struct PointShadowCaster {
 
 layout (std140, binding=CAMERA_BINDING_IDX) uniform Cameras {
     Camera cameras[MAX_N_CAMERAS];
-    int n_cameras;
 };
 
 layout (std140, binding=MATERIAL_BINDING_IDX) uniform Materials {
     Material materials[MAX_N_MATERIALS];
-    int n_materials;
 };
 
 layout (std140, binding=POINT_LIGHT_BINDING_IDX) uniform PointLights {
@@ -114,7 +112,8 @@ void main() {
     vec3 ambient = 0.005 * ambient_color.rgb;
 
     // Shadows:
-    float shadow = get_point_shadow(normal);
+    // float shadow = get_point_shadow(normal);
+    float shadow = 0.0;
 
     vec3 diffuse = vec3(0);
     vec3 specular = vec3(0);

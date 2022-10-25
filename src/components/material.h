@@ -25,7 +25,7 @@ void _material_create_ubo() {
     glBindBuffer(GL_UNIFORM_BUFFER, _MATERIAL_UBO);
     glBufferData(
         GL_UNIFORM_BUFFER,
-        _MATERIAL_UBO_N_BYTES * MAX_N_MATERIALS + 16,
+        _MATERIAL_UBO_N_BYTES * MAX_N_MATERIALS,
         NULL,
         GL_STATIC_DRAW
     );
@@ -48,13 +48,6 @@ void _material_update_ubo(size_t material_id) {
         material_id * _MATERIAL_UBO_N_BYTES,
         _MATERIAL_UBO_N_BYTES,
         data
-    );
-
-    glBufferSubData(
-        GL_UNIFORM_BUFFER,
-        MAX_N_MATERIALS * _MATERIAL_UBO_N_BYTES,
-        16,
-        &_MATERIAL_ARENA_IDX
     );
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0);

@@ -14,6 +14,11 @@ typedef struct Mat4 {
     float data[16];
 } Mat4;
 
+Vec3 vec3(float x, float y, float z) {
+    Vec3 v = {{x, y, z}};
+    return v;
+}
+
 void mat4_print(Mat4* m);
 void mat3_print(Mat3* m);
 void vec3_print(Vec3* v);
