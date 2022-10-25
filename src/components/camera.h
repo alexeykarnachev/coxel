@@ -13,10 +13,14 @@ typedef struct Camera {
     Vec3 translation;
 } Camera;
 
-Camera CAMERA_ARENA[MAX_N_CAMERAS];
-size_t _CAMERA_ARENA_IDX = 0;
+Camera _CAMERA_ARENA[MAX_N_CAMERAS];
+size_t N_CAMERAS = 0;
 int _CAMERA_UBO = -1;
 
+
+Camera* camera_get(size_t id) {
+    return &_CAMERA_ARENA[id - CAMERA_START_ID];
+}
 
 void _camera_pack(Camera* cam, float dst[]) {
     Vec3 pos = vec3_sum(&cam->translation, &cam->pos);
@@ -44,13 +48,13 @@ void _camera_create_ubo() {
     glBindBufferBase(GL_UNIFORM_BUFFER, CAMERA_BINDING_IDX, _CAMERA_UBO);
 }
 
-void camera_update_ubo(size_t camera_id) {
+void _camera_update_ubo(size_t camera_id) {
     if (_CAMERA_UBO == -1) {
         _camera_create_ubo();
     }
 
     static float data[_CAMERA_UBO_N_BYTES / 4];
-    _camera_pack(&CAMERA_ARENA[camera_id], data);
+    _camera_pack(camera_get(camera_id), data);
 
     glBindBuffer(GL_UNIFORM_BUFFER, _CAMERA_UBO);
     glBufferSubData(
@@ -64,11 +68,13 @@ void camera_update_ubo(size_t camera_id) {
 }
 
 int camera_create(float fov, float near, float far, float aspect, Vec3 pos) {
-    if (_CAMERA_ARENA_IDX == MAX_N_CAMERAS) {
+    if (N_CAMERAS == MAX_N_CAMERAS) {
         fprintf(stderr, "ERROR: max number of cameras is reached. Camera won't be created");
         return -1;
     }
-    Camera* cam = &CAMERA_ARENA[_CAMERA_ARENA_IDX];
+
+    size_t id = CAMERA_START_ID + (N_CAMERAS++);
+    Camera* cam = camera_get(id);
 
     Vec3 up = {{0.0, 1.0, 0.0}};
     Vec3 view_dir = {{0.0, 0.0, -1.0}};
@@ -82,7 +88,7 @@ int camera_create(float fov, float near, float far, float aspect, Vec3 pos) {
     cam->up = up;
     cam->view_dir = view_dir;
 
-    camera_update_ubo(_CAMERA_ARENA_IDX);
-    return _CAMERA_ARENA_IDX++;
+    _camera_update_ubo(id);
+    return id;
 }
 

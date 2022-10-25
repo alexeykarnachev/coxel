@@ -17,6 +17,17 @@ void renderer_update() {
 
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    program_set_uniform_1i(PROGRAM_MATERIAL, "camera_id", CAMERA_ACTIVE_IDX);
+    program_set_attribute(PROGRAM_MATERIAL, "model_pos", 3, GL_FLOAT);
+
+    glUseProgram(PROGRAM_MATERIAL);
+    for (size_t mesh_id; mesh_id < N_MESHES; ++mesh_id) {
+        Mesh* mesh = &MESH_ARENA[mesh_id]
+        program_set_uniform_1i(PROGRAM_MATERIAL, "transformation_id", mesh->transformation_id);
+        program_set_uniform_1i(PROGRAM_MATERIAL, "material_id", mesh->material_id);
+        mesh_draw();
+    }
 }
 
 

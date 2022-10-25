@@ -8,9 +8,13 @@ typedef struct Material {
 } Material;
 
 Material _MATERIAL_ARENA[MAX_N_MATERIALS];
-size_t _MATERIAL_ARENA_IDX = 0;
+size_t N_MATERIALS = 0;
 int _MATERIAL_UBO = -1;
 
+
+Material* material_get(size_t id) {
+    return &_MATERIAL_ARENA[id - MATERIAL_START_ID]
+}
 
 void _material_pack(Material* material, float dst[]) {
     size_t size = sizeof(float);
@@ -40,7 +44,7 @@ void _material_update_ubo(size_t material_id) {
     }
 
     static float data[_MATERIAL_UBO_N_BYTES / 4];
-    _material_pack(&_MATERIAL_ARENA[material_id], data);
+    _material_pack(get_materials(material_id), data);
 
     glBindBuffer(GL_UNIFORM_BUFFER, _MATERIAL_UBO);
     glBufferSubData(
@@ -59,18 +63,19 @@ int material_create(
     Vec3 specular_color,
     float shininess
 ) {
-    if (_MATERIAL_ARENA_IDX == MAX_N_MATERIALS) {
+    if (N_MATERIALS == MAX_N_MATERIALS) {
         fprintf(stderr, "ERROR: max number of materials is reached. Material won't be created");
         return -1;
     }
-    Material* material = &_MATERIAL_ARENA[_MATERIAL_ARENA_IDX];
+    size_t id = MATERIAL_START_ID + (N_MATERIALS++);
+    Material* material = material_get(id);
 
     material->diffuse_color = diffuse_color;
     material->ambient_color = ambient_color;
     material->specular_color = specular_color;
     material->shininess = shininess;
 
-    _material_update_ubo(_MATERIAL_ARENA_IDX);
-    return _MATERIAL_ARENA_IDX++;
+    _material_update_ubo(id);
+    return id;
 }
 

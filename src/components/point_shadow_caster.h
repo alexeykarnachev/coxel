@@ -13,10 +13,14 @@ typedef struct PointShadowCaster {
 } PointShadowCaster;
 
 PointShadowCaster _POINT_SHADOW_CASTER_ARENA[MAX_N_POINT_SHADOW_CASTERS];
-size_t _POINT_SHADOW_CASTER_ARENA_IDX = 0;
+size_t N_POINT_SHADOW_CASTERS = 0;
 int _POINT_SHADOW_CASTER_UBO = -1;
 int _POINT_SHADOW_CASTER_FBO = -1;
 int _POINT_SHADOW_CASTER_TEX = -1;
+
+PointShadowCaster* point_shadow_caster_get(size_t id) {
+    return &_POINT_SHADOW_CASTER_ARENA[point_shadow_caster_id - POINT_SHADOW_CASTER_START_ID]
+}
 
 
 void _point_shadow_caster_pack(PointShadowCaster* point_shadow_caster, float dst[]) {
@@ -93,7 +97,7 @@ void _point_shadow_caster_update_ubo(size_t point_shadow_caster_id) {
     }
 
     static float data[_POINT_SHADOW_CASTER_UBO_N_BYTES / 4];
-    _point_shadow_caster_pack(&_POINT_SHADOW_CASTER_ARENA[point_shadow_caster_id], data);
+    _point_shadow_caster_pack(point_shadow_caster_get(point_shadow_caster_id), data);
 
     glBindBuffer(GL_UNIFORM_BUFFER, _POINT_SHADOW_CASTER_UBO);
     glBufferSubData(
@@ -107,7 +111,7 @@ void _point_shadow_caster_update_ubo(size_t point_shadow_caster_id) {
         GL_UNIFORM_BUFFER,
         MAX_N_POINT_SHADOW_CASTERS * _POINT_SHADOW_CASTER_UBO_N_BYTES,
         16,
-        &_POINT_SHADOW_CASTER_ARENA_IDX
+        &N_POINT_SHADOW_CASTERS
     );
 
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -123,7 +127,7 @@ int point_shadow_caster_create(
     float bias_max,
     Vec3 world_pos
 ) {
-    if (_POINT_SHADOW_CASTER_ARENA_IDX == MAX_N_POINT_SHADOW_CASTERS) {
+    if (N_POINT_SHADOW_CASTERS == MAX_N_POINT_SHADOW_CASTERS) {
         fprintf(stderr, "ERROR: max number of point shadow casters is reached. " \
                         "Point shadow caster won't be created\n");
         return -1;
@@ -132,8 +136,8 @@ int point_shadow_caster_create(
     if (_POINT_SHADOW_CASTER_FBO == -1 && !_point_shadow_caster_create_fbo()) {
         return -1;
     }
-
-    PointShadowCaster* point_shadow_caster = &_POINT_SHADOW_CASTER_ARENA[_POINT_SHADOW_CASTER_ARENA_IDX];
+    size_t id = POINT_SHADOW_CASTER_START_ID + (N_POINT_SHADOW_CASTERS++);
+    PointShadowCaster* point_shadow_caster = point_shadow_caster_get(id);
 
     point_shadow_caster->near_plane = near_plane;
     point_shadow_caster->far_plane = far_plane;
@@ -157,7 +161,7 @@ int point_shadow_caster_create(
         point_shadow_caster->view_proj_mats[i] = mat4_mat4_mul(&proj_mat, &view_mats[i]);
     }
 
-    _point_shadow_caster_update_ubo(_POINT_SHADOW_CASTER_ARENA_IDX);
-    return _POINT_SHADOW_CASTER_ARENA_IDX++;
+    _point_shadow_caster_update_ubo(id);
+    return id;
 }
 

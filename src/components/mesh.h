@@ -6,9 +6,13 @@ typedef struct Mesh {
 } Mesh;
 
 Mesh _MESH_ARENA[MAX_N_MESHES];
-size_t _MESH_ARENA_IDX = 0;
-size_t _MESH_N_FACES = 0;
+size_t N_MESHES = 0;
+size_t _CURRENT_MESH_ID = 0;
 
+
+Mesh* mesh_get(size_t id) {
+    return &_MESH_ARENA[id - MESH_START_ID];
+}
 
 int mesh_create(
     const unsigned char* faces,
@@ -16,11 +20,12 @@ int mesh_create(
     const float* vertices,
     size_t vertices_size
 ) {
-    if (_MESH_ARENA_IDX == MAX_N_MESHES) {
+    if (N_MESHES == MAX_N_MESHES) {
         fprintf(stderr, "ERROR: max number of meshes is reached. Mesh won't be created");
         return -1;
     }
-    Mesh* mesh = &_MESH_ARENA[_MESH_ARENA_IDX];
+    size_t id = MESH_START_ID + (N_MESHES++);
+    Mesh* mesh = mesh_get(id);
 
     mesh->n_faces = faces_size / sizeof(faces[0]);
 
@@ -40,7 +45,7 @@ int mesh_create(
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    return _MESH_ARENA_IDX++;
+    return id;
 }
 
 int mesh_create_icosahedron() {
@@ -52,15 +57,13 @@ int mesh_create_plane() {
     return mesh_create(PLANE_FACES, sizeof(PLANE_FACES), PLANE_VERTS, sizeof(PLANE_VERTS));
 }
 
-void mesh_bind(size_t mesh_id) {
-    Mesh* mesh = &_MESH_ARENA[mesh_id];
-    _MESH_N_FACES = mesh->n_faces;
+void mesh_draw(size_t mesh_id) {
+    Mesh* mesh = mesh_get(mesh_id);
+    if (mesh_id != _CURRENT_MESH_ID) {
+        glBindVertexArray(mesh->vao);
+        glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
+    }
 
-    glBindVertexArray(mesh->vao);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
-}
-
-void mesh_draw() {
-    glDrawElements(GL_TRIANGLES, _MESH_N_FACES, GL_UNSIGNED_BYTE, 0);
+    glDrawElements(GL_TRIANGLES, mesh->n_faces, GL_UNSIGNED_BYTE, 0);
 }

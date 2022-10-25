@@ -23,26 +23,32 @@ int main(void) {
     CameraController camera_controller = {&CAMERA_ARENA[camera], 0.01, 0.8, 0.001};
 
     int mesh_0 = mesh_create_icosahedron();
-    int transformation_0 = transformation_create(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, -5.0));
     int material_0 = material_create(vec3(0.8, 0.2, 0.3), vec3(0.8, 0.2, 0.3), vec3(1.0, 1.0, 1.0), 256.0);
-    int point_light_0 = point_light_create(vec3(0.0, 5.0, -5.0), vec3(1.0, 1.0, 1.0), 200.0);
+    int material_1 = material_create(vec3(0.8, 0.8, 0.1), vec3(0.8, 0.8, 0.1), vec3(1.0, 1.0, 1.0), 256.0);
+    int transformation_0 = transformation_create(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, -5.0));
+    int transformation_1 = transformation_create(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(4.0, 0.0, -5.0));
+    int transformation_2 = transformation_create(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(8.0, 0.0, -5.0));
+    int point_light_0 = point_light_create(vec3(0.0, 5.0, -5.0), vec3(0.2, 0.8, 0.3), 200.0);
+    int point_light_1 = point_light_create(vec3(10.0, -5.0, -5.0), vec3(0.2, 0.3, 0.8), 200.0);
+
+    scene_add_component(point_light_0);
+    scene_add_component(point_light_1);
+    scene_add_component(mesh_0);
+    scene_add_component(material_0);
+    scene_add_component(transformation_0);
+    scene_add_component(transformation_1);
+    scene_add_component(transformation_2);
+
+
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
     while (!INPUT.window_should_close) {
         renderer_update();
-        camera_controller_update(&camera_controller);
+        // camera_controller_update(&camera_controller);
 
-        glUseProgram(PROGRAM_MATERIAL);
-        mesh_bind(mesh_0);
-        program_set_attribute(PROGRAM_MATERIAL, "model_pos", 3, GL_FLOAT);
-        program_set_uniform_1i(PROGRAM_MATERIAL, "camera_id", 0);
-        program_set_uniform_1i(PROGRAM_MATERIAL, "transformation_id", 0);
-        program_set_uniform_1i(PROGRAM_MATERIAL, "material_id", 0);
-        mesh_draw();
-
-        camera_update_ubo(camera);
+        // camera_update_ubo(camera);
         window_update();
     }
 
