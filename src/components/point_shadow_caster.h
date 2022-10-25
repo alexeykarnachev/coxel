@@ -1,4 +1,4 @@
-#define _POINT_SHADOW_CASTER_UBO_N_BYTES 432
+#define POINT_SHADOW_CASTER_PACK_SIZE 432
 
 typedef struct PointShadowCaster {
     float near_plane;
@@ -12,59 +12,19 @@ typedef struct PointShadowCaster {
     Mat4 view_proj_mats[6];
 } PointShadowCaster;
 
-PointShadowCaster _POINT_SHADOW_CASTER_ARENA[MAX_N_POINT_SHADOW_CASTERS];
-size_t N_POINT_SHADOW_CASTERS = 0;
-int _POINT_SHADOW_CASTER_UBO = -1;
-int _POINT_SHADOW_CASTER_FBO = -1;
-int _POINT_SHADOW_CASTER_TEX = -1;
 
-PointShadowCaster* point_shadow_caster_get(size_t id) {
-    return &_POINT_SHADOW_CASTER_ARENA[point_shadow_caster_id - POINT_SHADOW_CASTER_START_ID]
-}
-
-
-void _point_shadow_caster_pack(PointShadowCaster* point_shadow_caster, float dst[]) {
-    dst[0] = point_shadow_caster->near_plane;
-    dst[1] = point_shadow_caster->far_plane;
-    dst[2] = point_shadow_caster->min_n_samples;
-    dst[3] = point_shadow_caster->max_n_samples;
-    dst[4] = point_shadow_caster->disk_radius;
-    dst[5] = point_shadow_caster->bias_min;
-    dst[6] = point_shadow_caster->bias_max;
-    memcpy(&dst[8], point_shadow_caster->world_pos.data, sizeof(float) * 3);
-    mat4_transpose_pack(&dst[12], point_shadow_caster->view_proj_mats, 6);
-}
-
-void _point_shadow_caster_create_ubo() {
-    glGenBuffers(1, &_POINT_SHADOW_CASTER_UBO);
-    glBindBuffer(GL_UNIFORM_BUFFER, _POINT_SHADOW_CASTER_UBO);
-    glBufferData(
-        GL_UNIFORM_BUFFER,
-        _POINT_SHADOW_CASTER_UBO_N_BYTES * MAX_N_POINT_SHADOW_CASTERS + 16,
-        NULL,
-        GL_DYNAMIC_DRAW
-    );
-
-    glBindBufferBase(GL_UNIFORM_BUFFER, POINT_SHADOW_CASTER_BINDING_IDX, _POINT_SHADOW_CASTER_UBO);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-}
-
-bool _point_shadow_caster_create_fbo() {
-    if (_POINT_SHADOW_CASTER_FBO != -1) {
-        fprintf(stderr, "ERROR: can't create point shadow caster fbo. Already exists");
-        return false;
-    }
-    glGenFramebuffers(1, &_POINT_SHADOW_CASTER_FBO);
-    glGenTextures(1, &_POINT_SHADOW_CASTER_TEX);
+bool point_shadow_caster_create_fbo(GLuint* fbo, GLuint* tex, size_t size, size_t n_casters) {
+    glGenFramebuffers(1, fbo);
+    glGenTextures(1, tex);
     
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, _POINT_SHADOW_CASTER_TEX);
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, *tex);
     glTexImage3D(
         GL_TEXTURE_CUBE_MAP_ARRAY,
         0,
         GL_DEPTH_COMPONENT,
-        POINT_SHADOW_SIZE,
-        POINT_SHADOW_SIZE,
-        MAX_N_POINT_SHADOW_CASTERS * 6,
+        size,
+        size,
+        n_casters * 6,
         0,
         GL_DEPTH_COMPONENT,
         GL_FLOAT,
@@ -79,8 +39,8 @@ bool _point_shadow_caster_create_fbo() {
     glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, _POINT_SHADOW_CASTER_FBO);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _POINT_SHADOW_CASTER_TEX, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *tex, 0);
 
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
@@ -91,33 +51,7 @@ bool _point_shadow_caster_create_fbo() {
     return true;
 }
 
-void _point_shadow_caster_update_ubo(size_t point_shadow_caster_id) {
-    if (_POINT_SHADOW_CASTER_UBO == -1) {
-        _point_shadow_caster_create_ubo();
-    }
-
-    static float data[_POINT_SHADOW_CASTER_UBO_N_BYTES / 4];
-    _point_shadow_caster_pack(point_shadow_caster_get(point_shadow_caster_id), data);
-
-    glBindBuffer(GL_UNIFORM_BUFFER, _POINT_SHADOW_CASTER_UBO);
-    glBufferSubData(
-        GL_UNIFORM_BUFFER,
-        point_shadow_caster_id * _POINT_SHADOW_CASTER_UBO_N_BYTES,
-        _POINT_SHADOW_CASTER_UBO_N_BYTES,
-        data
-    );
-
-    glBufferSubData(
-        GL_UNIFORM_BUFFER,
-        MAX_N_POINT_SHADOW_CASTERS * _POINT_SHADOW_CASTER_UBO_N_BYTES,
-        16,
-        &N_POINT_SHADOW_CASTERS
-    );
-
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-}
-
-int point_shadow_caster_create(
+PointShadowCaster point_shadow_caster_create(
     float near_plane,
     float far_plane,
     float min_n_samples,
@@ -127,26 +61,16 @@ int point_shadow_caster_create(
     float bias_max,
     Vec3 world_pos
 ) {
-    if (N_POINT_SHADOW_CASTERS == MAX_N_POINT_SHADOW_CASTERS) {
-        fprintf(stderr, "ERROR: max number of point shadow casters is reached. " \
-                        "Point shadow caster won't be created\n");
-        return -1;
-    }
+    PointShadowCaster point_shadow_caster;
 
-    if (_POINT_SHADOW_CASTER_FBO == -1 && !_point_shadow_caster_create_fbo()) {
-        return -1;
-    }
-    size_t id = POINT_SHADOW_CASTER_START_ID + (N_POINT_SHADOW_CASTERS++);
-    PointShadowCaster* point_shadow_caster = point_shadow_caster_get(id);
-
-    point_shadow_caster->near_plane = near_plane;
-    point_shadow_caster->far_plane = far_plane;
-    point_shadow_caster->min_n_samples = min_n_samples;
-    point_shadow_caster->max_n_samples = max_n_samples;
-    point_shadow_caster->disk_radius = disk_radius;
-    point_shadow_caster->bias_min = bias_min;
-    point_shadow_caster->bias_max = bias_max;
-    point_shadow_caster->world_pos = world_pos;
+    point_shadow_caster.near_plane = near_plane;
+    point_shadow_caster.far_plane = far_plane;
+    point_shadow_caster.min_n_samples = min_n_samples;
+    point_shadow_caster.max_n_samples = max_n_samples;
+    point_shadow_caster.disk_radius = disk_radius;
+    point_shadow_caster.bias_min = bias_min;
+    point_shadow_caster.bias_max = bias_max;
+    point_shadow_caster.world_pos = world_pos;
 
     Mat4 proj_mat = get_perspective_projection_mat(deg2rad(90.0), near_plane, far_plane, 1.0);
 
@@ -161,7 +85,17 @@ int point_shadow_caster_create(
         point_shadow_caster->view_proj_mats[i] = mat4_mat4_mul(&proj_mat, &view_mats[i]);
     }
 
-    _point_shadow_caster_update_ubo(id);
-    return id;
+    return point_shadow_caster;
 }
 
+void point_shadow_caster_pack(PointShadowCaster* point_shadow_caster, float dst[]) {
+    dst[0] = point_shadow_caster->near_plane;
+    dst[1] = point_shadow_caster->far_plane;
+    dst[2] = point_shadow_caster->min_n_samples;
+    dst[3] = point_shadow_caster->max_n_samples;
+    dst[4] = point_shadow_caster->disk_radius;
+    dst[5] = point_shadow_caster->bias_min;
+    dst[6] = point_shadow_caster->bias_max;
+    memcpy(&dst[8], point_shadow_caster->world_pos.data, sizeof(float) * 3);
+    mat4_transpose_pack(&dst[12], point_shadow_caster->view_proj_mats, 6);
+}

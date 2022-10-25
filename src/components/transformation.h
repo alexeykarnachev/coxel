@@ -1,4 +1,4 @@
-# define _TRANSFORMATION_UBO_N_BYTES 64
+#define TRANSFORMATION_PACK_SIZE 64
 
 typedef struct Transformation {
     Vec3 scale;
@@ -6,104 +6,51 @@ typedef struct Transformation {
     Vec3 translation;
 } Transformation;
 
-Transformation _TRANSFORMATION_ARENA[MAX_N_TRANSFORMATIONS];
-size_t N_TRANSFORMATIONS = 0;
-int _TRANSFORMATION_UBO = -1;
 
+Transformation transformation_create(Vec3 scale, Vec3 rotation, Vec3 translation) {
+    Transformation t;
 
-Transformation* transformation_get(size_t id) {
-    return &_TRANSFORMATION_ARENA[id - TRANSFORMATION_START_ID];
+    t.scale = scale;
+    t.rotation = rotation;
+    t.translation = translation;
+
+    return t;
 }
 
-void _transformation_pack(Transformation* t, float dst[]) {
-    Mat4 world_mat = get_world_mat(&t->scale, &t->rotation, &t->translation);
-    mat4_transpose_pack(dst, &world_mat, 1);
-}
-
-void _transformation_create_ubo() {
-    glGenBuffers(1, &_TRANSFORMATION_UBO);
-    glBindBuffer(GL_UNIFORM_BUFFER, _TRANSFORMATION_UBO);
-    glBufferData(
-        GL_UNIFORM_BUFFER,
-        _TRANSFORMATION_UBO_N_BYTES * MAX_N_TRANSFORMATIONS,
-        NULL,
-        GL_DYNAMIC_DRAW
-    );
-
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBufferBase(GL_UNIFORM_BUFFER, TRANSFORMATION_BINDING_IDX, _TRANSFORMATION_UBO);
-}
-
-void _transformation_update_ubo(size_t transformation_id) {
-    if (_TRANSFORMATION_UBO == -1) {
-        _transformation_create_ubo();
-    }
-
-    static float data[_TRANSFORMATION_UBO_N_BYTES / 4];
-    _transformation_pack(transformation_get(transformation_id), data);
-
-    glBindBuffer(GL_UNIFORM_BUFFER, _TRANSFORMATION_UBO);
-    glBufferSubData(
-        GL_UNIFORM_BUFFER,
-        transformation_id * _TRANSFORMATION_UBO_N_BYTES,
-        _TRANSFORMATION_UBO_N_BYTES,
-        data
-    );
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-}
-
-int transformation_create(Vec3 scale, Vec3 rotation, Vec3 translation) {
-    if (N_TRANSFORMATIONS == MAX_N_TRANSFORMATIONS) {
-        fprintf(stderr, "ERROR: max number of transformations is reached. Transformation won't be created");
-        return -1;
-    }
-    size_t id = TRANSFORMATION_START_ID + (N_TRANSFORMATIONS++);
-    Transformation* t = transformation_get(id);
-
-    t->scale = scale;
-    t->rotation = rotation;
-    t->translation = translation;
-
-    _transformation_update_ubo(id);
-    return id;
-}
-
-void transformation_set_scale(size_t transformation_id, float x, float y, float z) {
-    Transformation* t = transformation_get(transformation_id);
+void transformation_set_scale(Transformation* t, float x, float y, float z) {
     t->scale.data[0] = x;
     t->scale.data[1] = y;
     t->scale.data[2] = z;
 }
 
-void transformation_set_rotation(size_t transformation_id, float x, float y, float z) {
-    Transformation* t = transformation_get(transformation_id);
+void transformation_set_rotation(Transformation* t, float x, float y, float z) {
     t->rotation.data[0] = x;
     t->rotation.data[1] = y;
     t->rotation.data[2] = z;
 }
 
-void transformation_set_translation(size_t transformation_id, float x, float y, float z) {
-    Transformation* t = transformation_get(transformation_id);
+void transformation_set_translation(Transformation* t, float x, float y, float z) {
     t->translation.data[0] = x;
     t->translation.data[1] = y;
     t->translation.data[2] = z;
 }
 
-void transformation_scale(size_t transformation_id, float dx, float dy, float dz) {
-    Transformation* t = transformation_get(transformation_id);
+void transformation_scale(Transformation* t, float dx, float dy, float dz) {
     transformation_set_scale(
-        transformation_id, t->scale.data[0] + dx, t->scale.data[1] + dy, t->scale.data[2] + dz);
+        t, t->scale.data[0] + dx, t->scale.data[1] + dy, t->scale.data[2] + dz);
 }
 
-void transformation_rotate(size_t transformation_id, float dx, float dy, float dz) {
-    Transformation* t = transformation_get(transformation_id);
+void transformation_rotate(Transformation* t, float dx, float dy, float dz) {
     transformation_set_rotation(
-        transformation_id, t->rotation.data[0] + dx, t->rotation.data[1] + dy, t->rotation.data[2] + dz);
+        t, t->rotation.data[0] + dx, t->rotation.data[1] + dy, t->rotation.data[2] + dz);
 }
 
-void transformation_translate(size_t transformation_id, float dx, float dy, float dz) {
-    Transformation* t = transformation_get(transformation_id);
+void transformation_translate(Transformation* t, float dx, float dy, float dz) {
     transformation_set_translation(
-        transformation_id, t->translation.data[0] + dx, t->translation.data[1] + dy, t->translation.data[2] + dz);
+        t, t->translation.data[0] + dx, t->translation.data[1] + dy, t->translation.data[2] + dz);
 }
 
+void transformation_pack(Transformation* t, float dst[]) {
+    Mat4 world_mat = get_world_mat(&t->scale, &t->rotation, &t->translation);
+    mat4_transpose_pack(dst, &world_mat, 1);
+}
