@@ -24,10 +24,12 @@ Camera camera_create(float fov_deg, float near, float far, float aspect, Vec3 po
     cam.near = near;
     cam.far = far;
     cam.aspect = aspect;
+
     cam.pos = pos;
-    cam.rotation = vec3_zeros();
     cam.up = up;
     cam.view_dir = view_dir;
+    cam.rotation = vec3_zeros();
+    cam.translation = vec3_zeros();
 
     return cam;
 }

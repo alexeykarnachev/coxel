@@ -1,4 +1,4 @@
-const unsigned char ICOSAHEDRON_FACES[] = {
+const uint32_t ICOSAHEDRON_FACES[] = {
     0,  1,   2,
     0,  2,   3,
     0,  3,   4,
@@ -36,7 +36,7 @@ const float ICOSAHEDRON_VERTS[] = {
      0.000f,  0.000f, -1.000f
 };
 
-const unsigned char PLANE_FACES[] = {2, 1, 0, 3, 2, 0};
+const uint32_t PLANE_FACES[] = {2, 1, 0, 3, 2, 0};
 
 const float PLANE_VERTS[] = {
      -0.5f,  -0.5f,  0.0f,

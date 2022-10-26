@@ -10,45 +10,56 @@ float CAMERA_FAR_PLANE = 1000.0;
 
 int main(void) {
     window_create(SCREEN_WIDTH, SCREEN_HEIGHT);
-    program_create_all();
+    renderer_create();
+    scene_create();
 
-    int camera = camera_create(
+    Camera camera = camera_create(
         CAMERA_FOV,
         CAMERA_NEAR_PLANE,
         CAMERA_FAR_PLANE,
         (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,
-        vec3_zeros()
+        vec3(0.0, 1.0, 8.0)
     );
 
-    CameraController camera_controller = {&CAMERA_ARENA[camera], 0.01, 0.8, 0.001};
+    // CameraController camera_controller = {&CAMERA_ARENA[camera], 0.01, 0.8, 0.001};
 
-    int mesh_0 = mesh_create_icosahedron();
-    int material_0 = material_create(vec3(0.8, 0.2, 0.3), vec3(0.8, 0.2, 0.3), vec3(1.0, 1.0, 1.0), 256.0);
-    int material_1 = material_create(vec3(0.8, 0.8, 0.1), vec3(0.8, 0.8, 0.1), vec3(1.0, 1.0, 1.0), 256.0);
-    int transformation_0 = transformation_create(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, -5.0));
-    int transformation_1 = transformation_create(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(4.0, 0.0, -5.0));
-    int transformation_2 = transformation_create(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(8.0, 0.0, -5.0));
-    int point_light_0 = point_light_create(vec3(0.0, 5.0, -5.0), vec3(0.2, 0.8, 0.3), 200.0);
-    int point_light_1 = point_light_create(vec3(10.0, -5.0, -5.0), vec3(0.2, 0.3, 0.8), 200.0);
+    Mesh mesh_0 = mesh_create_icosahedron();
+    Mesh mesh_1 = mesh_create_plane();
+    Material material_0 = material_create(
+        vec3(0.8, 0.2, 0.3), vec3(0.8, 0.2, 0.3), vec3(1.0, 1.0, 1.0), 256.0);
+    Material material_1 = material_create(
+        vec3(0.8, 0.8, 0.1), vec3(0.8, 0.8, 0.1), vec3(1.0, 1.0, 1.0), 256.0);
+    Transformation transformation_0 = transformation_create(
+        vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, -5.0));
+    Transformation transformation_1 = transformation_create(
+        vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(4.0, 0.0, -5.0));
+    Transformation transformation_2 = transformation_create(
+        vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(8.0, 0.0, -5.0));
+    Transformation transformation_3 = transformation_create(
+        vec3(1000.0, 1000.0, 1000.0), vec3(-deg2rad(90.0), 0.0, 0.0), vec3(0.0, -5.0, 0.0));
+    PointLight point_light_0 = point_light_create(
+        vec3(0.0, 5.0, -5.0), vec3(0.2, 0.8, 0.3), 200.0);
+    PointLight point_light_1 = point_light_create(
+        vec3(10.0, -5.0, -5.0), vec3(0.2, 0.3, 0.8), 150.0);
 
-    scene_add_component(point_light_0);
-    scene_add_component(point_light_1);
-    scene_add_component(mesh_0);
-    scene_add_component(material_0);
-    scene_add_component(transformation_0);
-    scene_add_component(transformation_1);
-    scene_add_component(transformation_2);
+    scene_add_camera(&camera);
+    scene_add_point_light(&point_light_0);
+    scene_add_point_light(&point_light_1);
 
+    scene_add_mesh(&mesh_0);
+    scene_add_material(&material_0);
+    scene_add_transformation(&transformation_0);
+    scene_add_transformation(&transformation_1);
+    scene_add_material(&material_1);
+    scene_add_transformation(&transformation_2);
 
+    scene_add_mesh(&mesh_1);
+    scene_add_material(&material_1);
+    scene_add_transformation(&transformation_3);
 
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glCullFace(GL_BACK);
     while (!INPUT.window_should_close) {
         renderer_update();
         // camera_controller_update(&camera_controller);
-
-        // camera_update_ubo(camera);
         window_update();
     }
 

@@ -36,7 +36,11 @@
 #include "components/mesh.h"
 #include "components/point_shadow_caster.h"
 #include "components/point_light.h"
+#include "buffers/array_buffer.h"
+#include "buffers/depth_cubemap_array.h"
+#include "buffers/ubo_structs_array.h"
 #include "window.h"
+#include "scene.h"
 #include "renderer.h"
 
 #include "sandbox/camera_controller.h"

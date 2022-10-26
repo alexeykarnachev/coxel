@@ -17,6 +17,11 @@ Transformation transformation_create(Vec3 scale, Vec3 rotation, Vec3 translation
     return t;
 }
 
+void transformation_pack(Transformation* t, float dst[]) {
+    Mat4 world_mat = get_world_mat(&t->scale, &t->rotation, &t->translation);
+    mat4_transpose_pack(dst, &world_mat, 1);
+}
+
 void transformation_set_scale(Transformation* t, float x, float y, float z) {
     t->scale.data[0] = x;
     t->scale.data[1] = y;
@@ -50,7 +55,3 @@ void transformation_translate(Transformation* t, float dx, float dy, float dz) {
         t, t->translation.data[0] + dx, t->translation.data[1] + dy, t->translation.data[2] + dz);
 }
 
-void transformation_pack(Transformation* t, float dst[]) {
-    Mat4 world_mat = get_world_mat(&t->scale, &t->rotation, &t->translation);
-    mat4_transpose_pack(dst, &world_mat, 1);
-}

@@ -41,10 +41,12 @@ struct PointShadowCaster {
 
 layout (std140, binding=CAMERA_BINDING_IDX) uniform Cameras {
     Camera cameras[MAX_N_CAMERAS];
+    int n_cameras;
 };
 
 layout (std140, binding=MATERIAL_BINDING_IDX) uniform Materials {
     Material materials[MAX_N_MATERIALS];
+    int n_materials;
 };
 
 layout (std140, binding=POINT_LIGHT_BINDING_IDX) uniform PointLights {

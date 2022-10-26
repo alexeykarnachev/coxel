@@ -13,44 +13,6 @@ typedef struct PointShadowCaster {
 } PointShadowCaster;
 
 
-bool point_shadow_caster_create_fbo(GLuint* fbo, GLuint* tex, size_t size, size_t n_casters) {
-    glGenFramebuffers(1, fbo);
-    glGenTextures(1, tex);
-    
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, *tex);
-    glTexImage3D(
-        GL_TEXTURE_CUBE_MAP_ARRAY,
-        0,
-        GL_DEPTH_COMPONENT,
-        size,
-        size,
-        n_casters * 6,
-        0,
-        GL_DEPTH_COMPONENT,
-        GL_FLOAT,
-        NULL
-    );
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_GREATER);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *tex, 0);
-
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-
-    check_framebuffer(false);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    return true;
-}
-
 PointShadowCaster point_shadow_caster_create(
     float near_plane,
     float far_plane,
@@ -82,7 +44,7 @@ PointShadowCaster point_shadow_caster_create(
     view_mats[4] = get_view_mat(&vec3_pos_z, &vec3_neg_y, &world_pos);
     view_mats[5] = get_view_mat(&vec3_neg_z, &vec3_neg_y, &world_pos);
     for (size_t i = 0; i < 6; ++i) {
-        point_shadow_caster->view_proj_mats[i] = mat4_mat4_mul(&proj_mat, &view_mats[i]);
+        point_shadow_caster.view_proj_mats[i] = mat4_mat4_mul(&proj_mat, &view_mats[i]);
     }
 
     return point_shadow_caster;

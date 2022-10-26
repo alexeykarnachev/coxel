@@ -15,10 +15,12 @@ struct Camera {
 
 layout (std140, binding=TRANSFORMATION_BINDING_IDX) uniform Transformations {
     Transformation transformations[MAX_N_TRANSFORMATIONS];
+    int n_transformations;
 };
 
 layout (std140, binding=CAMERA_BINDING_IDX) uniform Cameras {
     Camera cameras[MAX_N_CAMERAS];
+    int n_cameras;
 };
 
 out VertexData {

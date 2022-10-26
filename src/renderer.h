@@ -4,8 +4,32 @@ typedef struct Renderer {
 } Renderer;
 
 Renderer RENDERER;
+size_t _RENDERER_CREATED = false;
 
-void renderer_update() {
+bool renderer_create() {
+    bool ok = true;
+    ok &= program_create_all();
+
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glCullFace(GL_BACK);
+
+    _RENDERER_CREATED = ok;
+    return ok;
+}
+
+bool renderer_update() {
+    if (!_RENDERER_CREATED) {
+        fprintf(stderr, "ERROR: can't update. Create a renderer first\n");
+        return false;
+    }
+
+    if (SCENE_ACTIVE_CAMERA == -1) {
+        fprintf(stderr, "ERROR: can't update. Create add camera to a scene first\n");
+        return false;
+    }
+
+
     if (
         RENDERER.viewport_width != INPUT.window_width
         || RENDERER.viewport_height != INPUT.window_height
@@ -18,16 +42,32 @@ void renderer_update() {
     glClearColor(0.0, 0.0, 0.0, 0.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    program_set_uniform_1i(PROGRAM_MATERIAL, "camera_id", CAMERA_ACTIVE_IDX);
-    program_set_attribute(PROGRAM_MATERIAL, "model_pos", 3, GL_FLOAT);
-
     glUseProgram(PROGRAM_MATERIAL);
-    for (size_t mesh_id; mesh_id < N_MESHES; ++mesh_id) {
-        Mesh* mesh = &MESH_ARENA[mesh_id]
-        program_set_uniform_1i(PROGRAM_MATERIAL, "transformation_id", mesh->transformation_id);
-        program_set_uniform_1i(PROGRAM_MATERIAL, "material_id", mesh->material_id);
-        mesh_draw();
+    program_set_uniform_1i(PROGRAM_MATERIAL, "camera_id", SCENE_ACTIVE_CAMERA);
+    ArrayBuffer* current_mesh_buffer;
+
+    for (size_t i_component = 0; i_component < SCENE_N_COMPONENTS; ++i_component) {
+        SceneComponent* component = &SCENE_COMPONENTS[i_component];
+        size_t local_id = component->local_id;
+        switch (component->type) {
+            case MESH_T:
+                program_set_attribute(PROGRAM_MATERIAL, "model_pos", 3, GL_FLOAT);
+                current_mesh_buffer = &SCENE_MESH_BUFFERS[local_id]; 
+                glBindVertexArray(current_mesh_buffer->vao);
+                glBindBuffer(GL_ARRAY_BUFFER, current_mesh_buffer->vbo);
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, current_mesh_buffer->ebo);
+                break;
+            case MATERIAL_T:
+                program_set_uniform_1i(PROGRAM_MATERIAL, "material_id", local_id);
+                break;
+            case TRANSFORMATION_T:
+                program_set_uniform_1i(PROGRAM_MATERIAL, "transformation_id", local_id);
+                glDrawElements(GL_TRIANGLES, current_mesh_buffer->n_faces, GL_UNSIGNED_INT, 0);
+                break;
+        }
     }
+
+    return true;
 }
 
 
