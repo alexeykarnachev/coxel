@@ -1,13 +1,26 @@
-typedef struct CameraController {
-    Camera* camera;
+typedef struct CameraMouseController {
+    int32_t camera_gid;
 
     float side_sens;
     float straight_sens;
     float rotation_sens;
-} CameraController;
+
+    void (*script)();
+} CameraMouseController;
+
+CameraMouseController camera_mouse_controller_create(
+    float side_sens,
+    float straight_sens,
+    float rotation_sens
+) {
+    CameraMouseController controller;
+    controller.side_sens = side_sens;
+    controller.straight_sens = straight_sens;
+    controller.rotation_sens = rotation_sens;
+}
 
 
-Mat3 _camera_get_basis_mat(CameraController* c) {
+Mat3 _camera_get_basis_mat(CameraMouseController* c) {
     Camera* cam = c->camera;
     Mat3 rotation = mat3_rotation(cam->rotation.data[0], cam->rotation.data[1], 0.0f);
     Vec3 view_dir = mat3_vec3_mul(&rotation, &cam->view_dir);
@@ -15,7 +28,7 @@ Mat3 _camera_get_basis_mat(CameraController* c) {
     return basis;
 }
     
-void _camera_translate(CameraController* c, float dx, float dy, float dz) {
+void _camera_translate(CameraMouseController* c, float dx, float dy, float dz) {
     Camera* cam = c->camera;
     if (fabs(dx) + fabs(dy) + fabs(dz) < EPS) {
         return;
@@ -34,18 +47,18 @@ void _camera_translate(CameraController* c, float dx, float dy, float dz) {
     cam->translation.data[2] += x.data[2] + y.data[2] + z.data[2];
 }
 
-void _camera_rotate(CameraController* c, float pitch, float yaw) {
+void _camera_rotate(CameraMouseController* c, float pitch, float yaw) {
     Camera* cam = c->camera;
     // TODO: mod by PI
     cam->rotation.data[0] += pitch * c->rotation_sens;
     cam->rotation.data[1] += yaw * c->rotation_sens;
 }
 
-void _camera_set_aspect(CameraController* c, float aspect) {
+void _camera_set_aspect(CameraMouseController* c, float aspect) {
     c->camera->aspect = aspect;
 }
 
-void camera_controller_update(CameraController* c) {
+void _camera_controller_update(CameraMouseController* c) {
     if (INPUT.mouse_middle_pressed) {
         _camera_translate(c, INPUT.cursor_dx, INPUT.cursor_dy, 0.0);
     } 

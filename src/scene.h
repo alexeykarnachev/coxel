@@ -9,18 +9,18 @@ typedef enum {
 
 typedef struct SceneComponent {
     ComponentType type;
-    uint32_t global_id;
-    uint32_t local_id;
+    uint32_t gid;
+    uint32_t lid;
 } SceneComponent;
 
 uint32_t _SCENE_CREATED = false;
-int32_t SCENE_ACTIVE_CAMERA = -1;
+int32_t _SCENE_ACTIVE_CAMERA_GID = -1;
 uint32_t SCENE_N_COMPONENTS = 0;
 uint32_t _N_MESHES = 0;
 uint32_t _N_CAMERAS = 0;
 uint32_t _N_MATERIALS= 0;
 uint32_t _N_TRANSFORMATIONS = 0;
-uint32_t _NPOINT_LIGHTS = 0;
+uint32_t _N_POINT_LIGHTS = 0;
 
 SceneComponent SCENE_COMPONENTS[MAX_N_SCENE_COMPONENTS];
 ArrayBuffer SCENE_MESH_BUFFERS[MAX_N_MESHES];
@@ -28,6 +28,24 @@ UBOStructsArray SCENE_CAMERA_BUFFERS;
 UBOStructsArray SCENE_MATERIAL_BUFFERS;
 UBOStructsArray SCENE_TRANSFORMATION_BUFFERS;
 UBOStructsArray SCENE_POINT_LIGHT_BUFFERS;
+
+#define _add_ubo_component(ptr, curr_n, max_n, pack_size, buffers, type_, pack_fn)\
+    if (!_SCENE_CREATED) {\
+        fprintf(stderr, "ERROR: can't add " #ptr ". Create a scene first\n");\
+        return -1;\
+    }\
+    if (curr_n == max_n || SCENE_N_COMPONENTS == MAX_N_SCENE_COMPONENTS) {\
+        fprintf(stderr, "ERROR: can't add " #ptr ". The maximum is reached\n");\
+        return -1;\
+    }\
+    static float pack[pack_size];\
+    pack_fn(ptr, pack);\
+    ubo_structs_array_add(&buffers, pack);\
+    SceneComponent* component = &SCENE_COMPONENTS[SCENE_N_COMPONENTS];\
+    component->type = type_;\
+    component->lid = curr_n++;\
+    component->gid = SCENE_N_COMPONENTS++;\
+    return component->gid;\
 
 
 bool scene_create() {
@@ -65,6 +83,25 @@ bool scene_create() {
     return ok;
 }
 
+bool scene_set_active_camera_gid(uint32_t gid) {
+    SceneComponent* component = &SCENE_COMPONENTS[gid];
+    if (component->type != CAMERA_T) {
+        fprintf(stderr, "ERROR: can't set scene camera. Passed gid doesn't belog to a camera");
+        return false;
+    }
+    _SCENE_ACTIVE_CAMERA_GID = gid;
+    return true;
+}
+
+int32_t scene_get_active_camera_lid() {
+    if (_SCENE_ACTIVE_CAMERA_GID == -1) {
+        return -1;
+    }
+
+    SceneComponent* component = &SCENE_COMPONENTS[_SCENE_ACTIVE_CAMERA_GID];
+    return component->lid;
+}
+
 int scene_add_mesh(Mesh* mesh) {
     if (!_SCENE_CREATED) {
         fprintf(stderr, "ERROR: can't add mesh. Create a scene first\n");
@@ -86,101 +123,57 @@ int scene_add_mesh(Mesh* mesh) {
 
     SceneComponent* component = &SCENE_COMPONENTS[SCENE_N_COMPONENTS];
     component->type = MESH_T;
-    component->local_id = _N_MESHES++;
-    component->global_id = SCENE_N_COMPONENTS++;
+    component->lid = _N_MESHES++;
+    component->gid = SCENE_N_COMPONENTS++;
 
-    return component->global_id;
+    return component->gid;
 }
 
 int scene_add_camera(Camera* camera) {
-    if (!_SCENE_CREATED) {
-        fprintf(stderr, "ERROR: can't add camera. Create a scene first\n");
-        return -1;
-    }
-
-    if (_N_CAMERAS == MAX_N_CAMERAS || SCENE_N_COMPONENTS == MAX_N_SCENE_COMPONENTS) {
-        fprintf(stderr, "ERROR: can't add camera. The maximum is reached\n");
-        return -1;
-    }
-
-    static float pack[CAMERA_PACK_SIZE];
-    camera_pack(camera, pack);
-    ubo_structs_array_add(&SCENE_CAMERA_BUFFERS, pack);
-
-    SceneComponent* component = &SCENE_COMPONENTS[SCENE_N_COMPONENTS];
-    component->type = CAMERA_T;
-    component->local_id = _N_CAMERAS++;
-    component->global_id = SCENE_N_COMPONENTS++;
-
-    SCENE_ACTIVE_CAMERA = component->local_id;
-    return component->global_id;
+    _add_ubo_component(
+        camera,
+        _N_CAMERAS,
+        MAX_N_CAMERAS,
+        CAMERA_PACK_SIZE,
+        SCENE_CAMERA_BUFFERS,
+        CAMERA_T,
+        camera_pack
+    )
 }
 
 int scene_add_material(Material* material) {
-    if (!_SCENE_CREATED) {
-        fprintf(stderr, "ERROR: can't add material. Create a scene first\n");
-        return -1;
-    }
-
-    if (_N_MATERIALS == MAX_N_MATERIALS || SCENE_N_COMPONENTS == MAX_N_SCENE_COMPONENTS) {
-        fprintf(stderr, "ERROR: can't add material. The maximum is reached\n");
-        return -1;
-    }
-
-    static float pack[MATERIAL_PACK_SIZE];
-    material_pack(material, pack);
-    ubo_structs_array_add(&SCENE_MATERIAL_BUFFERS, pack);
-
-    SceneComponent* component = &SCENE_COMPONENTS[SCENE_N_COMPONENTS];
-    component->type = MATERIAL_T;
-    component->local_id = _N_MATERIALS++;
-    component->global_id = SCENE_N_COMPONENTS++;
-
-    return component->global_id;
+    _add_ubo_component(
+        material,
+        _N_MATERIALS,
+        MAX_N_MATERIALS,
+        MATERIAL_PACK_SIZE,
+        SCENE_MATERIAL_BUFFERS,
+        MATERIAL_T,
+        material_pack
+    )
 }
 
 int scene_add_transformation(Transformation* transformation) {
-    if (!_SCENE_CREATED) {
-        fprintf(stderr, "ERROR: can't add transformation. Create a scene first\n");
-        return -1;
-    }
-
-    if (_N_TRANSFORMATIONS == MAX_N_TRANSFORMATIONS || SCENE_N_COMPONENTS == MAX_N_SCENE_COMPONENTS) {
-        fprintf(stderr, "ERROR: can't add transformation. The maximum is reached\n");
-        return -1;
-    }
-
-    static float pack[TRANSFORMATION_PACK_SIZE];
-    transformation_pack(transformation, pack);
-    ubo_structs_array_add(&SCENE_TRANSFORMATION_BUFFERS, pack);
-
-    SceneComponent* component = &SCENE_COMPONENTS[SCENE_N_COMPONENTS];
-    component->type = TRANSFORMATION_T;
-    component->local_id = _N_TRANSFORMATIONS++;
-    component->global_id = SCENE_N_COMPONENTS++;
-
-    return component->global_id;
+    _add_ubo_component(
+        transformation,
+        _N_TRANSFORMATIONS,
+        MAX_N_TRANSFORMATIONS,
+        TRANSFORMATION_PACK_SIZE,
+        SCENE_TRANSFORMATION_BUFFERS,
+        TRANSFORMATION_T,
+        transformation_pack
+    )
 }
 
 int scene_add_point_light(PointLight* point_light) {
-    if (!_SCENE_CREATED) {
-        fprintf(stderr, "ERROR: can't add point light. Create a scene first\n");
-        return -1;
-    }
-
-    if (_NPOINT_LIGHTS == MAX_N_POINT_LIGHTS || SCENE_N_COMPONENTS == MAX_N_SCENE_COMPONENTS) {
-        fprintf(stderr, "ERROR: can't add point light. The maximum is reached\n");
-        return -1;
-    }
-
-    static float pack[POINT_LIGHT_PACK_SIZE];
-    point_light_pack(point_light, pack);
-    ubo_structs_array_add(&SCENE_POINT_LIGHT_BUFFERS, pack);
-
-    SceneComponent* component = &SCENE_COMPONENTS[SCENE_N_COMPONENTS];
-    component->type = POINT_LIGHT_T;
-    component->local_id = _NPOINT_LIGHTS++;
-    component->global_id = SCENE_N_COMPONENTS++;
-
-    return component->global_id;
+    _add_ubo_component(
+        point_light,
+        _N_POINT_LIGHTS,
+        MAX_N_POINT_LIGHTS,
+        POINT_LIGHT_PACK_SIZE,
+        SCENE_POINT_LIGHT_BUFFERS,
+        POINT_LIGHT_T,
+        point_light_pack
+    )
 }
+

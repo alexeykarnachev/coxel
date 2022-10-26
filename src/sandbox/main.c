@@ -17,11 +17,8 @@ int main(void) {
         CAMERA_FOV,
         CAMERA_NEAR_PLANE,
         CAMERA_FAR_PLANE,
-        (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT,
-        vec3(0.0, 1.0, 8.0)
+        (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT
     );
-
-    // CameraController camera_controller = {&CAMERA_ARENA[camera], 0.01, 0.8, 0.001};
 
     Mesh mesh_0 = mesh_create_icosahedron();
     Mesh mesh_1 = mesh_create_plane();
@@ -42,7 +39,8 @@ int main(void) {
     PointLight point_light_1 = point_light_create(
         vec3(10.0, -5.0, -5.0), vec3(0.2, 0.3, 0.8), 150.0);
 
-    scene_add_camera(&camera);
+    int32_t camera_gid = scene_add_camera(&camera);
+    scene_set_active_camera_gid(camera_gid);
     scene_add_point_light(&point_light_0);
     scene_add_point_light(&point_light_1);
 
@@ -56,6 +54,9 @@ int main(void) {
     scene_add_mesh(&mesh_1);
     scene_add_material(&material_1);
     scene_add_transformation(&transformation_3);
+
+    CameraMouseController camera_mouse_controller = {camera_gid, 0.01, 0.8, 0.001};
+    scene_add_script(camera_mouse_controller.script);
 
     while (!INPUT.window_should_close) {
         renderer_update();
