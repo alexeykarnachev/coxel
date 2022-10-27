@@ -78,7 +78,7 @@ Script camera_mouse_controller_create_script(
     CameraMouseControllerArgs* args
 ) {
     Script script;
-    script.update = &_camera_mouse_controller_update;
+    script.update = _camera_mouse_controller_update;
     script.args = args; 
     return script;
 }

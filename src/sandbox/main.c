@@ -39,9 +39,9 @@ int main(void) {
     PointLight point_light_1 = point_light_create(
         vec3(10.0, 5.0, -5.0), vec3(0.2, 0.3, 0.8), 150.0);
     PointShadowCaster point_shadow_caster_0 = point_shadow_caster_create_default(
-        vec3(0.0, 5.0, -5.0));
+        vec3(0.0, 15.0, -5.0));
     PointShadowCaster point_shadow_caster_1 = point_shadow_caster_create_default(
-        vec3(10.0, 5.0, -5.0));
+        vec3(10.0, 15.0, -5.0));
 
     int32_t camera_gid = scene_add_camera(&camera);
     scene_set_active_camera_gid(camera_gid);

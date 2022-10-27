@@ -1,13 +1,16 @@
 typedef struct Renderer {
     size_t viewport_width;
     size_t viewport_height;
+    int32_t camera_lid;
 } Renderer;
 
 Renderer RENDERER;
 size_t _RENDERER_CREATED = false;
 
-void _render_material_program_component(int32_t gid, ArrayBuffer** current_mesh_buffer);
-void _render_point_shadow_program_component(int32_t gid, ArrayBuffer** current_mesh_buffer);
+void _update_scripts();
+void _render_point_shadows();
+void _render_materials();
+ArrayBuffer* _bind_mesh(size_t lid);
 
 bool renderer_create() {
     bool ok = true;
@@ -27,8 +30,8 @@ bool renderer_update() {
         return false;
     }
 
-    int32_t camera_lid = scene_get_active_camera_lid();
-    if (camera_lid == -1) {
+    RENDERER.camera_lid = scene_get_active_camera_lid();
+    if (RENDERER.camera_lid == -1) {
         fprintf(stderr, "ERROR: can't update. Add camera to a scene first\n");
         return false;
     }
@@ -42,75 +45,83 @@ bool renderer_update() {
         glViewport(0, 0, INPUT.window_width, INPUT.window_height);
     }
 
-    ArrayBuffer* current_mesh_buffer;
-
-    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_POINT_SHADOW_BUFFER.fbo);
-    glViewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(PROGRAM_POINT_SHADOW);
-    program_set_uniform_1i(PROGRAM_POINT_SHADOW, "camera_id", camera_lid);
-
-    for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
-        _render_point_shadow_program_component(gid, &current_mesh_buffer);
-    }
-
-    glUseProgram(PROGRAM_MATERIAL);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
-    glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    program_set_uniform_1i(PROGRAM_MATERIAL, "camera_id", camera_lid);
-
-    glActiveTexture(0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, SCENE_POINT_SHADOW_BUFFER.tex);
-
-    for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
-        _render_material_program_component(gid, &current_mesh_buffer);
-    }
+    _update_scripts();
+    _render_point_shadows();
+    _render_materials();
 
     return true;
 }
 
-void _render_material_program_component(int32_t gid, ArrayBuffer** current_mesh_buffer) {
-    SceneComponent* component = &SCENE_COMPONENTS[gid];
-    size_t lid = component->lid;
-    switch (component->type) {
-        case MESH_T:
-            program_set_attribute(PROGRAM_MATERIAL, "model_pos", 3, GL_FLOAT);
-            *current_mesh_buffer = &SCENE_MESH_BUFFERS[lid]; 
-            glBindVertexArray((*current_mesh_buffer)->vao);
-            glBindBuffer(GL_ARRAY_BUFFER, (*current_mesh_buffer)->vbo);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*current_mesh_buffer)->ebo);
-            break;
-        case MATERIAL_T:
-            program_set_uniform_1i(PROGRAM_MATERIAL, "material_id", lid);
-            break;
-        case TRANSFORMATION_T:
-            program_set_uniform_1i(PROGRAM_MATERIAL, "transformation_id", lid);
-            glDrawElements(GL_TRIANGLES, (*current_mesh_buffer)->n_faces, GL_UNSIGNED_INT, 0);
-            break;
-        case SCRIPT_T: ;
+void _update_scripts() {
+    for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
+        SceneComponent* component = &SCENE_COMPONENTS[gid];
+        size_t lid = component->lid;
+        if (component->type == SCRIPT_T) {
             Script* script = (Script*)(component->ptr);
             (*script->update)(script->args);
+        }
     }
 }
 
-void _render_point_shadow_program_component(int32_t gid, ArrayBuffer** current_mesh_buffer) {
-    SceneComponent* component = &SCENE_COMPONENTS[gid];
-    size_t lid = component->lid;
-    switch (component->type) {
-        case MESH_T:
-            program_set_attribute(PROGRAM_POINT_SHADOW, "model_pos", 3, GL_FLOAT);
-            *current_mesh_buffer = &SCENE_MESH_BUFFERS[lid]; 
-            glBindVertexArray((*current_mesh_buffer)->vao);
-            glBindBuffer(GL_ARRAY_BUFFER, (*current_mesh_buffer)->vbo);
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*current_mesh_buffer)->ebo);
-            break;
-        case TRANSFORMATION_T:
-            program_set_uniform_1i(PROGRAM_POINT_SHADOW, "transformation_id", lid);
-            glDrawElements(GL_TRIANGLES, (*current_mesh_buffer)->n_faces, GL_UNSIGNED_INT, 0);
-            break;
+void _render_point_shadows() {
+    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_POINT_SHADOW_BUFFER.fbo);
+    glViewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram(PROGRAM_POINT_SHADOW);
+    program_set_uniform_1i(PROGRAM_POINT_SHADOW, "camera_id", RENDERER.camera_lid);
+
+    ArrayBuffer* current_mesh_buffer;
+    for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
+        SceneComponent* component = &SCENE_COMPONENTS[gid];
+        switch (component->type) {
+            case MESH_T:
+                program_set_attribute(PROGRAM_POINT_SHADOW, "model_pos", 3, GL_FLOAT);
+                current_mesh_buffer = _bind_mesh(component->lid);
+                break;
+            case TRANSFORMATION_T:
+                program_set_uniform_1i(PROGRAM_POINT_SHADOW, "transformation_id", component->lid);
+                glDrawElements(GL_TRIANGLES, current_mesh_buffer->n_faces, GL_UNSIGNED_INT, 0);
+                break;
+        }
     }
+}
+
+void _render_materials() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram(PROGRAM_MATERIAL);
+    program_set_uniform_1i(PROGRAM_MATERIAL, "camera_id", RENDERER.camera_lid);
+
+    glActiveTexture(0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, SCENE_POINT_SHADOW_BUFFER.tex);
+
+    ArrayBuffer* current_mesh_buffer;
+    for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
+        SceneComponent* component = &SCENE_COMPONENTS[gid];
+        switch (component->type) {
+            case MESH_T:
+                program_set_attribute(PROGRAM_MATERIAL, "model_pos", 3, GL_FLOAT);
+                current_mesh_buffer = _bind_mesh(component->lid);
+                break;
+            case MATERIAL_T:
+                program_set_uniform_1i(PROGRAM_MATERIAL, "material_id", component->lid);
+                break;
+            case TRANSFORMATION_T:
+                program_set_uniform_1i(PROGRAM_MATERIAL, "transformation_id", component->lid);
+                glDrawElements(GL_TRIANGLES, current_mesh_buffer->n_faces, GL_UNSIGNED_INT, 0);
+                break;
+        }
+    }
+}
+
+ArrayBuffer* _bind_mesh(size_t lid) {
+    ArrayBuffer* buffer = &SCENE_MESH_BUFFERS[lid]; 
+    glBindVertexArray(buffer->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->ebo);
+    return buffer;
 }
 
