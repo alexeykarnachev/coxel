@@ -38,11 +38,17 @@ int main(void) {
         vec3(0.0, 5.0, -5.0), vec3(0.2, 0.8, 0.3), 200.0);
     PointLight point_light_1 = point_light_create(
         vec3(10.0, 5.0, -5.0), vec3(0.2, 0.3, 0.8), 150.0);
+    PointShadowCaster point_shadow_caster_0 = point_shadow_caster_create_default(
+        vec3(0.0, 5.0, -5.0));
+    PointShadowCaster point_shadow_caster_1 = point_shadow_caster_create_default(
+        vec3(10.0, 5.0, -5.0));
 
     int32_t camera_gid = scene_add_camera(&camera);
     scene_set_active_camera_gid(camera_gid);
     scene_add_point_light(&point_light_0);
     scene_add_point_light(&point_light_1);
+    scene_add_point_shadow_caster(&point_shadow_caster_0);
+    scene_add_point_shadow_caster(&point_shadow_caster_1);
 
     scene_add_mesh(&mesh_0);
     scene_add_material(&material_0);
@@ -61,7 +67,6 @@ int main(void) {
 
     while (!INPUT.window_should_close) {
         renderer_update();
-        // camera_controller_update(&camera_controller);
         window_update();
     }
 

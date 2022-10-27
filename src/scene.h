@@ -5,6 +5,7 @@ typedef enum {
     MATERIAL_T,
     TRANSFORMATION_T,
     POINT_LIGHT_T,
+    POINT_SHADOW_CASTER_T,
     SCRIPT_T
 } ComponentType;
 
@@ -23,14 +24,17 @@ uint32_t _N_CAMERAS = 0;
 uint32_t _N_MATERIALS= 0;
 uint32_t _N_TRANSFORMATIONS = 0;
 uint32_t _N_POINT_LIGHTS = 0;
+uint32_t _N_POINT_SHADOW_CASTERS = 0;
 uint32_t _N_SCRIPTS = 0;
 
 SceneComponent SCENE_COMPONENTS[MAX_N_SCENE_COMPONENTS];
 ArrayBuffer SCENE_MESH_BUFFERS[MAX_N_MESHES];
+DepthCubemapArray SCENE_POINT_SHADOW_BUFFER;
 UBOStructsArray SCENE_CAMERA_BUFFERS;
 UBOStructsArray SCENE_MATERIAL_BUFFERS;
 UBOStructsArray SCENE_TRANSFORMATION_BUFFERS;
 UBOStructsArray SCENE_POINT_LIGHT_BUFFERS;
+UBOStructsArray SCENE_POINT_SHADOW_CASTER_BUFFERS;
 
 
 #define _check_scene(ptr_, curr_n, max_n)\
@@ -87,6 +91,16 @@ bool scene_create() {
         POINT_LIGHT_BINDING_IDX,
         GL_STATIC_DRAW
     );
+    ok &= ubo_structs_array_create(
+        &SCENE_POINT_SHADOW_CASTER_BUFFERS,
+        MAX_N_POINT_SHADOW_CASTERS,
+        POINT_SHADOW_CASTER_PACK_SIZE,
+        POINT_SHADOW_CASTER_BINDING_IDX,
+        GL_STATIC_DRAW
+    );
+
+    ok &= depth_cubemap_array_create(
+        &SCENE_POINT_SHADOW_BUFFER, POINT_SHADOW_SIZE, MAX_N_POINT_SHADOW_CASTERS);
 
     _SCENE_CREATED = ok;
     return ok;
@@ -171,6 +185,18 @@ int scene_add_point_light(PointLight* point_light) {
         SCENE_POINT_LIGHT_BUFFERS,
         POINT_LIGHT_T,
         point_light_pack
+    )
+}
+
+int scene_add_point_shadow_caster(PointShadowCaster* point_shadow_caster) {
+    _add_ubo_component(
+        point_shadow_caster,
+        _N_POINT_SHADOW_CASTERS,
+        MAX_N_POINT_SHADOW_CASTERS,
+        POINT_SHADOW_CASTER_PACK_SIZE,
+        SCENE_POINT_SHADOW_CASTER_BUFFERS,
+        POINT_SHADOW_CASTER_T,
+        point_shadow_caster_pack
     )
 }
 

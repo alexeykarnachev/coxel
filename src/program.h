@@ -28,7 +28,7 @@ bool program_set_uniform_matrix_4fv(
         GLuint program, const char* name, GLfloat* data, size_t n_matrices, GLboolean transpose);
 
 const char* VERT_PROJECTION_SHADER = "./assets/shaders/projection.vert";
-const char* GEOM_CUBEMAP_SHADER = "./assets/shaders/cubemap.geom";
+const char* GEOM_POINT_SHADOW_SHADER = "./assets/shaders/point_shadow.geom";
 const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
 const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
 const char* GLSL_COMMON_SHADER = "./assets/shaders/common.glsl";
@@ -36,7 +36,7 @@ const char* VERSION_SHADER = "./assets/shaders/version.glsl";
 const char* CONSTANTS_SHADER = "./src/constants.h";
 
 GLuint PROGRAM_MATERIAL;
-GLuint PROGRAM_DEPTH_CUBEMAP;
+GLuint PROGRAM_POINT_SHADOW;
 
 bool program_create_all() {
     const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
@@ -51,12 +51,12 @@ bool program_create_all() {
         3, deps_file_paths
     );
 
-    PROGRAM_DEPTH_CUBEMAP = glCreateProgram();
+    PROGRAM_POINT_SHADOW = glCreateProgram();
     ok &= program_create(
-        PROGRAM_DEPTH_CUBEMAP,
+        PROGRAM_POINT_SHADOW,
         VERT_PROJECTION_SHADER,
         NULL, NULL,
-        GEOM_CUBEMAP_SHADER,
+        GEOM_POINT_SHADOW_SHADER,
         FRAG_DEPTH_SHADER,
         2, deps_file_paths
     );

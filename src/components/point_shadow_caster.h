@@ -50,6 +50,19 @@ PointShadowCaster point_shadow_caster_create(
     return point_shadow_caster;
 }
 
+PointShadowCaster point_shadow_caster_create_default(Vec3 world_pos) {
+    return point_shadow_caster_create(
+        POINT_SHADOW_NEAR_PLANE,
+        POINT_SHADOW_FAR_PLANE,
+        POINT_SHADOW_MIN_N_SAMPLES,
+        POINT_SHADOW_MAX_N_SAMPLES,
+        POINT_SHADOW_DISK_RADIUS,
+        POINT_SHADOW_BIAS_MIN,
+        POINT_SHADOW_BIAS_MAX,
+        world_pos
+    );
+}
+
 void point_shadow_caster_pack(PointShadowCaster* point_shadow_caster, float dst[]) {
     dst[0] = point_shadow_caster->near_plane;
     dst[1] = point_shadow_caster->far_plane;

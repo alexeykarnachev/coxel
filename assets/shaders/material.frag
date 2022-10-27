@@ -114,8 +114,7 @@ void main() {
     vec3 ambient = 0.005 * ambient_color.rgb;
 
     // Shadows:
-    // float shadow = get_point_shadow(normal);
-    float shadow = 0.0;
+    float shadow = get_point_shadow(normal);
 
     vec3 diffuse = vec3(0);
     vec3 specular = vec3(0);
@@ -137,4 +136,5 @@ void main() {
     // Combined:
     vec3 color = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color.rgb;
     frag_color = vec4(color, 1.0);
+    // frag_color = vec4(shadow);
 }
