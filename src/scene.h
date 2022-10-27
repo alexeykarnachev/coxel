@@ -4,23 +4,26 @@ typedef enum {
     CAMERA_T,
     MATERIAL_T,
     TRANSFORMATION_T,
-    POINT_LIGHT_T
+    POINT_LIGHT_T,
+    SCRIPT_T
 } ComponentType;
 
 typedef struct SceneComponent {
     ComponentType type;
     uint32_t gid;
     uint32_t lid;
+    void* ptr;
 } SceneComponent;
 
+uint32_t SCENE_N_COMPONENTS = 0;
 uint32_t _SCENE_CREATED = false;
 int32_t _SCENE_ACTIVE_CAMERA_GID = -1;
-uint32_t SCENE_N_COMPONENTS = 0;
 uint32_t _N_MESHES = 0;
 uint32_t _N_CAMERAS = 0;
 uint32_t _N_MATERIALS= 0;
 uint32_t _N_TRANSFORMATIONS = 0;
 uint32_t _N_POINT_LIGHTS = 0;
+uint32_t _N_SCRIPTS = 0;
 
 SceneComponent SCENE_COMPONENTS[MAX_N_SCENE_COMPONENTS];
 ArrayBuffer SCENE_MESH_BUFFERS[MAX_N_MESHES];
@@ -29,24 +32,30 @@ UBOStructsArray SCENE_MATERIAL_BUFFERS;
 UBOStructsArray SCENE_TRANSFORMATION_BUFFERS;
 UBOStructsArray SCENE_POINT_LIGHT_BUFFERS;
 
-#define _add_ubo_component(ptr, curr_n, max_n, pack_size, buffers, type_, pack_fn)\
+
+#define _check_scene(ptr_, curr_n, max_n)\
     if (!_SCENE_CREATED) {\
-        fprintf(stderr, "ERROR: can't add " #ptr ". Create a scene first\n");\
+        fprintf(stderr, "ERROR: can't add " #ptr_ ". Create a scene first\n");\
         return -1;\
     }\
     if (curr_n == max_n || SCENE_N_COMPONENTS == MAX_N_SCENE_COMPONENTS) {\
-        fprintf(stderr, "ERROR: can't add " #ptr ". The maximum is reached\n");\
+        fprintf(stderr, "ERROR: can't add " #ptr_ ". The maximum is reached\n");\
         return -1;\
     }\
-    static float pack[pack_size];\
-    pack_fn(ptr, pack);\
-    ubo_structs_array_add(&buffers, pack);\
+
+#define _add_component(ptr_, type_, curr_n)\
     SceneComponent* component = &SCENE_COMPONENTS[SCENE_N_COMPONENTS];\
     component->type = type_;\
     component->lid = curr_n++;\
     component->gid = SCENE_N_COMPONENTS++;\
-    return component->gid;\
+    component->ptr = ptr_;\
 
+#define _add_ubo_component(ptr_, curr_n, max_n, pack_size, buffers, type_, pack_fn)\
+    static float pack[pack_size];\
+    pack_fn(ptr_, pack);\
+    ubo_structs_array_add(&buffers, pack);\
+    _add_component(ptr_, type_, curr_n)\
+    return component->gid;\
 
 bool scene_create() {
     bool ok = true;
@@ -86,7 +95,7 @@ bool scene_create() {
 bool scene_set_active_camera_gid(uint32_t gid) {
     SceneComponent* component = &SCENE_COMPONENTS[gid];
     if (component->type != CAMERA_T) {
-        fprintf(stderr, "ERROR: can't set scene camera. Passed gid doesn't belog to a camera");
+        fprintf(stderr, "ERROR: can't set scene camera. Passed gid doesn't belong to a camera");
         return false;
     }
     _SCENE_ACTIVE_CAMERA_GID = gid;
@@ -103,15 +112,7 @@ int32_t scene_get_active_camera_lid() {
 }
 
 int scene_add_mesh(Mesh* mesh) {
-    if (!_SCENE_CREATED) {
-        fprintf(stderr, "ERROR: can't add mesh. Create a scene first\n");
-        return -1;
-    }
-
-    if (_N_MESHES == MAX_N_MESHES || SCENE_N_COMPONENTS == MAX_N_SCENE_COMPONENTS) {
-        fprintf(stderr, "ERROR: can't add mesh. The maximum is reached\n");
-        return -1;
-    }
+    _check_scene(mesh, _N_MESHES, MAX_N_MESHES)
 
     ArrayBuffer* b = &SCENE_MESH_BUFFERS[_N_MESHES];
     bool ok = array_buffer_create(
@@ -121,11 +122,7 @@ int scene_add_mesh(Mesh* mesh) {
         return -1;
     }
 
-    SceneComponent* component = &SCENE_COMPONENTS[SCENE_N_COMPONENTS];
-    component->type = MESH_T;
-    component->lid = _N_MESHES++;
-    component->gid = SCENE_N_COMPONENTS++;
-
+    _add_component(mesh, MESH_T, _N_MESHES)
     return component->gid;
 }
 
@@ -177,3 +174,30 @@ int scene_add_point_light(PointLight* point_light) {
     )
 }
 
+int scene_add_script(Script* script) {
+    _check_scene(script, _N_SCRIPTS, MAX_N_SCRIPTS)
+    _add_component(script, SCRIPT_T, _N_SCRIPTS)
+    return component->gid;
+}
+
+void scene_update_component(int32_t gid) {
+    SceneComponent* component = &SCENE_COMPONENTS[gid];
+    int32_t lid = component->lid;
+    void* ptr = component->ptr;
+    
+    switch (component->type) {
+        case CAMERA_T: ;
+            static float pack[CAMERA_PACK_SIZE];
+            camera_pack((Camera*)ptr, pack);
+            ubo_structs_array_update(&SCENE_CAMERA_BUFFERS, pack, lid);
+            break;
+        default:
+            fprintf(
+                stderr,
+                "ERROR: can't update component of type %d. " \
+                "Update logic is not implemented",
+                component->type
+            );
+            break;
+    }
+}

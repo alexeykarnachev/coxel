@@ -64,9 +64,11 @@ bool renderer_update() {
                 program_set_uniform_1i(PROGRAM_MATERIAL, "transformation_id", lid);
                 glDrawElements(GL_TRIANGLES, current_mesh_buffer->n_faces, GL_UNSIGNED_INT, 0);
                 break;
+            case SCRIPT_T: ;
+                Script* script = (Script*)(component->ptr);
+                (*script->update)(script->args);
         }
     }
-
     return true;
 }
 

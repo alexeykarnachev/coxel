@@ -37,7 +37,7 @@ int main(void) {
     PointLight point_light_0 = point_light_create(
         vec3(0.0, 5.0, -5.0), vec3(0.2, 0.8, 0.3), 200.0);
     PointLight point_light_1 = point_light_create(
-        vec3(10.0, -5.0, -5.0), vec3(0.2, 0.3, 0.8), 150.0);
+        vec3(10.0, 5.0, -5.0), vec3(0.2, 0.3, 0.8), 150.0);
 
     int32_t camera_gid = scene_add_camera(&camera);
     scene_set_active_camera_gid(camera_gid);
@@ -55,8 +55,9 @@ int main(void) {
     scene_add_material(&material_1);
     scene_add_transformation(&transformation_3);
 
-    CameraMouseController camera_mouse_controller = {camera_gid, 0.01, 0.8, 0.001};
-    scene_add_script(camera_mouse_controller.script);
+    CameraMouseControllerArgs camera_mouse_controller_args = {camera_gid, 0.01, 0.8, 0.001};
+    Script camera_mouse_controller_script = camera_mouse_controller_create_script(&camera_mouse_controller_args);
+    scene_add_script(&camera_mouse_controller_script);
 
     while (!INPUT.window_should_close) {
         renderer_update();
