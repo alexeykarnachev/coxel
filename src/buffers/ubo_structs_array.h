@@ -30,7 +30,7 @@ bool ubo_structs_array_create(
 bool ubo_structs_array_add(UBOStructsArray* ubo, float packed_struct[]) {
     if (ubo->max_n_structs == ubo->n_structs) {
         fprintf(stderr, "ERROR: can't add another struct to the ubo structs array. " \
-                        "Max number of structs is reached");
+                        "Max number of structs is reached\n");
         return false;
     }
 
@@ -46,7 +46,7 @@ bool ubo_structs_array_add(UBOStructsArray* ubo, float packed_struct[]) {
 bool ubo_structs_array_update(UBOStructsArray* ubo, float packed_struct[], size_t struct_idx) {
     if (struct_idx == ubo->n_structs) {
         fprintf(stderr, "ERROR: can't add another struct to the ubo structs array. " \
-                        "Max number of structs is reached");
+                        "Max number of structs is reached\n");
         return false;
     }
     ubo->n_structs += 1;

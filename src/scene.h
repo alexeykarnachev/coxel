@@ -6,35 +6,46 @@ typedef enum {
     TRANSFORMATION_T,
     POINT_LIGHT_T,
     POINT_SHADOW_CASTER_T,
-    SCRIPT_T
+    SCRIPT_T,
+    GUI_PANE_T,
+    GUI_TEXT_T
 } ComponentType;
 
 typedef struct SceneComponent {
     ComponentType type;
-    uint32_t gid;
-    uint32_t lid;
+    size_t gid;
+    size_t lid;
     void* ptr;
 } SceneComponent;
 
-uint32_t SCENE_N_COMPONENTS = 0;
-uint32_t _SCENE_CREATED = false;
+size_t SCENE_N_COMPONENTS = 0;
+size_t _SCENE_CREATED = false;
 int32_t _SCENE_ACTIVE_CAMERA_GID = -1;
-uint32_t _N_MESHES = 0;
-uint32_t _N_CAMERAS = 0;
-uint32_t _N_MATERIALS= 0;
-uint32_t _N_TRANSFORMATIONS = 0;
-uint32_t _N_POINT_LIGHTS = 0;
-uint32_t _N_POINT_SHADOW_CASTERS = 0;
-uint32_t _N_SCRIPTS = 0;
+size_t _N_MESHES = 0;
+size_t _N_CAMERAS = 0;
+size_t _N_MATERIALS= 0;
+size_t _N_TRANSFORMATIONS = 0;
+size_t _N_POINT_LIGHTS = 0;
+size_t _N_POINT_SHADOW_CASTERS = 0;
+size_t _N_SCRIPTS = 0;
+size_t _N_GUI_PANES = 0;
+size_t _N_GUI_TEXTS = 0;
+size_t _N_FONT_GLYPHS = 0;
 
 SceneComponent SCENE_COMPONENTS[MAX_N_SCENE_COMPONENTS];
 ArrayBuffer SCENE_MESH_BUFFERS[MAX_N_MESHES];
 DepthCubemapArray SCENE_POINT_SHADOW_BUFFER;
+Texture SCENE_GUI_FONT_TEXTURE;
 UBOStructsArray SCENE_CAMERA_BUFFERS;
 UBOStructsArray SCENE_MATERIAL_BUFFERS;
 UBOStructsArray SCENE_TRANSFORMATION_BUFFERS;
 UBOStructsArray SCENE_POINT_LIGHT_BUFFERS;
 UBOStructsArray SCENE_POINT_SHADOW_CASTER_BUFFERS;
+UBOStructsArray SCENE_GUI_PANE_BUFFERS;
+UBOStructsArray SCENE_GUI_TEXT_BUFFERS;
+UBOStructsArray SCENE_FONT_GLYPH_BUFFERS;
+UBOStructsArray SCENE_GUI_FONT_BUFFERS;
+
 
 
 #define _check_scene(ptr_, curr_n, max_n)\
@@ -59,7 +70,6 @@ UBOStructsArray SCENE_POINT_SHADOW_CASTER_BUFFERS;
     pack_fn(ptr_, pack);\
     ubo_structs_array_add(&buffers, pack);\
     _add_component(ptr_, type_, curr_n)\
-    return component->gid;\
 
 bool scene_create() {
     bool ok = true;
@@ -98,15 +108,38 @@ bool scene_create() {
         POINT_SHADOW_CASTER_BINDING_IDX,
         GL_STATIC_DRAW
     );
+    ok &= ubo_structs_array_create(
+        &SCENE_GUI_PANE_BUFFERS,
+        MAX_N_GUI_PANES,
+        GUI_PANE_PACK_SIZE,
+        GUI_PANE_BINDING_IDX,
+        GL_STATIC_DRAW
+    );
+    ok &= ubo_structs_array_create(
+        &SCENE_GUI_TEXT_BUFFERS,
+        MAX_N_GUI_TEXTS,
+        GUI_TEXT_PACK_SIZE,
+        GUI_TEXT_BINDING_IDX,
+        GL_STATIC_DRAW
+    );
+    ok &= ubo_structs_array_create(
+        &SCENE_GUI_FONT_BUFFERS,
+        1,
+        GUI_FONT_PACK_SIZE,
+        GUI_FONT_BINDING_IDX,
+        GL_STATIC_DRAW
+    );
 
     ok &= depth_cubemap_array_create(
         &SCENE_POINT_SHADOW_BUFFER, POINT_SHADOW_SIZE, MAX_N_POINT_SHADOW_CASTERS);
+    ok &= texture_create(
+        &SCENE_GUI_FONT_TEXTURE, GUI_FONT_TEXTURE_WIDTH, GUI_FONT_TEXTURE_HEIGHT, 1, 4);
 
     _SCENE_CREATED = ok;
     return ok;
 }
 
-bool scene_set_active_camera_gid(uint32_t gid) {
+bool scene_set_active_camera_gid(size_t gid) {
     SceneComponent* component = &SCENE_COMPONENTS[gid];
     if (component->type != CAMERA_T) {
         fprintf(stderr, "ERROR: can't set scene camera. Passed gid doesn't belong to a camera");
@@ -114,6 +147,13 @@ bool scene_set_active_camera_gid(uint32_t gid) {
     }
     _SCENE_ACTIVE_CAMERA_GID = gid;
     return true;
+}
+
+bool scene_set_gui_font(GUIFont* gui_font) {
+    float pack[GUI_FONT_PACK_SIZE];
+    gui_font_pack(gui_font, pack);
+    ubo_structs_array_add(&SCENE_GUI_FONT_BUFFERS, pack);
+    return texture_set_sprite(&SCENE_GUI_FONT_TEXTURE, &gui_font->sprite, 0);
 }
 
 int32_t scene_get_active_camera_lid() {
@@ -150,6 +190,7 @@ int scene_add_camera(Camera* camera) {
         CAMERA_T,
         camera_pack
     )
+    return component->gid;
 }
 
 int scene_add_material(Material* material) {
@@ -162,6 +203,7 @@ int scene_add_material(Material* material) {
         MATERIAL_T,
         material_pack
     )
+    return component->gid;
 }
 
 int scene_add_transformation(Transformation* transformation) {
@@ -174,6 +216,7 @@ int scene_add_transformation(Transformation* transformation) {
         TRANSFORMATION_T,
         transformation_pack
     )
+    return component->gid;
 }
 
 int scene_add_point_light(PointLight* point_light) {
@@ -186,6 +229,7 @@ int scene_add_point_light(PointLight* point_light) {
         POINT_LIGHT_T,
         point_light_pack
     )
+    return component->gid;
 }
 
 int scene_add_point_shadow_caster(PointShadowCaster* point_shadow_caster) {
@@ -198,6 +242,20 @@ int scene_add_point_shadow_caster(PointShadowCaster* point_shadow_caster) {
         POINT_SHADOW_CASTER_T,
         point_shadow_caster_pack
     )
+    return component->gid;
+}
+
+int scene_add_gui_pane(GUIPane* gui_pane) {
+    _add_ubo_component(
+        gui_pane,
+        _N_GUI_PANES,
+        MAX_N_GUI_PANES,
+        GUI_PANE_PACK_SIZE,
+        SCENE_GUI_PANE_BUFFERS,
+        GUI_PANE_T,
+        gui_pane_pack
+    )
+    return component->gid;
 }
 
 int scene_add_script(Script* script) {

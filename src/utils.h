@@ -1,8 +1,8 @@
-char* read_cstr_file(const char* restrict file_path) {
+char* read_cstr_file(const char* restrict file_path, const char* mode, long* n_bytes) {
     FILE* file = NULL;
     char* content = NULL;
 
-    file = fopen(file_path, "r");
+    file = fopen(file_path, mode);
     if (file == NULL) goto fail;
     if (fseek(file, 0, SEEK_END) < 0) goto fail;
 
@@ -22,6 +22,9 @@ char* read_cstr_file(const char* restrict file_path) {
         errno = 0;
     }
     
+    if (n_bytes != NULL) {
+        *n_bytes = size;
+    }
     return content;
 
 fail:

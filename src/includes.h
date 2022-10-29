@@ -12,6 +12,8 @@
         return fail_return_value;\
     }\
 
+const char* FONT_FILE_PATH = "./assets/fonts/Source_Code_Pro/static/SourceCodePro-Regular.png";
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -24,12 +26,15 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "constants.h"
 #include "utils.h"
 #include "la.h"
 #include "program.h"
 #include "primitives.h"
-#include "input.h"
+#include "sprite.h"
 #include "components/camera.h"
 #include "components/material.h"
 #include "components/transformation.h"
@@ -37,9 +42,14 @@
 #include "components/point_shadow_caster.h"
 #include "components/point_light.h"
 #include "components/script.h"
+#include "components/gui_pane.h"
+#include "components/gui_font.h"
+#include "components/gui_text.h"
 #include "buffers/array_buffer.h"
 #include "buffers/depth_cubemap_array.h"
 #include "buffers/ubo_structs_array.h"
+#include "textures/texture_array.h"
+#include "textures/texture.h"
 #include "window.h"
 #include "scene.h"
 #include "scripts/camera_mouse_controller.h"

@@ -1,6 +1,36 @@
+typedef struct Input {
+    float t;
+    float dt;
+
+    float window_width;
+    float window_height;
+    bool window_should_close;
+
+    float cursor_x;
+    float cursor_y;
+    float cursor_dx;
+    float cursor_dy;
+
+    float scroll_dy;
+
+    bool mouse_middle_pressed;
+    bool mouse_left_pressed;
+} Input;
+
+Input INPUT;
+
+void input_clear() {
+    INPUT.cursor_dx = 0.0;
+    INPUT.cursor_dy = 0.0;
+    INPUT.scroll_dy = 0.0;
+}
+
 static void cursor_position_callback(GLFWwindow* window, double x, double y) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
-    inp->cursor_dx = inp->cursor_x - x; 
+    x /= INPUT.window_width;
+    y /= INPUT.window_height;
+
+    inp->cursor_dx = (inp->cursor_x - x); 
     inp->cursor_dy = y - inp->cursor_y;
     inp->cursor_x = x;
     inp->cursor_y = y;

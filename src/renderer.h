@@ -2,6 +2,7 @@ typedef struct Renderer {
     size_t viewport_width;
     size_t viewport_height;
     int32_t camera_lid;
+    int32_t gui_font_lid;
 } Renderer;
 
 Renderer RENDERER;
@@ -10,6 +11,7 @@ size_t _RENDERER_CREATED = false;
 void _update_scripts();
 void _render_point_shadows();
 void _render_materials();
+void _render_gui();
 ArrayBuffer* _bind_mesh(size_t lid);
 
 bool renderer_create() {
@@ -46,8 +48,17 @@ bool renderer_update() {
     }
 
     _update_scripts();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_POINT_SHADOW_BUFFER.fbo);
+    glViewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_point_shadows();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_materials();
+    _render_gui();
 
     return true;
 }
@@ -55,7 +66,6 @@ bool renderer_update() {
 void _update_scripts() {
     for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
         SceneComponent* component = &SCENE_COMPONENTS[gid];
-        size_t lid = component->lid;
         if (component->type == SCRIPT_T) {
             Script* script = (Script*)(component->ptr);
             (*script->update)(script->args);
@@ -64,10 +74,6 @@ void _update_scripts() {
 }
 
 void _render_point_shadows() {
-    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_POINT_SHADOW_BUFFER.fbo);
-    glViewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glUseProgram(PROGRAM_POINT_SHADOW);
     program_set_uniform_1i(PROGRAM_POINT_SHADOW, "camera_id", RENDERER.camera_lid);
 
@@ -88,14 +94,10 @@ void _render_point_shadows() {
 }
 
 void _render_materials() {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glUseProgram(PROGRAM_MATERIAL);
     program_set_uniform_1i(PROGRAM_MATERIAL, "camera_id", RENDERER.camera_lid);
 
-    glActiveTexture(0);
+    glActiveTexture(POINT_SHADOW_TEXTURE_LOCATION_IDX);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, SCENE_POINT_SHADOW_BUFFER.tex);
 
     ArrayBuffer* current_mesh_buffer;
@@ -116,6 +118,21 @@ void _render_materials() {
         }
     }
 }
+
+void _render_gui() {
+    glUseProgram(PROGRAM_GUI_PANE);
+
+    glActiveTexture(GUI_FONT_TEXTURE_LOCATION_IDX);
+    glBindTexture(GL_TEXTURE_2D, SCENE_GUI_FONT_TEXTURE.tex);
+    for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
+        SceneComponent* component = &SCENE_COMPONENTS[gid];
+        if (component->type == GUI_PANE_T) {
+            program_set_uniform_1i(PROGRAM_GUI_PANE, "gui_pane_id", component->lid);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        }
+    }
+}
+
 
 ArrayBuffer* _bind_mesh(size_t lid) {
     ArrayBuffer* buffer = &SCENE_MESH_BUFFERS[lid]; 

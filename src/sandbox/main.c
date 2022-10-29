@@ -7,6 +7,16 @@ float CAMERA_FOV = 45.0;
 float CAMERA_NEAR_PLANE = 0.1;
 float CAMERA_FAR_PLANE = 1000.0;
 
+float CAMERA_SIDE_SENS = 10.0;
+float CAMERA_STRAIGHT_SENS = 1.0;
+float CAMERA_ROTATION_SENS = 2.0;
+
+
+// int main(void) {
+//     GUIFont gui_font;
+//     bool ok = gui_font_create_from_file(&gui_font, "./assets/fonts/Source_Code_Pro/static/SourceCodePro-Regular.fnt", "./assets/fonts/Source_Code_Pro/static/SourceCodePro-Regular.png");
+//     return 0;
+// }
 
 int main(void) {
     window_create(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -43,6 +53,9 @@ int main(void) {
     PointShadowCaster point_shadow_caster_1 = point_shadow_caster_create_default(
         vec3(10.0, 15.0, -5.0));
 
+    GUIPane gui_pane_0 = gui_pane_create(0.1, 0.1, 0.1, 0.8);
+    GUIPane gui_pane_1 = gui_pane_create(0.8, 0.1, 0.1, 0.8);
+
     int32_t camera_gid = scene_add_camera(&camera);
     scene_set_active_camera_gid(camera_gid);
     scene_add_point_light(&point_light_0);
@@ -61,9 +74,13 @@ int main(void) {
     scene_add_material(&material_1);
     scene_add_transformation(&transformation_3);
 
-    CameraMouseControllerArgs camera_mouse_controller_args = {camera_gid, 0.01, 0.8, 0.001};
+    CameraMouseControllerArgs camera_mouse_controller_args = {
+        camera_gid, CAMERA_SIDE_SENS, CAMERA_STRAIGHT_SENS, CAMERA_ROTATION_SENS};
     Script camera_mouse_controller_script = camera_mouse_controller_create_script(&camera_mouse_controller_args);
     scene_add_script(&camera_mouse_controller_script);
+
+    scene_add_gui_pane(&gui_pane_0);
+    scene_add_gui_pane(&gui_pane_1);
 
     while (!INPUT.window_should_close) {
         renderer_update();

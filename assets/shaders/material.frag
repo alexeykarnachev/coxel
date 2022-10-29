@@ -6,7 +6,7 @@ in VertexData {
 
 uniform int camera_id;
 uniform int material_id;
-uniform samplerCubeArrayShadow point_shadow_casters_tex;
+layout(location=POINT_SHADOW_TEXTURE_LOCATION_IDX) uniform samplerCubeArrayShadow point_shadow_casters_tex;
 
 struct Camera {
     vec3 world_pos;
