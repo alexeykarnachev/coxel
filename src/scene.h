@@ -258,6 +258,19 @@ int scene_add_gui_pane(GUIPane* gui_pane) {
     return component->gid;
 }
 
+int scene_add_gui_text(GUIText* gui_text) {
+    _add_ubo_component(
+        gui_text,
+        _N_GUI_TEXTS,
+        MAX_N_GUI_TEXTS,
+        GUI_TEXT_PACK_SIZE,
+        SCENE_GUI_TEXT_BUFFERS,
+        GUI_TEXT_T,
+        gui_text_pack
+    )
+    return component->gid;
+}
+
 int scene_add_script(Script* script) {
     _check_scene(script, _N_SCRIPTS, MAX_N_SCRIPTS)
     _add_component(script, SCRIPT_T, _N_SCRIPTS)

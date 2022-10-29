@@ -1,9 +1,10 @@
-#define GUI_TEXT_PACK_SIZE 64
+#define GUI_TEXT_PACK_SIZE 384
 
 typedef struct GUIText {
     char* text;
     float x;
     float y;
+    size_t n_glyphs;
 } GUIText;
 
 
@@ -13,16 +14,16 @@ GUIText gui_text_create(char* text, float x, float y) {
     gui_text.text = text;
     gui_text.x = x;
     gui_text.y = y;
+    gui_text.n_glyphs = min(MAX_N_TEXT_GLYPHS, strlen(text));
 
     return gui_text;
 }
 
 void gui_text_pack(GUIText* gui_text, float dst[]) {
-    // size_t size = sizeof(float);
-
-    // memcpy(&dst[0], material->diffuse_color.data, size * 3);
-    // memcpy(&dst[4], material->ambient_color.data, size * 3);
-    // memcpy(&dst[8], material->specular_color.data, size * 3);
-    // dst[12] = material->shininess;
+    for (size_t i = 0; i < gui_text->n_glyphs; ++i) {
+        dst[i * 3] = gui_text->text[i];
+        dst[i * 3 + 1] = gui_text->x + 19 * i;
+        dst[i * 3 + 2] = gui_text->y;
+    }
 }
 

@@ -20,7 +20,7 @@ bool texture_create(
     } else if (n_channels == 4) {
         format = GL_RGBA;
     } else {
-        fprintf(stderr, "ERROR: can't create a texture. Number of channels must be 3 or 4");
+        fprintf(stderr, "ERROR: can't create a texture. Number of channels must be 3 or 4\n");
         return false;
     }
 
@@ -39,6 +39,7 @@ bool texture_create(
     t->width = width;
     t->height = height;
     t->n_levels = n_levels;
+    t->n_channels = n_channels;
 
     return true;
 }
@@ -48,7 +49,7 @@ bool texture_set_sprite(Texture* texture, Sprite* sprite, size_t level) {
     if (texture->n_channels != sprite->n_channels) {
         fprintf(
             stderr, "ERROR: can't load sprite into a texture. "\
-            "Sprite and texture have different number of channels"
+            "Sprite and texture have different number of channels\n"
         );
         return false;
     } else if (sprite->n_channels == 3) {
@@ -56,7 +57,7 @@ bool texture_set_sprite(Texture* texture, Sprite* sprite, size_t level) {
     } else if (sprite->n_channels == 4) {
         format = GL_RGBA;
     } else {
-        fprintf(stderr, "ERROR: can't load sprite into a texture. Number of channels must be 3 or 4");
+        fprintf(stderr, "ERROR: can't load sprite into a texture. Number of channels must be 3 or 4\n");
         return false;
     }
 
