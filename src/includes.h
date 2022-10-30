@@ -39,6 +39,7 @@
 #include "components/point_light.h"
 #include "components/script.h"
 #include "components/gui_pane.h"
+#include "components/gui_text.h"
 #include "buffers/array_buffer.h"
 #include "buffers/depth_cubemap_array.h"
 #include "buffers/ubo_structs_array.h"

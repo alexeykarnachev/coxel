@@ -49,6 +49,7 @@ int main(void) {
 
     GUIPane gui_pane_0 = gui_pane_create(0.1, 0.1, 0.1, 0.8);
     GUIPane gui_pane_1 = gui_pane_create(0.8, 0.1, 0.1, 0.8);
+    GUIText gui_text_0 = gui_text_create("Hello, ZALOOPA!", 32, 0.12, 0.12);
 
     int32_t camera_gid = scene_add_camera(&camera);
     scene_set_active_camera_gid(camera_gid);
@@ -75,6 +76,7 @@ int main(void) {
 
     scene_add_gui_pane(&gui_pane_0);
     scene_add_gui_pane(&gui_pane_1);
+    scene_add_gui_text(&gui_text_0);
 
     while (!INPUT.window_should_close) {
         renderer_update();

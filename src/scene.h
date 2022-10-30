@@ -8,6 +8,7 @@ typedef enum {
     POINT_SHADOW_CASTER_T,
     SCRIPT_T,
     GUI_PANE_T,
+    GUI_TEXT_T
 } ComponentType;
 
 typedef struct SceneComponent {
@@ -28,6 +29,7 @@ size_t _N_POINT_LIGHTS = 0;
 size_t _N_POINT_SHADOW_CASTERS = 0;
 size_t _N_SCRIPTS = 0;
 size_t _N_GUI_PANES = 0;
+size_t _N_GUI_TEXTS = 0;
 
 SceneComponent SCENE_COMPONENTS[MAX_N_SCENE_COMPONENTS];
 ArrayBuffer SCENE_MESH_BUFFERS[MAX_N_MESHES];
@@ -39,6 +41,7 @@ UBOStructsArray SCENE_TRANSFORMATION_BUFFERS;
 UBOStructsArray SCENE_POINT_LIGHT_BUFFERS;
 UBOStructsArray SCENE_POINT_SHADOW_CASTER_BUFFERS;
 UBOStructsArray SCENE_GUI_PANE_BUFFERS;
+UBOStructsArray SCENE_GUI_TEXT_BUFFERS;
 
 
 #define _check_scene(ptr_, curr_n, max_n)\
@@ -106,6 +109,13 @@ bool scene_create() {
         MAX_N_GUI_PANES,
         GUI_PANE_PACK_SIZE,
         GUI_PANE_BINDING_IDX,
+        GL_STATIC_DRAW
+    );
+    ok &= ubo_structs_array_create(
+        &SCENE_GUI_TEXT_BUFFERS,
+        MAX_N_GUI_TEXTS,
+        GUI_TEXT_PACK_SIZE,
+        GUI_TEXT_BINDING_IDX,
         GL_STATIC_DRAW
     );
 
@@ -227,6 +237,19 @@ int scene_add_gui_pane(GUIPane* gui_pane) {
         SCENE_GUI_PANE_BUFFERS,
         GUI_PANE_T,
         gui_pane_pack
+    )
+    return component->gid;
+}
+
+int scene_add_gui_text(GUIText* gui_text) {
+    _add_ubo_component(
+        gui_text,
+        _N_GUI_TEXTS,
+        MAX_N_GUI_TEXTS,
+        GUI_TEXT_PACK_SIZE,
+        SCENE_GUI_TEXT_BUFFERS,
+        GUI_TEXT_T,
+        gui_text_pack
     )
     return component->gid;
 }

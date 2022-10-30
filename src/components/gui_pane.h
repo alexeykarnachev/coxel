@@ -14,6 +14,7 @@ GUIPane gui_pane_create(
     float height
 ) {
     GUIPane gui_pane;
+
     gui_pane.x = x;
     gui_pane.y = y;
     gui_pane.width = width; 

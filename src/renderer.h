@@ -10,7 +10,8 @@ size_t _RENDERER_CREATED = false;
 void _update_scripts();
 void _render_point_shadows();
 void _render_materials();
-void _render_gui();
+void _render_gui_panes();
+void _render_gui_texts();
 ArrayBuffer* _bind_mesh(size_t lid);
 
 bool renderer_create() {
@@ -56,8 +57,9 @@ bool renderer_update() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _render_materials();
-    _render_gui();
+    // _render_materials();
+    // _render_gui_panes();
+    _render_gui_texts();
 
     return true;
 }
@@ -118,14 +120,26 @@ void _render_materials() {
     }
 }
 
-void _render_gui() {
+void _render_gui_panes() {
     glUseProgram(PROGRAM_GUI_PANE);
-
     for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
         SceneComponent* component = &SCENE_COMPONENTS[gid];
         if (component->type == GUI_PANE_T) {
             program_set_uniform_1i(PROGRAM_GUI_PANE, "gui_pane_id", component->lid);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        }
+    }
+}
+
+void _render_gui_texts() {
+    glUseProgram(PROGRAM_GUI_TEXT);
+    for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
+        SceneComponent* component = &SCENE_COMPONENTS[gid];
+        if (component->type == GUI_TEXT_T) {
+            GUIText* text = (GUIText*)component->ptr;
+            program_set_uniform_1i(PROGRAM_GUI_TEXT, "screen_height", 1080);
+            program_set_uniform_1i(PROGRAM_GUI_TEXT, "gui_text_id", component->lid);
+            glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
         }
     }
 }

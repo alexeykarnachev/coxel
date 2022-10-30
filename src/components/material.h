@@ -25,10 +25,9 @@ Material material_create(
 }
 
 void material_pack(Material* material, float dst[]) {
-    size_t size = sizeof(float);
-    memcpy(&dst[0], material->diffuse_color.data, size * 3);
-    memcpy(&dst[4], material->ambient_color.data, size * 3);
-    memcpy(&dst[8], material->specular_color.data, size * 3);
+    memcpy(&dst[0], material->diffuse_color.data, 12);
+    memcpy(&dst[4], material->ambient_color.data, 12);
+    memcpy(&dst[8], material->specular_color.data, 12);
     dst[12] = material->shininess;
 }
 
