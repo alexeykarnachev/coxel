@@ -2,7 +2,6 @@ typedef struct Renderer {
     size_t viewport_width;
     size_t viewport_height;
     int32_t camera_lid;
-    int32_t gui_font_lid;
 } Renderer;
 
 Renderer RENDERER;
@@ -12,7 +11,6 @@ void _update_scripts();
 void _render_point_shadows();
 void _render_materials();
 void _render_gui();
-void _render_gui_text();
 ArrayBuffer* _bind_mesh(size_t lid);
 
 bool renderer_create() {
@@ -60,7 +58,6 @@ bool renderer_update() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_materials();
     _render_gui();
-    _render_gui_text();
 
     return true;
 }
@@ -132,22 +129,6 @@ void _render_gui() {
         }
     }
 }
-
-void _render_gui_text() {
-    glUseProgram(PROGRAM_GUI_TEXT);
-
-    glActiveTexture(GUI_FONT_TEXTURE_LOCATION_IDX);
-    glBindTexture(GL_TEXTURE_2D, SCENE_GUI_FONT_TEXTURE.tex);
-    for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
-        SceneComponent* component = &SCENE_COMPONENTS[gid];
-        if (component->type == GUI_TEXT_T) {
-            GUIText* gui_text = (GUIText*)component->ptr;
-            program_set_uniform_1i(PROGRAM_GUI_TEXT, "gui_text_id", component->lid);
-            glDrawArrays(GL_TRIANGLES, 0, 3 * gui_text->n_glyphs);
-        }
-    }
-}
-
 
 ArrayBuffer* _bind_mesh(size_t lid) {
     ArrayBuffer* buffer = &SCENE_MESH_BUFFERS[lid]; 

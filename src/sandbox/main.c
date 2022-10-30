@@ -13,9 +13,6 @@ float CAMERA_ROTATION_SENS = 2.0;
 
 
 int main(void) {
-    GUIFont gui_font;
-    gui_font_create_from_file(&gui_font, "./assets/fonts/Source_Code_Pro/static/SourceCodePro-Regular.fnt", "./assets/fonts/Source_Code_Pro/static/SourceCodePro-Regular.png");
-
     window_create(SCREEN_WIDTH, SCREEN_HEIGHT);
     renderer_create();
     scene_create();
@@ -52,7 +49,6 @@ int main(void) {
 
     GUIPane gui_pane_0 = gui_pane_create(0.1, 0.1, 0.1, 0.8);
     GUIPane gui_pane_1 = gui_pane_create(0.8, 0.1, 0.1, 0.8);
-    GUIText gui_text_0 = gui_text_create("Hello, world!", 0.12, 0.12);
 
     int32_t camera_gid = scene_add_camera(&camera);
     scene_set_active_camera_gid(camera_gid);
@@ -77,10 +73,8 @@ int main(void) {
     Script camera_mouse_controller_script = camera_mouse_controller_create_script(&camera_mouse_controller_args);
     scene_add_script(&camera_mouse_controller_script);
 
-    scene_set_gui_font(&gui_font);
     scene_add_gui_pane(&gui_pane_0);
     scene_add_gui_pane(&gui_pane_1);
-    scene_add_gui_text(&gui_text_0);
 
     while (!INPUT.window_should_close) {
         renderer_update();

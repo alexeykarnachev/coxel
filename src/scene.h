@@ -8,7 +8,6 @@ typedef enum {
     POINT_SHADOW_CASTER_T,
     SCRIPT_T,
     GUI_PANE_T,
-    GUI_TEXT_T
 } ComponentType;
 
 typedef struct SceneComponent {
@@ -29,23 +28,17 @@ size_t _N_POINT_LIGHTS = 0;
 size_t _N_POINT_SHADOW_CASTERS = 0;
 size_t _N_SCRIPTS = 0;
 size_t _N_GUI_PANES = 0;
-size_t _N_GUI_TEXTS = 0;
-size_t _N_FONT_GLYPHS = 0;
 
 SceneComponent SCENE_COMPONENTS[MAX_N_SCENE_COMPONENTS];
 ArrayBuffer SCENE_MESH_BUFFERS[MAX_N_MESHES];
 DepthCubemapArray SCENE_POINT_SHADOW_BUFFER;
-Texture SCENE_GUI_FONT_TEXTURE;
+Texture SCENE_FONT_TEXTURE;
 UBOStructsArray SCENE_CAMERA_BUFFERS;
 UBOStructsArray SCENE_MATERIAL_BUFFERS;
 UBOStructsArray SCENE_TRANSFORMATION_BUFFERS;
 UBOStructsArray SCENE_POINT_LIGHT_BUFFERS;
 UBOStructsArray SCENE_POINT_SHADOW_CASTER_BUFFERS;
 UBOStructsArray SCENE_GUI_PANE_BUFFERS;
-UBOStructsArray SCENE_GUI_TEXT_BUFFERS;
-UBOStructsArray SCENE_FONT_GLYPH_BUFFERS;
-UBOStructsArray SCENE_GUI_FONT_BUFFERS;
-
 
 
 #define _check_scene(ptr_, curr_n, max_n)\
@@ -115,25 +108,12 @@ bool scene_create() {
         GUI_PANE_BINDING_IDX,
         GL_STATIC_DRAW
     );
-    ok &= ubo_structs_array_create(
-        &SCENE_GUI_TEXT_BUFFERS,
-        MAX_N_GUI_TEXTS,
-        GUI_TEXT_PACK_SIZE,
-        GUI_TEXT_BINDING_IDX,
-        GL_STATIC_DRAW
-    );
-    ok &= ubo_structs_array_create(
-        &SCENE_GUI_FONT_BUFFERS,
-        1,
-        GUI_FONT_PACK_SIZE,
-        GUI_FONT_BINDING_IDX,
-        GL_STATIC_DRAW
-    );
 
     ok &= depth_cubemap_array_create(
         &SCENE_POINT_SHADOW_BUFFER, POINT_SHADOW_SIZE, MAX_N_POINT_SHADOW_CASTERS);
-    ok &= texture_create(
-        &SCENE_GUI_FONT_TEXTURE, GUI_FONT_TEXTURE_WIDTH, GUI_FONT_TEXTURE_HEIGHT, 1, 4);
+    ok &= texture_create_1d(
+        &SCENE_FONT_TEXTURE, FONT_RASTER, 0, FONT_TEXTURE_WIDTH,
+        GL_R8, GL_RED, GL_UNSIGNED_BYTE);
 
     _SCENE_CREATED = ok;
     return ok;
@@ -147,13 +127,6 @@ bool scene_set_active_camera_gid(size_t gid) {
     }
     _SCENE_ACTIVE_CAMERA_GID = gid;
     return true;
-}
-
-bool scene_set_gui_font(GUIFont* gui_font) {
-    float pack[GUI_FONT_PACK_SIZE];
-    gui_font_pack(gui_font, pack);
-    ubo_structs_array_add(&SCENE_GUI_FONT_BUFFERS, pack);
-    return texture_set_sprite(&SCENE_GUI_FONT_TEXTURE, &gui_font->sprite, 0);
 }
 
 int32_t scene_get_active_camera_lid() {
@@ -254,19 +227,6 @@ int scene_add_gui_pane(GUIPane* gui_pane) {
         SCENE_GUI_PANE_BUFFERS,
         GUI_PANE_T,
         gui_pane_pack
-    )
-    return component->gid;
-}
-
-int scene_add_gui_text(GUIText* gui_text) {
-    _add_ubo_component(
-        gui_text,
-        _N_GUI_TEXTS,
-        MAX_N_GUI_TEXTS,
-        GUI_TEXT_PACK_SIZE,
-        SCENE_GUI_TEXT_BUFFERS,
-        GUI_TEXT_T,
-        gui_text_pack
     )
     return component->gid;
 }
