@@ -18,10 +18,6 @@ bool renderer_create() {
     bool ok = true;
     ok &= program_create_all();
 
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glCullFace(GL_BACK);
-
     _RENDERER_CREATED = ok;
     return ok;
 }
@@ -49,6 +45,10 @@ bool renderer_update() {
 
     _update_scripts();
 
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+    glCullFace(GL_BACK);
+
     glBindFramebuffer(GL_FRAMEBUFFER, SCENE_POINT_SHADOW_BUFFER.fbo);
     glViewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -57,8 +57,11 @@ bool renderer_update() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // _render_materials();
-    // _render_gui_panes();
+    _render_materials();
+
+    glDisable(GL_DEPTH_TEST);
+
+    _render_gui_panes();
     _render_gui_texts();
 
     return true;

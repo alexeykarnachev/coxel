@@ -47,9 +47,8 @@ int main(void) {
     PointShadowCaster point_shadow_caster_1 = point_shadow_caster_create_default(
         vec3(10.0, 15.0, -5.0));
 
-    GUIPane gui_pane_0 = gui_pane_create(0.1, 0.1, 0.1, 0.8);
-    GUIPane gui_pane_1 = gui_pane_create(0.8, 0.1, 0.1, 0.8);
-    GUIText gui_text_0 = gui_text_create("Hello, ZALOOPA!", 16, 0.12, 0.12);
+    GUIPane gui_pane_0 = gui_pane_create(0.001, 0.001, 0.18, 0.998);
+    GUIText gui_text_0 = gui_text_create("Hello, ZALOOPA!", 13, 0.01, 0.98);
 
     int32_t camera_gid = scene_add_camera(&camera);
     scene_set_active_camera_gid(camera_gid);
@@ -75,7 +74,6 @@ int main(void) {
     scene_add_script(&camera_mouse_controller_script);
 
     scene_add_gui_pane(&gui_pane_0);
-    scene_add_gui_pane(&gui_pane_1);
     scene_add_gui_text(&gui_text_0);
 
     while (!INPUT.window_should_close) {
