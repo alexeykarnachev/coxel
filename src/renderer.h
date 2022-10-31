@@ -133,6 +133,10 @@ void _render_gui_panes() {
 
 void _render_gui_texts() {
     glUseProgram(PROGRAM_GUI_TEXT);
+
+    glActiveTexture(GUI_FONT_TEXTURE_LOCATION_IDX);
+    glBindTexture(GL_TEXTURE_1D, SCENE_FONT_TEXTURE.tex);
+
     for (size_t gid = 0; gid < SCENE_N_COMPONENTS; ++gid) {
         SceneComponent* component = &SCENE_COMPONENTS[gid];
         if (component->type == GUI_TEXT_T) {

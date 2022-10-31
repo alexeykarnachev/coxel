@@ -1,16 +1,23 @@
 in VertexData {
-    vec4 model_pos;
-    vec4 world_pos;
-    vec4 proj_pos;
     vec2 tex_pos;
+    flat int char_id;
 } fs_in;
 
-// layout(location=GUI_FONT_TEXTURE_LOCATION_IDX) uniform sampler2D font_tex;
+layout(location=GUI_FONT_TEXTURE_LOCATION_IDX) uniform sampler1D font_tex;
 
 out vec4 frag_color;
 
 void main() {
-    frag_color = vec4(1.0, 0.0, 0.0, 1.0);
+
+    float tex_pos = (float(fs_in.char_id - 32) + fs_in.tex_pos.y) / 95.0; 
+    int byte = int(texture(font_tex, tex_pos).r * 255);
+    int bit = ((byte >> int(fs_in.tex_pos.x * 8)) & 1);
+    if (bit == 1) {
+        frag_color = vec4(bit);
+    } else {
+        discard;
+    }
+
 }
 
 
