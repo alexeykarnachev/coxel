@@ -1,5 +1,3 @@
-#define TRANSFORMATION_PACK_SIZE 64
-
 typedef struct Transformation {
     Vec3 scale;
     Vec3 rotation;
@@ -7,19 +5,8 @@ typedef struct Transformation {
 } Transformation;
 
 
-Transformation transformation_create(Vec3 scale, Vec3 rotation, Vec3 translation) {
-    Transformation t;
-
-    t.scale = scale;
-    t.rotation = rotation;
-    t.translation = translation;
-
-    return t;
-}
-
-void transformation_pack(Transformation* t, float dst[]) {
-    Mat4 world_mat = get_world_mat(&t->scale, &t->rotation, &t->translation);
-    mat4_transpose_pack(dst, &world_mat, 1);
+Mat4 transformation_get_world_mat(Transformation* t) {
+    return get_world_mat(&t->scale, &t->rotation, &t->translation);
 }
 
 void transformation_set_scale(Transformation* t, float x, float y, float z) {

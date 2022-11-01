@@ -8,22 +8,6 @@ typedef struct Material {
 } Material;
 
 
-Material material_create(
-    Vec3 diffuse_color,
-    Vec3 ambient_color,
-    Vec3 specular_color,
-    float shininess
-) {
-    Material material;
-
-    material.diffuse_color = diffuse_color;
-    material.ambient_color = ambient_color;
-    material.specular_color = specular_color;
-    material.shininess = shininess;
-
-    return material;
-}
-
 void material_pack(Material* material, float dst[]) {
     memcpy(&dst[0], material->diffuse_color.data, 12);
     memcpy(&dst[4], material->ambient_color.data, 12);

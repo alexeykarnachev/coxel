@@ -35,3 +35,23 @@ bool array_buffer_create(
     return true;
 }
 
+bool array_buffer_create_icosahedron(ArrayBuffer* buffer) {
+    return array_buffer_create(
+        buffer, ICOSAHEDRON_FACES, sizeof(ICOSAHEDRON_FACES),
+        ICOSAHEDRON_VERTS, sizeof(ICOSAHEDRON_VERTS), GL_STATIC_DRAW
+    );
+}
+
+bool array_buffer_create_plane(ArrayBuffer* buffer) {
+    return array_buffer_create(
+        buffer, PLANE_FACES, sizeof(PLANE_FACES),
+        PLANE_VERTS, sizeof(PLANE_VERTS), GL_STATIC_DRAW
+    );
+}
+
+void array_buffer_bind(ArrayBuffer* buffer) {
+    glBindVertexArray(buffer->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->ebo);
+}
+

@@ -24,6 +24,7 @@ bool program_set_uniform_1i(GLuint program, const char* name, GLint val);
 bool program_set_uniform_1f(GLuint program, const char* name, GLfloat val);
 bool program_set_uniform_2f(GLuint program, const char* name, GLfloat v1, GLfloat v2);
 bool program_set_uniform_3fv(GLuint program, const char* name, GLfloat* data, size_t n_vectors);
+bool program_set_uniform_4fv(GLuint program, const char* name, GLfloat* data, size_t n_vectors);
 bool program_set_uniform_matrix_4fv(
         GLuint program, const char* name, GLfloat* data, size_t n_matrices, GLboolean transpose);
 
@@ -284,6 +285,12 @@ bool program_set_uniform_2f(GLuint program, const char* name, GLfloat v1, GLfloa
 bool program_set_uniform_3fv(GLuint program, const char* name, GLfloat* data, size_t n_vectors) {
     _GET_UNIFORM_LOC
     glUniform3fv(loc, n_vectors, data);
+    return true;
+}
+
+bool program_set_uniform_4fv(GLuint program, const char* name, GLfloat* data, size_t n_vectors) {
+    _GET_UNIFORM_LOC
+    glUniform4fv(loc, n_vectors, data);
     return true;
 }
 

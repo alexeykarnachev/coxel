@@ -1,5 +1,5 @@
 typedef struct CameraMouseControllerArgs {
-    int32_t camera_gid;
+    int32_t camera_id;
 
     float side_sens;
     float straight_sens;
@@ -44,7 +44,7 @@ void _camera_set_aspect(Camera* cam, float aspect) {
 
 void _camera_mouse_controller_update(void* args_p) {
     CameraMouseControllerArgs* args = (CameraMouseControllerArgs*)(args_p);
-    Camera* cam = (Camera*)((&SCENE_COMPONENTS[args->camera_gid])->ptr);
+    Camera* cam = &SCENE_CAMERAS[args->camera_id];
     bool needs_update = false;
     if (INPUT.mouse_middle_pressed) {
         needs_update = true;
@@ -70,13 +70,11 @@ void _camera_mouse_controller_update(void* args_p) {
     }
 
     if (needs_update) {
-        scene_update_component(args->camera_gid);
+        scene_update_camera(args->camera_id);
     }
 }
 
-Script camera_mouse_controller_create_script(
-    CameraMouseControllerArgs* args
-) {
+Script camera_mouse_controller_create_script(CameraMouseControllerArgs* args) {
     Script script;
     script.update = _camera_mouse_controller_update;
     script.args = args; 

@@ -19,6 +19,11 @@ Vec3 vec3(float x, float y, float z) {
     return v;
 }
 
+Vec4 vec4(float x, float y, float z, float w) {
+    Vec4 v = {{x, y, z, w}};
+    return v;
+}
+
 void mat4_print(Mat4* m);
 void mat3_print(Mat3* m);
 void vec3_print(Vec3* v);
