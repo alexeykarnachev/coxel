@@ -38,19 +38,21 @@ int main(void) {
     Material red_material = {vec3(0.8, 0.2, 0.2), vec3(0.8, 0.2, 0.2), vec3(1.0, 1.0, 1.0), 64.0};
     Material green_material = {vec3(0.2, 0.8, 0.2), vec3(0.2, 0.8, 0.2), vec3(1.0, 1.0, 1.0), 64.0};
     Material blue_material = {{0.2, 0.2, 0.8}, {0.2, 0.2, 0.8}, {1.0, 1.0, 1.0}, 64.0};
+    Material white_material = {{0.9, 0.9, 0.9}, {0.9, 0.9, 0.9}, {1.0, 1.0, 1.0}, 64.0};
     int32_t red_material_id = scene_add_material(red_material);
     int32_t green_material_id = scene_add_material(green_material);
     int32_t blue_material_id = scene_add_material(blue_material);
+    int32_t white_material_id = scene_add_material(white_material);
 
     Mesh icosahedron_mesh_0 = {
         icosahedron_buffer,
-        red_material_id,
+        white_material_id,
         {vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, -5.0)},
     };
 
     Mesh icosahedron_mesh_1 = {
         icosahedron_buffer,
-        green_material_id,
+        red_material_id,
         {vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(4.0, 0.0, -5.0)},
     };
 
@@ -66,9 +68,9 @@ int main(void) {
         {vec3(1000.0, 1000.0, 1000.0), vec3(-deg2rad(90.0), 0.0, 0.0), vec3(0.0, -5.0, 0.0)}
     };
 
-    PointLight red_point_light = {vec3(0.0, 5.0, -5.0), vec3(0.8, 0.2, 0.2), 200.0};
-    PointLight green_point_light = {vec3(4.0, 5.0, -5.0), vec3(0.2, 0.8, 0.2), 200.0};
-    PointLight blue_point_light = {vec3(-4.0, 5.0, -5.0), vec3(0.2, 0.2, 0.8), 200.0};
+    PointLight red_point_light = {vec3(0.0, 5.0, -5.0), vec3(0.8, 0.2, 0.2), 50.0};
+    PointLight green_point_light = {vec3(4.0, 5.0, -5.0), vec3(0.2, 0.8, 0.2), 50.0};
+    PointLight blue_point_light = {vec3(-4.0, 5.0, -5.0), vec3(0.2, 0.2, 0.8), 50.0};
 
     PointShadowCaster point_shadow_caster_0 = point_shadow_caster_create_default(vec3(0.0, 5.0, -5.0));
     PointShadowCaster point_shadow_caster_1 = point_shadow_caster_create_default(vec3(4.0, 5.0, -5.0));
