@@ -127,7 +127,7 @@ void _render_meshes() {
     glActiveTexture(POINT_SHADOW_TEXTURE_LOCATION_IDX);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, SCENE_POINT_SHADOW_BUFFER.tex);
     glActiveTexture(DEFERRED_TEXTURE_LOCATION_IDX);
-    glBindTexture(GL_TEXTURE_2D, SCENE_POINT_SHADOW_BUFFER.tex);
+    glBindTexture(GL_TEXTURE_2D, SCENE_DEFERRED_BUFFER.tex);
 
     ArrayBuffer* array_buffer = NULL;
     int32_t material_id = -1;

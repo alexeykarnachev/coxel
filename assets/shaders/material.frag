@@ -6,7 +6,8 @@ in VertexData {
 
 uniform int camera_id;
 uniform int material_id;
-layout(location=POINT_SHADOW_TEXTURE_LOCATION_IDX) uniform samplerCubeArrayShadow point_shadow_casters_tex;
+layout(location=POINT_SHADOW_TEXTURE_LOCATION_IDX) uniform samplerCubeArrayShadow point_shadow_tex;
+layout(location=DEFERRED_TEXTURE_LOCATION_IDX) uniform sampler2D deferred_tex;
 
 struct Camera {
     vec3 world_pos;
@@ -80,7 +81,7 @@ float get_point_shadow(vec3 normal) {
         for(int i_sample = 0; i_sample < caster.max_n_samples; ++i_sample) {
             vec2 rnd_vec = poisson_disk64(i_sample) * caster.disk_radius;
             curr_shadow += texture(
-                point_shadow_casters_tex,
+                point_shadow_tex,
                 vec4(ray + vec3(rnd_vec, 0.0), i_caster),
                 curr_depth
             );
@@ -135,5 +136,8 @@ void main() {
 
     // Combined:
     vec3 color = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color.rgb;
-    frag_color = vec4(color, 1.0);
+    // frag_color = vec4(color, 1.0);
+
+    vec2 tex_pos = (fs_in.proj_pos.xy / fs_in.proj_pos.z + 1.0) / 2.0;
+    frag_color = texture(deferred_tex, tex_pos);
 }
