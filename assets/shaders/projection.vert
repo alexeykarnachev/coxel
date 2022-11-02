@@ -1,6 +1,5 @@
 in vec3 model_pos;
 
-uniform int mesh_id;
 uniform int camera_id;
 uniform mat4 world_mat;
 
@@ -21,11 +20,6 @@ out VertexData {
     vec4 proj_pos;
 } vertex_data;
 
-out PixelData {
-    flat int mesh_id;
-} pixel_data;
-
-
 void main() {
     mat4 view_mat = cameras[camera_id].view_mat;
     mat4 proj_mat = cameras[camera_id].proj_mat;
@@ -38,7 +32,5 @@ void main() {
     vertex_data.world_pos = w;
     vertex_data.proj_pos = p;
     gl_Position = p;
-
-    pixel_data.mesh_id = mesh_id;
 }
 
