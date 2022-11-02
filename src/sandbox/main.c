@@ -1,8 +1,5 @@
 #include "../includes.h"
 
-size_t SCREEN_WIDTH = 1920;
-size_t SCREEN_HEIGHT = 1080;
-
 float CAMERA_FOV = 45.0;
 float CAMERA_NEAR_PLANE = 0.1;
 float CAMERA_FAR_PLANE = 1000.0;

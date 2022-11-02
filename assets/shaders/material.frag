@@ -136,5 +136,4 @@ void main() {
     // Combined:
     vec3 color = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color.rgb;
     frag_color = vec4(color, 1.0);
-    // frag_color = vec4(shadow);
 }

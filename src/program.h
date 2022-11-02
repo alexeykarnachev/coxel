@@ -36,6 +36,7 @@ const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
 const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
 const char* FRAG_GUI_PANE_SHADER = "./assets/shaders/gui_pane.frag";
 const char* FRAG_GUI_TEXT_SHADER = "./assets/shaders/gui_text.frag";
+const char* FRAG_DEFERRED_SHADER = "./assets/shaders/deferred.frag";
 const char* GLSL_COMMON_SHADER = "./assets/shaders/common.glsl";
 const char* VERSION_SHADER = "./assets/shaders/version.glsl";
 const char* CONSTANTS_SHADER = "./src/constants.h";
@@ -44,6 +45,7 @@ GLuint PROGRAM_MATERIAL;
 GLuint PROGRAM_POINT_SHADOW;
 GLuint PROGRAM_GUI_PANE;
 GLuint PROGRAM_GUI_TEXT;
+GLuint PROGRAM_DEFERRED;
 
 bool program_create_all() {
     const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
@@ -83,6 +85,15 @@ bool program_create_all() {
         VERT_GUI_TEXT_SHADER,
         NULL, NULL, NULL,
         FRAG_GUI_TEXT_SHADER,
+        2, deps_file_paths
+    );
+
+    PROGRAM_DEFERRED = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_DEFERRED,
+        VERT_PROJECTION_SHADER,
+        NULL, NULL, NULL,
+        FRAG_DEFERRED_SHADER,
         2, deps_file_paths
     );
 

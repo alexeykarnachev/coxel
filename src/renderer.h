@@ -9,6 +9,7 @@ size_t _RENDERER_CREATED = false;
 
 void _update_scripts();
 void _render_point_shadows();
+void _render_deferred();
 void _render_meshes();
 void _render_gui_panes();
 void _render_gui_texts();
@@ -47,14 +48,8 @@ bool renderer_update() {
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_POINT_SHADOW_BUFFER.fbo);
-    glViewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_point_shadows();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    _render_deferred();
     _render_meshes();
 
     glDisable(GL_DEPTH_TEST);
@@ -73,10 +68,39 @@ void _update_scripts() {
 }
 
 void _render_point_shadows() {
+    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_POINT_SHADOW_BUFFER.fbo);
+    glViewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     GLuint program = PROGRAM_POINT_SHADOW;
     glUseProgram(program);
     program_set_uniform_1i(program, "camera_id", SCENE_ACTIVE_CAMERA_ID);
 
+    // TODO: factor out this loop
+    ArrayBuffer* array_buffer = NULL;
+    for (size_t mesh_id = 0; mesh_id < SCENE_N_MESHES; ++mesh_id) {
+        Mesh* mesh = &SCENE_MESHES[mesh_id];
+        if (array_buffer == NULL || mesh->array_buffer.vao != array_buffer->vao) {
+            array_buffer = &mesh->array_buffer;
+            array_buffer_bind(array_buffer);
+            program_set_attribute(program, "model_pos", 3, GL_FLOAT);
+        }
+        
+        Mat4 world_mat = transformation_get_world_mat(&mesh->transformation);
+        program_set_uniform_matrix_4fv(program, "world_mat", world_mat.data, 1, true);
+        glDrawElements(GL_TRIANGLES, array_buffer->n_faces, GL_UNSIGNED_INT, 0);
+    }
+}
+
+void _render_deferred() {
+    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_DEFERRED_BUFFER.fbo);
+    glViewport(0, 0, DEFERRED_BUFFER_WIDTH, DEFERRED_BUFFER_HEIGHT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    GLuint program = PROGRAM_DEFERRED;
+    glUseProgram(program);
+
+    // TODO: factor out this loop
     ArrayBuffer* array_buffer = NULL;
     for (size_t mesh_id = 0; mesh_id < SCENE_N_MESHES; ++mesh_id) {
         Mesh* mesh = &SCENE_MESHES[mesh_id];
@@ -93,11 +117,17 @@ void _render_point_shadows() {
 }
 
 void _render_meshes() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     GLuint program = PROGRAM_MATERIAL;
     glUseProgram(program);
     program_set_uniform_1i(program, "camera_id", SCENE_ACTIVE_CAMERA_ID);
     glActiveTexture(POINT_SHADOW_TEXTURE_LOCATION_IDX);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, SCENE_POINT_SHADOW_BUFFER.tex);
+    glActiveTexture(DEFERRED_TEXTURE_LOCATION_IDX);
+    glBindTexture(GL_TEXTURE_2D, SCENE_POINT_SHADOW_BUFFER.tex);
 
     ArrayBuffer* array_buffer = NULL;
     int32_t material_id = -1;
@@ -136,7 +166,7 @@ void _render_gui_texts() {
     GLuint program = PROGRAM_GUI_TEXT;
     glUseProgram(program);
     glActiveTexture(GUI_FONT_TEXTURE_LOCATION_IDX);
-    glBindTexture(GL_TEXTURE_1D, SCENE_FONT_TEXTURE.tex);
+    glBindTexture(GL_TEXTURE_1D, SCENE_GUI_FONT_TEXTURE);
 
     for (size_t text_id = 0; text_id < SCENE_N_GUI_TEXTS; ++text_id) {
         GUIText* text = &SCENE_GUI_TEXTS[text_id];
