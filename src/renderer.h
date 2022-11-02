@@ -104,6 +104,8 @@ void _render_deferred() {
     ArrayBuffer* array_buffer = NULL;
     for (size_t mesh_id = 0; mesh_id < SCENE_N_MESHES; ++mesh_id) {
         Mesh* mesh = &SCENE_MESHES[mesh_id];
+        program_set_uniform_1i(program, "mesh_id", mesh_id);
+
         if (array_buffer == NULL || mesh->array_buffer.vao != array_buffer->vao) {
             array_buffer = &mesh->array_buffer;
             array_buffer_bind(array_buffer);

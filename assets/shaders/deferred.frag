@@ -2,11 +2,15 @@ in VertexData {
     vec4 model_pos;
     vec4 world_pos;
     vec4 proj_pos;
-} fs_in;
+} vertex_data;
 
-out vec4 frag_color;
+in PixelData {
+    flat int mesh_id;
+} pixel_data;
+
+out float frag_color;
 
 
 void main() {
-    frag_color = vec4(1.0);
+    frag_color = 1.0 / (pixel_data.mesh_id + 1);
 }
