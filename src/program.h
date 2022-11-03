@@ -36,7 +36,7 @@ const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
 const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
 const char* FRAG_GUI_PANE_SHADER = "./assets/shaders/gui_pane.frag";
 const char* FRAG_GUI_TEXT_SHADER = "./assets/shaders/gui_text.frag";
-const char* FRAG_DEFERRED_SHADER = "./assets/shaders/deferred.frag";
+const char* FRAG_GBUFFER_SHADER = "./assets/shaders/gbuffer.frag";
 const char* GLSL_COMMON_SHADER = "./assets/shaders/common.glsl";
 const char* VERSION_SHADER = "./assets/shaders/version.glsl";
 const char* CONSTANTS_SHADER = "./src/constants.h";
@@ -93,7 +93,7 @@ bool program_create_all() {
         PROGRAM_DEFERRED,
         VERT_PROJECTION_SHADER,
         NULL, NULL, NULL,
-        FRAG_DEFERRED_SHADER,
+        FRAG_GBUFFER_SHADER,
         2, deps_file_paths
     );
 

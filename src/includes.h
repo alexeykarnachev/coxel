@@ -33,7 +33,7 @@
 #include "primitives.h"
 #include "transformation.h"
 #include "buffers/array_buffer.h"
-#include "buffers/deferred_buffer.h"
+#include "buffers/gbuffer.h"
 #include "buffers/depth_cubemap_array.h"
 #include "buffers/ubo_structs_array.h"
 #include "components/camera.h"

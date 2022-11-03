@@ -9,7 +9,7 @@ size_t _RENDERER_CREATED = false;
 
 void _update_scripts();
 void _render_point_shadows();
-void _render_deferred();
+void _render_gbuffer();
 void _render_meshes();
 void _render_gui_panes();
 void _render_gui_texts();
@@ -47,16 +47,40 @@ bool renderer_update() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
-
+    
+    // Target: point shadow buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_POINT_SHADOW_BUFFER.fbo);
+    glViewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_point_shadows();
-    _render_deferred();
+
+    // Target: gbuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_GBUFFER.fbo);
+    glViewport(0, 0, GBUFFER_WIDTH, GBUFFER_HEIGHT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    _render_gbuffer();
+
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+
+    unsigned char b;
+    int x = INPUT.cursor_x * INPUT.window_width;
+    int y = INPUT.cursor_y * INPUT.window_height;
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(x, y, 1, 1, GL_ALPHA, GL_UNSIGNED_BYTE, &b);
+    printf("%i\n", b);
+
+    // Target: screen
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_meshes();
-
+    
     glDisable(GL_DEPTH_TEST);
-
+    glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
     _render_gui_panes();
     _render_gui_texts();
 
+    glBlitNamedFramebuffer(SCENE_GBUFFER.fbo, 0, 0, 0, GBUFFER_WIDTH, GBUFFER_HEIGHT, 0, 0, GBUFFER_WIDTH, GBUFFER_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     return true;
 }
 
@@ -68,10 +92,6 @@ void _update_scripts() {
 }
 
 void _render_point_shadows() {
-    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_POINT_SHADOW_BUFFER.fbo);
-    glViewport(0, 0, POINT_SHADOW_SIZE, POINT_SHADOW_SIZE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     GLuint program = PROGRAM_POINT_SHADOW;
     glUseProgram(program);
     program_set_uniform_1i(program, "camera_id", SCENE_ACTIVE_CAMERA_ID);
@@ -92,11 +112,7 @@ void _render_point_shadows() {
     }
 }
 
-void _render_deferred() {
-    glBindFramebuffer(GL_FRAMEBUFFER, SCENE_DEFERRED_BUFFER.fbo);
-    glViewport(0, 0, DEFERRED_BUFFER_WIDTH, DEFERRED_BUFFER_HEIGHT);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+void _render_gbuffer() {
     GLuint program = PROGRAM_DEFERRED;
     glUseProgram(program);
 
@@ -119,17 +135,15 @@ void _render_deferred() {
 }
 
 void _render_meshes() {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     GLuint program = PROGRAM_MATERIAL;
     glUseProgram(program);
     program_set_uniform_1i(program, "camera_id", SCENE_ACTIVE_CAMERA_ID);
-    glActiveTexture(POINT_SHADOW_TEXTURE_LOCATION_IDX);
+    glUniform1i(POINT_SHADOW_TEXTURE_LOCATION_IDX, 0);
+    glUniform1i(GBUFFER_TEXTURE_LOCATION_IDX, 1);
+    glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, SCENE_POINT_SHADOW_BUFFER.tex);
-    glActiveTexture(DEFERRED_TEXTURE_LOCATION_IDX);
-    glBindTexture(GL_TEXTURE_2D, SCENE_DEFERRED_BUFFER.tex);
+    glActiveTexture(GL_TEXTURE0 + 1);
+    glBindTexture(GL_TEXTURE_2D, SCENE_GBUFFER.tex);
 
     ArrayBuffer* array_buffer = NULL;
     int32_t material_id = -1;
@@ -170,7 +184,8 @@ void _render_gui_panes() {
 void _render_gui_texts() {
     GLuint program = PROGRAM_GUI_TEXT;
     glUseProgram(program);
-    glActiveTexture(GUI_FONT_TEXTURE_LOCATION_IDX);
+    glUniform1i(GUI_FONT_TEXTURE_LOCATION_IDX, 0);
+    glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_1D, SCENE_GUI_FONT_TEXTURE);
 
     for (size_t text_id = 0; text_id < SCENE_N_GUI_TEXTS; ++text_id) {
@@ -180,5 +195,4 @@ void _render_gui_texts() {
         glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
     }
 }
-
 

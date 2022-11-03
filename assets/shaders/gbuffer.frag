@@ -6,9 +6,9 @@ in VertexData {
     vec4 proj_pos;
 } vertex_data;
 
-out float frag_color;
+out float mesh_id_color;
 
 
 void main() {
-    frag_color = mesh_id / 255.0;
+    mesh_id_color = (mesh_id + 1) / 255.0;
 }

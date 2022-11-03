@@ -9,7 +9,7 @@ uniform int material_id;
 uniform int mesh_id;
 uniform vec2 cursor_pos;
 layout(location=POINT_SHADOW_TEXTURE_LOCATION_IDX) uniform samplerCubeArrayShadow point_shadow_tex;
-layout(location=DEFERRED_TEXTURE_LOCATION_IDX) uniform sampler2D deferred_tex;
+layout(location=GBUFFER_TEXTURE_LOCATION_IDX) uniform sampler2D gbuffer_tex;
 
 struct Camera {
     vec3 world_pos;
@@ -136,20 +136,14 @@ void main() {
         specular += specular_weight * specular_color.rgb * point_light_energy / point_light_dist;
     }
 
-    int selected_mesh_id = int(round(texture(deferred_tex, cursor_pos).r * 1255555.0));
-    frag_color = vec4(texture(deferred_tex, cursor_pos).r * 100.0);
+    // Selection:
+    int selected_mesh_id = int(round(texture(gbuffer_tex, cursor_pos).r * 255.0));
+    vec3 selection = vec3(0.0);
+    if (selected_mesh_id == mesh_id + 1) {
+        selection = 0.5 * vec3(1.0, 1.0, 0.0);
+    }
 
     // Combined:
-    // if (selected_mesh_id == 0) {
-    //     vec3 color = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color.rgb;
-    //     frag_color = vec4(0.2, 0.2, 0.2, 1.0);
-    // } else {
-    //     frag_color = vec4(0.8, selected_mesh_id, 0.2, 1.0);
-    // }
-
-    // Selection:
-    // int selected_mesh_id = int(texture(deferred_tex, cursor_pos).r * 255.0);
-    // if (selected_mesh_id == mesh_id) {
-    //     frag_color = frag_color + 0.001;
-    // }
+    vec3 combined = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color.rgb + selection;
+    frag_color = vec4(combined, 1.0);
 }
