@@ -7,7 +7,7 @@ in VertexData {
 uniform int camera_id;
 uniform int material_id;
 uniform int mesh_id;
-uniform vec2 cursor_pos;
+uniform int selected_mesh_id = -1;
 layout(location=POINT_SHADOW_TEXTURE_LOCATION_IDX) uniform samplerCubeArrayShadow point_shadow_tex;
 layout(location=GBUFFER_TEXTURE_LOCATION_IDX) uniform sampler2D gbuffer_tex;
 
@@ -137,9 +137,8 @@ void main() {
     }
 
     // Selection:
-    int selected_mesh_id = int(round(texture(gbuffer_tex, cursor_pos).r * 255.0));
     vec3 selection = vec3(0.0);
-    if (selected_mesh_id == mesh_id + 1) {
+    if (selected_mesh_id == mesh_id) {
         selection = 0.5 * vec3(1.0, 1.0, 0.0);
     }
 

@@ -18,6 +18,7 @@ bool gbuffer_create(GBuffer* buffer, size_t width, size_t height) {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, buffer->rbo);
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
 
     check_framebuffer(false);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

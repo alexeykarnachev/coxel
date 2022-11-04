@@ -44,7 +44,7 @@ void _camera_set_aspect(Camera* cam, float aspect) {
 
 void _camera_mouse_controller_update(void* args_p) {
     CameraMouseControllerArgs* args = (CameraMouseControllerArgs*)(args_p);
-    Camera* cam = &SCENE_CAMERAS[args->camera_id];
+    Camera* cam = &SCENE.cameras[args->camera_id];
     bool needs_update = false;
     if (INPUT.mouse_middle_pressed) {
         needs_update = true;

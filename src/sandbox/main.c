@@ -26,7 +26,7 @@ int main(void) {
         (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT
     );
     int32_t camera_id = scene_add_camera(camera);
-    SCENE_ACTIVE_CAMERA_ID = camera_id;
+    SCENE.active_camera_id = camera_id;
 
     CameraMouseControllerArgs camera_mouse_controller_args = {
         camera_id, CAMERA_SIDE_SENS, CAMERA_STRAIGHT_SENS, CAMERA_ROTATION_SENS};
