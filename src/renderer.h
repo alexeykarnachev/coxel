@@ -13,7 +13,6 @@ void _render_gbuffer();
 void _render_meshes();
 void _render_gui_panes();
 void _render_gui_texts();
-void _update_selected_mesh_id();
 
 bool renderer_create() {
     bool ok = true;
@@ -60,7 +59,6 @@ bool renderer_update() {
     glViewport(0, 0, GBUFFER_WIDTH, GBUFFER_HEIGHT);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_gbuffer();
-    _update_selected_mesh_id();
 
     // Target: screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -125,12 +123,19 @@ void _render_gbuffer() {
         program_set_uniform_matrix_4fv(program, "world_mat", world_mat.data, 1, true);
         glDrawElements(GL_TRIANGLES, array_buffer->n_faces, GL_UNSIGNED_INT, 0);
     }
+
+    unsigned char id = 0;
+    int x = (int)(INPUT.cursor_x * GBUFFER_WIDTH);
+    int y = (int)(INPUT.cursor_y * GBUFFER_HEIGHT);
+    glReadPixels(x, y, 1, 1, GL_RED, GL_UNSIGNED_BYTE, &id);
+    SCENE.cursor_on_mesh_id = (int32_t)id - 1;
 }
 
 void _render_meshes() {
     GLuint program = PROGRAM_MATERIAL;
     glUseProgram(program);
     program_set_uniform_1i(program, "camera_id", SCENE.active_camera_id);
+    program_set_uniform_1i(program, "cursor_on_mesh_id", SCENE.cursor_on_mesh_id);
     program_set_uniform_1i(program, "selected_mesh_id", SCENE.selected_mesh_id);
     glUniform1i(POINT_SHADOW_TEXTURE_LOCATION_IDX, 0);
     glActiveTexture(GL_TEXTURE0 + 0);
@@ -186,10 +191,3 @@ void _render_gui_texts() {
     }
 }
 
-void _update_selected_mesh_id() {
-    unsigned char id = 0;
-    int x = (int)(INPUT.cursor_x * GBUFFER_WIDTH);
-    int y = (int)(INPUT.cursor_y * GBUFFER_HEIGHT);
-    glReadPixels(x, y, 1, 1, GL_RED, GL_UNSIGNED_BYTE, &id);
-    SCENE.selected_mesh_id = (int32_t)id - 1;
-}

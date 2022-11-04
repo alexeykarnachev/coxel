@@ -31,6 +31,7 @@ int main(void) {
     CameraMouseControllerArgs camera_mouse_controller_args = {
         camera_id, CAMERA_SIDE_SENS, CAMERA_STRAIGHT_SENS, CAMERA_ROTATION_SENS};
     Script camera_mouse_controller_script = camera_mouse_controller_create_script(&camera_mouse_controller_args);
+    Script mesh_selection_script = mesh_selection_create_script();
 
     Material red_material = {vec3(0.8, 0.2, 0.2), vec3(0.8, 0.2, 0.2), vec3(1.0, 1.0, 1.0), 64.0};
     Material green_material = {vec3(0.2, 0.8, 0.2), vec3(0.2, 0.8, 0.2), vec3(1.0, 1.0, 1.0), 64.0};
@@ -73,8 +74,9 @@ int main(void) {
     PointShadowCaster point_shadow_caster_1 = point_shadow_caster_create_default(vec3(4.0, 5.0, -5.0));
     PointShadowCaster point_shadow_caster_2 = point_shadow_caster_create_default(vec3(-4.0, 5.0, -5.0));
 
-    GUIPane gui_pane_0 = {0.001, 0.001, 0.18, 0.998};
-    GUIText gui_text_0 = gui_text_create("Hello, ZALOOPA!", 13, 0.01, 0.98);
+    GUIPane gui_pane_0 = {0.001, 0.9, 0.998, 0.099};
+    GUIText gui_text_0 = gui_text_create("Hello, ZALOOPA!", 26, 0.02, 0.96);
+    GUIText gui_text_1 = gui_text_create("Sin'ka, pidor...", 24, 0.02, 0.92);
 
     scene_add_point_light(red_point_light);
     scene_add_point_light(green_point_light);
@@ -88,7 +90,9 @@ int main(void) {
     scene_add_mesh(plane_mesh_0);
     scene_add_gui_pane(gui_pane_0);
     scene_add_gui_text(gui_text_0);
+    scene_add_gui_text(gui_text_1);
     scene_add_script(camera_mouse_controller_script);
+    scene_add_script(mesh_selection_script);
 
     while (!INPUT.window_should_close) {
         renderer_update();

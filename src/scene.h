@@ -1,5 +1,6 @@
 typedef struct Scene {
     int32_t active_camera_id;
+    int32_t cursor_on_mesh_id;
     int32_t selected_mesh_id;
 
     size_t n_meshes;
@@ -86,6 +87,7 @@ bool scene_create() {
 
     SCENE.is_created = ok;
     SCENE.active_camera_id = -1;
+    SCENE.cursor_on_mesh_id = -1;
     SCENE.selected_mesh_id = -1;
 
     return ok;

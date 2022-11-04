@@ -47,5 +47,6 @@
 #include "window.h"
 #include "scene.h"
 #include "scripts/camera_mouse_controller.h"
+#include "scripts/mesh_selection.h"
 #include "renderer.h"
 

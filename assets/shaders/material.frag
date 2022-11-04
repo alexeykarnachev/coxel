@@ -7,6 +7,7 @@ in VertexData {
 uniform int camera_id;
 uniform int material_id;
 uniform int mesh_id;
+uniform int cursor_on_mesh_id = -1;
 uniform int selected_mesh_id = -1;
 layout(location=POINT_SHADOW_TEXTURE_LOCATION_IDX) uniform samplerCubeArrayShadow point_shadow_tex;
 layout(location=GBUFFER_TEXTURE_LOCATION_IDX) uniform sampler2D gbuffer_tex;
@@ -136,13 +137,19 @@ void main() {
         specular += specular_weight * specular_color.rgb * point_light_energy / point_light_dist;
     }
 
+    // Cursor hover:
+    vec3 hover = vec3(0.0);
+    if (cursor_on_mesh_id == mesh_id && selected_mesh_id != mesh_id) {
+        hover = 0.25 * vec3(1.0, 1.0, 0.0);
+    }
+
     // Selection:
     vec3 selection = vec3(0.0);
     if (selected_mesh_id == mesh_id) {
-        selection = 0.5 * vec3(1.0, 1.0, 0.0);
+        selection = 0.8 * vec3(1.0, 1.0, 0.0);
     }
 
     // Combined:
-    vec3 combined = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color.rgb + selection;
+    vec3 combined = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color.rgb + hover + selection;
     frag_color = vec4(combined, 1.0);
 }
