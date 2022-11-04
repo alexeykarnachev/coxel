@@ -1,7 +1,5 @@
 typedef struct Scene {
     int32_t active_camera_id;
-    int32_t cursor_on_mesh_id;
-    int32_t selected_mesh_id;
 
     size_t n_meshes;
     size_t n_cameras;
@@ -87,8 +85,6 @@ bool scene_create() {
 
     SCENE.is_created = ok;
     SCENE.active_camera_id = -1;
-    SCENE.cursor_on_mesh_id = -1;
-    SCENE.selected_mesh_id = -1;
 
     return ok;
 }
@@ -152,5 +148,16 @@ void scene_update_camera(size_t id) {
     static float pack[CAMERA_PACK_SIZE];
     camera_pack(&SCENE.cameras[id], pack);
     ubo_structs_array_update(&SCENE.camera_buffers, pack, id);
+}
+
+void scene_update_material(size_t id) {
+    static float pack[MATERIAL_PACK_SIZE];
+    material_pack(&SCENE.materials[id], pack);
+    ubo_structs_array_update(&SCENE.material_buffers, pack, id);
+}
+
+void scene_update_mesh(size_t id) {
+    size_t material_id = SCENE.meshes[id].material_id;
+    scene_update_material(material_id);
 }
 

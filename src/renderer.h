@@ -123,20 +123,12 @@ void _render_gbuffer() {
         program_set_uniform_matrix_4fv(program, "world_mat", world_mat.data, 1, true);
         glDrawElements(GL_TRIANGLES, array_buffer->n_faces, GL_UNSIGNED_INT, 0);
     }
-
-    unsigned char id = 0;
-    int x = (int)(INPUT.cursor_x * GBUFFER_WIDTH);
-    int y = (int)(INPUT.cursor_y * GBUFFER_HEIGHT);
-    glReadPixels(x, y, 1, 1, GL_RED, GL_UNSIGNED_BYTE, &id);
-    SCENE.cursor_on_mesh_id = (int32_t)id - 1;
 }
 
 void _render_meshes() {
     GLuint program = PROGRAM_MATERIAL;
     glUseProgram(program);
     program_set_uniform_1i(program, "camera_id", SCENE.active_camera_id);
-    program_set_uniform_1i(program, "cursor_on_mesh_id", SCENE.cursor_on_mesh_id);
-    program_set_uniform_1i(program, "selected_mesh_id", SCENE.selected_mesh_id);
     glUniform1i(POINT_SHADOW_TEXTURE_LOCATION_IDX, 0);
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, SCENE.point_shadow_buffer.tex);
@@ -145,7 +137,6 @@ void _render_meshes() {
     int32_t material_id = -1;
     for (size_t mesh_id = 0; mesh_id < SCENE.n_meshes; ++mesh_id) {
         Mesh* mesh = &SCENE.meshes[mesh_id];
-        program_set_uniform_1i(program, "mesh_id", mesh_id);
 
         if (array_buffer == NULL || mesh->array_buffer.vao != array_buffer->vao) {
             array_buffer = &mesh->array_buffer;

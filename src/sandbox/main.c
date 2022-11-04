@@ -30,13 +30,14 @@ int main(void) {
 
     CameraMouseControllerArgs camera_mouse_controller_args = {
         camera_id, CAMERA_SIDE_SENS, CAMERA_STRAIGHT_SENS, CAMERA_ROTATION_SENS};
+    MeshSelectionArgs mesh_selection_args = {-1, -1, vec3(0.25, 0.25, 0.0), vec3(0.5, 0.5, 0.0)};
     Script camera_mouse_controller_script = camera_mouse_controller_create_script(&camera_mouse_controller_args);
-    Script mesh_selection_script = mesh_selection_create_script();
+    Script mesh_selection_script = mesh_selection_create_script(&mesh_selection_args);
 
-    Material red_material = {vec3(0.8, 0.2, 0.2), vec3(0.8, 0.2, 0.2), vec3(1.0, 1.0, 1.0), 64.0};
-    Material green_material = {vec3(0.2, 0.8, 0.2), vec3(0.2, 0.8, 0.2), vec3(1.0, 1.0, 1.0), 64.0};
-    Material blue_material = {{0.2, 0.2, 0.8}, {0.2, 0.2, 0.8}, {1.0, 1.0, 1.0}, 64.0};
-    Material white_material = {{0.9, 0.9, 0.9}, {0.9, 0.9, 0.9}, {1.0, 1.0, 1.0}, 64.0};
+    Material red_material = {vec3(0.8, 0.2, 0.2), vec3(0.008, 0.002, 0.002), vec3(1.0, 1.0, 1.0), vec3_zeros(), 64.0};
+    Material green_material = {vec3(0.2, 0.8, 0.2), vec3(0.002, 0.008, 0.002), vec3(1.0, 1.0, 1.0), vec3_zeros(), 64.0};
+    Material blue_material = {{0.2, 0.2, 0.8}, {0.002, 0.002, 0.008}, {1.0, 1.0, 1.0}, vec3_zeros(), 64.0};
+    Material white_material = {{0.9, 0.9, 0.9}, {0.009, 0.009, 0.009}, {1.0, 1.0, 1.0}, vec3_zeros(), 64.0};
     int32_t red_material_id = scene_add_material(red_material);
     int32_t green_material_id = scene_add_material(green_material);
     int32_t blue_material_id = scene_add_material(blue_material);

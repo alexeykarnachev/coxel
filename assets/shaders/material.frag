@@ -7,8 +7,6 @@ in VertexData {
 uniform int camera_id;
 uniform int material_id;
 uniform int mesh_id;
-uniform int cursor_on_mesh_id = -1;
-uniform int selected_mesh_id = -1;
 layout(location=POINT_SHADOW_TEXTURE_LOCATION_IDX) uniform samplerCubeArrayShadow point_shadow_tex;
 layout(location=GBUFFER_TEXTURE_LOCATION_IDX) uniform sampler2D gbuffer_tex;
 
@@ -22,6 +20,7 @@ struct Material {
     vec4 diffuse_color;
     vec4 ambient_color;
     vec4 specular_color;
+    vec4 constant_color;
     float shininess;
 };
 
@@ -108,6 +107,7 @@ void main() {
     vec3 diffuse_color = material.diffuse_color.rgb;
     vec3 ambient_color = material.ambient_color.rgb;
     vec3 specular_color = material.specular_color.rgb;
+    vec3 constant_color = material.constant_color.rgb;
     float shininess = material.shininess;
 
     vec3 world_pos = fs_in.world_pos.xyz;
@@ -137,19 +137,8 @@ void main() {
         specular += specular_weight * specular_color.rgb * point_light_energy / point_light_dist;
     }
 
-    // Cursor hover:
-    vec3 hover = vec3(0.0);
-    if (cursor_on_mesh_id == mesh_id && selected_mesh_id != mesh_id) {
-        hover = 0.25 * vec3(1.0, 1.0, 0.0);
-    }
-
-    // Selection:
-    vec3 selection = vec3(0.0);
-    if (selected_mesh_id == mesh_id) {
-        selection = 0.8 * vec3(1.0, 1.0, 0.0);
-    }
-
     // Combined:
-    vec3 combined = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color.rgb + hover + selection;
+    vec3 combined = (ambient + (1.0 - shadow) * (diffuse + specular)) * diffuse_color.rgb;
+    combined += constant_color;
     frag_color = vec4(combined, 1.0);
 }
