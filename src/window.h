@@ -4,7 +4,7 @@ typedef struct Input {
 
     float window_width;
     float window_height;
-    bool window_should_close;
+    int32_t window_should_close;
 
     float cursor_x;
     float cursor_y;
@@ -13,8 +13,10 @@ typedef struct Input {
 
     float scroll_dy;
 
-    bool mouse_middle_pressed;
-    bool mouse_left_pressed;
+    int32_t mouse_middle_pressed;
+    int32_t mouse_left_pressed;
+    int32_t shift_pressed;
+
 } Input;
 
 Input INPUT;
@@ -53,9 +55,11 @@ static void scroll_callback(GLFWwindow* window, double x, double y) {
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+    if (key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose(window, GL_TRUE);
         inp->window_should_close = true;
+    } else if (key == GLFW_KEY_LEFT_SHIFT) {
+        inp->shift_pressed = action == GLFW_PRESS;
     }
 }
 
@@ -86,6 +90,7 @@ bool window_create(size_t width, size_t height) {
     glfwSetFramebufferSizeCallback(_WINDOW, framebuffer_size_callback);
     glfwSetCursorPosCallback(_WINDOW, cursor_position_callback);
     glfwSetMouseButtonCallback(_WINDOW, mouse_button_callback);
+    glfwSetKeyCallback(_WINDOW, key_callback);
     glfwSetScrollCallback(_WINDOW, scroll_callback);
     glfwSetKeyCallback(_WINDOW, key_callback);
 

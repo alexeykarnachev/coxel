@@ -46,21 +46,23 @@ void _camera_mouse_controller_update(void* args_p) {
     CameraMouseControllerArgs* args = (CameraMouseControllerArgs*)(args_p);
     Camera* cam = &SCENE.cameras[args->camera_id];
     bool needs_update = false;
-    if (INPUT.mouse_middle_pressed) {
+
+    if (INPUT.shift_pressed && INPUT.mouse_middle_pressed) {
         needs_update = true;
         _camera_translate(
-            cam, INPUT.cursor_dx * args->side_sens, INPUT.cursor_dy * args->side_sens, 0.0);
-    } 
-
-    if (INPUT.mouse_left_pressed) {
+            cam,
+            INPUT.cursor_dx * args->side_sens,
+            INPUT.cursor_dy * args->side_sens,
+            0.0
+        );
+    } else if (INPUT.mouse_middle_pressed) {
         needs_update = true;
         _camera_rotate(
             cam, INPUT.cursor_dy * args->rotation_sens, -INPUT.cursor_dx * args->rotation_sens);
-    }
-
-    if (fabs(INPUT.scroll_dy) > EPS) {
+    } else if (fabs(INPUT.scroll_dy) > EPS) {
         needs_update = true;
-        _camera_translate(cam, 0.0f, 0.0f, INPUT.scroll_dy * args->straight_sens);
+        _camera_translate(
+            cam, 0.0f, 0.0f, INPUT.scroll_dy * args->straight_sens);
     }
 
     float aspect = INPUT.window_width / INPUT.window_height;
