@@ -2,6 +2,7 @@ typedef struct Scene {
     int32_t active_camera_id;
 
     size_t n_meshes;
+    size_t n_sprites;
     size_t n_cameras;
     size_t n_materials;
     size_t n_point_lights;
@@ -11,6 +12,7 @@ typedef struct Scene {
     size_t n_gui_texts;
 
     Mesh meshes[MAX_N_MESHES];
+    Sprite sprites[MAX_N_SPRITES];
     Camera cameras[MAX_N_CAMERAS];
     Material materials[MAX_N_MATERIALS];
     PointLight point_lights[MAX_N_POINT_LIGHTS];
@@ -22,9 +24,11 @@ typedef struct Scene {
     Script scripts[MAX_N_SCRIPTS];
 
     DepthCubemapArray point_shadow_buffer;
-    GBuffer gbuffer;
+    GLuint gbuffer;
     GLuint gui_font_texture;
+    GLuint sun_icon_texture;
 
+    UBOStructsArray sprite_buffers;
     UBOStructsArray camera_buffers;
     UBOStructsArray material_buffers;
     UBOStructsArray point_light_buffers;
@@ -48,6 +52,13 @@ bool scene_create() {
         GL_DYNAMIC_DRAW
     );
     ok &= ubo_structs_array_create(
+        &SCENE.sprite_buffers,
+        MAX_N_SPRITES,
+        SPRITE_PACK_SIZE,
+        SPRITE_BINDING_IDX,
+        GL_DYNAMIC_DRAW
+    );
+    ok &= ubo_structs_array_create(
         &SCENE.material_buffers,
         MAX_N_MATERIALS,
         MATERIAL_PACK_SIZE,
@@ -59,14 +70,14 @@ bool scene_create() {
         MAX_N_POINT_LIGHTS,
         POINT_LIGHT_PACK_SIZE,
         POINT_LIGHT_BINDING_IDX,
-        GL_STATIC_DRAW
+        GL_DYNAMIC_DRAW
     );
     ok &= ubo_structs_array_create(
         &SCENE.point_shadow_caster_buffers,
         MAX_N_POINT_SHADOW_CASTERS,
         POINT_SHADOW_CASTER_PACK_SIZE,
         POINT_SHADOW_CASTER_BINDING_IDX,
-        GL_STATIC_DRAW
+        GL_DYNAMIC_DRAW
     );
     ok &= ubo_structs_array_create(
         &SCENE.gui_text_buffers,
@@ -81,7 +92,12 @@ bool scene_create() {
     ok &= texture_create_1d(
         &SCENE.gui_font_texture, GUI_FONT_RASTER, 0, GUI_FONT_TEXTURE_WIDTH,
         GL_R8, GL_RED, GL_UNSIGNED_BYTE);
-    ok &= gbuffer_create(&SCENE.gbuffer, GBUFFER_WIDTH, GBUFFER_HEIGHT);
+    ok &= texture_create_2d(
+        &SCENE.sun_icon_texture, SUN_ICON_32.pixel_data, 0, SUN_ICON_32.width,
+        SUN_ICON_32.height, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+    ok &= texture_buffer_create(
+        &SCENE.gbuffer, NULL, GBUFFER_WIDTH, GBUFFER_HEIGHT, GL_R8, GL_RED,
+        GL_UNSIGNED_BYTE);
 
     SCENE.is_created = ok;
     SCENE.active_camera_id = -1;
@@ -92,6 +108,14 @@ bool scene_create() {
 int scene_add_mesh(Mesh mesh) {
     SCENE.meshes[SCENE.n_meshes] = mesh;
     return SCENE.n_meshes++;
+}
+
+int scene_add_sprite(Sprite sprite) {
+    static float pack[SPRITE_PACK_SIZE];
+    sprite_pack(&sprite, pack);
+    ubo_structs_array_add(&SCENE.sprite_buffers, pack);
+    SCENE.sprites[SCENE.n_sprites] = sprite;
+    return SCENE.n_sprites++;
 }
 
 int scene_add_camera(Camera camera) {

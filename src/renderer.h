@@ -55,7 +55,7 @@ bool renderer_update() {
     _render_point_shadows();
 
     // Target: gbuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, SCENE.gbuffer.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, SCENE.gbuffer);
     glViewport(0, 0, GBUFFER_WIDTH, GBUFFER_HEIGHT);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_gbuffer();
@@ -65,13 +65,14 @@ bool renderer_update() {
     glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_meshes();
+    // _render_sun_icon_sprites();
     
     glDisable(GL_DEPTH_TEST);
     glViewport(0, 0, RENDERER.viewport_width, RENDERER.viewport_height);
     _render_gui_panes();
     _render_gui_texts();
 
-    // glBlitNamedFramebuffer(SCENE.gbuffer.fbo, 0, 0, 0, GBUFFER_WIDTH, GBUFFER_HEIGHT, 0, 0, GBUFFER_WIDTH, GBUFFER_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    // glBlitNamedFramebuffer(SCENE.gbuffer, 0, 0, 0, GBUFFER_WIDTH, GBUFFER_HEIGHT, 0, 0, GBUFFER_WIDTH, GBUFFER_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
     return true;
 }
 
@@ -88,18 +89,18 @@ void _render_point_shadows() {
     program_set_uniform_1i(program, "camera_id", SCENE.active_camera_id);
 
     // TODO: factor out this loop
-    ArrayBuffer* array_buffer = NULL;
+    VAOBuffer* vao_buffer = NULL;
     for (size_t mesh_id = 0; mesh_id < SCENE.n_meshes; ++mesh_id) {
         Mesh* mesh = &SCENE.meshes[mesh_id];
-        if (array_buffer == NULL || mesh->array_buffer.vao != array_buffer->vao) {
-            array_buffer = &mesh->array_buffer;
-            array_buffer_bind(array_buffer);
+        if (vao_buffer == NULL || mesh->vao_buffer.vao != vao_buffer->vao) {
+            vao_buffer = &mesh->vao_buffer;
+            vao_buffer_bind(vao_buffer);
             program_set_attribute(program, "model_pos", 3, GL_FLOAT);
         }
         
         Mat4 world_mat = transformation_get_world_mat(&mesh->transformation);
         program_set_uniform_matrix_4fv(program, "world_mat", world_mat.data, 1, true);
-        glDrawElements(GL_TRIANGLES, array_buffer->n_faces, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, vao_buffer->n_faces, GL_UNSIGNED_INT, 0);
     }
 }
 
@@ -108,20 +109,20 @@ void _render_gbuffer() {
     glUseProgram(program);
 
     // TODO: factor out this loop
-    ArrayBuffer* array_buffer = NULL;
+    VAOBuffer* vao_buffer = NULL;
     for (size_t mesh_id = 0; mesh_id < SCENE.n_meshes; ++mesh_id) {
         Mesh* mesh = &SCENE.meshes[mesh_id];
         program_set_uniform_1i(program, "mesh_id", mesh_id);
 
-        if (array_buffer == NULL || mesh->array_buffer.vao != array_buffer->vao) {
-            array_buffer = &mesh->array_buffer;
-            array_buffer_bind(array_buffer);
+        if (vao_buffer == NULL || mesh->vao_buffer.vao != vao_buffer->vao) {
+            vao_buffer = &mesh->vao_buffer;
+            vao_buffer_bind(vao_buffer);
             program_set_attribute(program, "model_pos", 3, GL_FLOAT);
         }
         
         Mat4 world_mat = transformation_get_world_mat(&mesh->transformation);
         program_set_uniform_matrix_4fv(program, "world_mat", world_mat.data, 1, true);
-        glDrawElements(GL_TRIANGLES, array_buffer->n_faces, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, vao_buffer->n_faces, GL_UNSIGNED_INT, 0);
     }
 }
 
@@ -133,14 +134,14 @@ void _render_meshes() {
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, SCENE.point_shadow_buffer.tex);
 
-    ArrayBuffer* array_buffer = NULL;
+    VAOBuffer* vao_buffer = NULL;
     int32_t material_id = -1;
     for (size_t mesh_id = 0; mesh_id < SCENE.n_meshes; ++mesh_id) {
         Mesh* mesh = &SCENE.meshes[mesh_id];
 
-        if (array_buffer == NULL || mesh->array_buffer.vao != array_buffer->vao) {
-            array_buffer = &mesh->array_buffer;
-            array_buffer_bind(array_buffer);
+        if (vao_buffer == NULL || mesh->vao_buffer.vao != vao_buffer->vao) {
+            vao_buffer = &mesh->vao_buffer;
+            vao_buffer_bind(vao_buffer);
             program_set_attribute(program, "model_pos", 3, GL_FLOAT);
         }
         
@@ -151,7 +152,26 @@ void _render_meshes() {
         
         Mat4 world_mat = transformation_get_world_mat(&mesh->transformation);
         program_set_uniform_matrix_4fv(program, "world_mat", world_mat.data, 1, true);
-        glDrawElements(GL_TRIANGLES, array_buffer->n_faces, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, vao_buffer->n_faces, GL_UNSIGNED_INT, 0);
+    }
+}
+
+void _render_sprites() {
+    GLuint program = PROGRAM_SPRITE;
+    glUseProgram(program);
+    program_set_uniform_1i(program, "camera_id", SCENE.active_camera_id);
+
+    int32_t tex = -1;
+    for (size_t sprite_id = 0; sprite_id < SCENE.n_sprites; ++sprite_id) {
+        Sprite* sprite = &SCENE.sprites[sprite_id];
+        if (tex == -1 || tex != sprite->tex) {
+            tex = sprite->tex;
+            glUniform1i(SUN_ICON_TEXTURE_LOCATION_IDX, 0);
+            glActiveTexture(GL_TEXTURE0 + 0);
+            glBindTexture(GL_TEXTURE_2D, SCENE.sun_icon_texture);
+        }
+        program_set_uniform_1i(program, "sprite_id", sprite_id);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 }
 

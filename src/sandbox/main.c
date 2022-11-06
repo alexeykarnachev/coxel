@@ -14,10 +14,10 @@ int main(void) {
     renderer_create();
     scene_create();
 
-    ArrayBuffer icosahedron_buffer;
-    ArrayBuffer plane_buffer;
-    array_buffer_create_icosahedron(&icosahedron_buffer);
-    array_buffer_create_plane(&plane_buffer);
+    VAOBuffer icosahedron_buffer;
+    VAOBuffer plane_buffer;
+    vao_buffer_create_icosahedron(&icosahedron_buffer);
+    vao_buffer_create_plane(&plane_buffer);
 
     Camera camera = camera_create(
         CAMERA_FOV,
@@ -75,9 +75,15 @@ int main(void) {
     PointShadowCaster point_shadow_caster_1 = point_shadow_caster_create_default(vec3(4.0, 5.0, -5.0));
     PointShadowCaster point_shadow_caster_2 = point_shadow_caster_create_default(vec3(-4.0, 5.0, -5.0));
 
+    size_t pane_header_font_height = 18;
+    float h = (float)pane_header_font_height / (float)SCREEN_HEIGHT;
     GUIPane gui_pane_0 = {0.001, 0.9, 0.998, 0.099};
-    GUIText gui_text_0 = gui_text_create("Hello, ZALOOPA!", 26, 0.02, 0.96);
-    GUIText gui_text_1 = gui_text_create("Sin'ka, pidor...", 24, 0.02, 0.92);
+    GUIText gui_text_0 = gui_text_create(
+        "Hello, ZALOOPA!",
+        pane_header_font_height,
+        gui_pane_0.x + 0.2 * h,
+        gui_pane_0.y + gui_pane_0.height - 1.2 * h
+    );
 
     scene_add_point_light(red_point_light);
     scene_add_point_light(green_point_light);
@@ -91,7 +97,6 @@ int main(void) {
     scene_add_mesh(plane_mesh_0);
     scene_add_gui_pane(gui_pane_0);
     scene_add_gui_text(gui_text_0);
-    scene_add_gui_text(gui_text_1);
     scene_add_script(camera_mouse_controller_script);
     scene_add_script(mesh_selection_script);
 

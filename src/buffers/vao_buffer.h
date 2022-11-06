@@ -1,13 +1,13 @@
-typedef struct ArrayBuffer {
+typedef struct VAOBuffer {
     GLuint vao;
     GLuint vbo;
     GLuint ebo;
     size_t n_faces;
-} ArrayBuffer;
+} VAOBuffer;
 
 
-bool array_buffer_create(
-    ArrayBuffer* buffer,
+bool vao_buffer_create(
+    VAOBuffer* buffer,
     const uint32_t* faces,
     size_t faces_size,
     const float* vertices,
@@ -35,21 +35,21 @@ bool array_buffer_create(
     return true;
 }
 
-bool array_buffer_create_icosahedron(ArrayBuffer* buffer) {
-    return array_buffer_create(
+bool vao_buffer_create_icosahedron(VAOBuffer* buffer) {
+    return vao_buffer_create(
         buffer, ICOSAHEDRON_FACES, sizeof(ICOSAHEDRON_FACES),
         ICOSAHEDRON_VERTS, sizeof(ICOSAHEDRON_VERTS), GL_STATIC_DRAW
     );
 }
 
-bool array_buffer_create_plane(ArrayBuffer* buffer) {
-    return array_buffer_create(
+bool vao_buffer_create_plane(VAOBuffer* buffer) {
+    return vao_buffer_create(
         buffer, PLANE_FACES, sizeof(PLANE_FACES),
         PLANE_VERTS, sizeof(PLANE_VERTS), GL_STATIC_DRAW
     );
 }
 
-void array_buffer_bind(ArrayBuffer* buffer) {
+void vao_buffer_bind(VAOBuffer* buffer) {
     glBindVertexArray(buffer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->ebo);

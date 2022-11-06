@@ -1,4 +1,4 @@
-#define FONT_ASPECT 0.6153846153846154
+#define FONT_ASPECT 0.5
 
 uniform int gui_text_id;
 uniform int screen_height;

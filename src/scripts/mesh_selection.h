@@ -21,7 +21,7 @@ void _mesh_selection_update(void* args_p) {
     unsigned char id = 0;
     int32_t x = (int32_t)(INPUT.cursor_x * GBUFFER_WIDTH);
     int32_t y = (int32_t)(INPUT.cursor_y * GBUFFER_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, SCENE.gbuffer.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, SCENE.gbuffer);
     glReadPixels(x, y, 1, 1, GL_RED, GL_UNSIGNED_BYTE, &id);
 
     int32_t prev_cursor_on_mesh_id = args->cursor_on_mesh_id;

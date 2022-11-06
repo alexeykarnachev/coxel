@@ -8,9 +8,8 @@ typedef struct PointLight {
 
 
 void point_light_pack(PointLight* point_light, float dst[]) {
-    size_t size = sizeof(float);
-    memcpy(&dst[0], point_light->world_pos.data, size * 3);
-    memcpy(&dst[4], point_light->color.data, size * 3);
+    memcpy(&dst[0], point_light->world_pos.data, 12);
+    memcpy(&dst[4], point_light->color.data, 12);
     dst[8] = point_light->energy;
 }
 

@@ -1,5 +1,5 @@
 typedef struct Mesh {
-    ArrayBuffer array_buffer;
+    VAOBuffer vao_buffer;
     size_t material_id;
     Transformation transformation;
 } Mesh;
