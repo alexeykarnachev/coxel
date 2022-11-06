@@ -35,20 +35,6 @@ bool vao_buffer_create(
     return true;
 }
 
-bool vao_buffer_create_icosahedron(VAOBuffer* buffer) {
-    return vao_buffer_create(
-        buffer, ICOSAHEDRON_FACES, sizeof(ICOSAHEDRON_FACES),
-        ICOSAHEDRON_VERTS, sizeof(ICOSAHEDRON_VERTS), GL_STATIC_DRAW
-    );
-}
-
-bool vao_buffer_create_plane(VAOBuffer* buffer) {
-    return vao_buffer_create(
-        buffer, PLANE_FACES, sizeof(PLANE_FACES),
-        PLANE_VERTS, sizeof(PLANE_VERTS), GL_STATIC_DRAW
-    );
-}
-
 void vao_buffer_bind(VAOBuffer* buffer) {
     glBindVertexArray(buffer->vao);
     glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);

@@ -1,12 +1,33 @@
 typedef struct Transformation {
     Vec3 scale;
     Vec3 rotation;
-    Vec3 translation;
+    Vec3 position;
 } Transformation;
 
+Transformation _TRANSFORMATIONS_ARENA[1 << 14];
+size_t _N_TRANSFORMATIONS = 0;
+
+
+Transformation* transformation_create(
+    Vec3 scale,
+    Vec3 rotation,
+    Vec3 position
+) {
+    Transformation* t = &_TRANSFORMATIONS_ARENA[_N_TRANSFORMATIONS++];
+
+    t->scale = scale;
+    t->rotation = rotation;
+    t->position = position;
+
+    return t;
+}
+
+Transformation* transformation_create_default() {
+    return transformation_create(vec3_ones(), vec3_zeros(), vec3_zeros());
+}
 
 Mat4 transformation_get_world_mat(Transformation* t) {
-    return get_world_mat(&t->scale, &t->rotation, &t->translation);
+    return get_world_mat(&t->scale, &t->rotation, &t->position);
 }
 
 void transformation_set_scale(Transformation* t, float x, float y, float z) {
@@ -21,10 +42,10 @@ void transformation_set_rotation(Transformation* t, float x, float y, float z) {
     t->rotation.data[2] = z;
 }
 
-void transformation_set_translation(Transformation* t, float x, float y, float z) {
-    t->translation.data[0] = x;
-    t->translation.data[1] = y;
-    t->translation.data[2] = z;
+void transformation_set_position(Transformation* t, float x, float y, float z) {
+    t->position.data[0] = x;
+    t->position.data[1] = y;
+    t->position.data[2] = z;
 }
 
 void transformation_scale(Transformation* t, float dx, float dy, float dz) {
@@ -38,7 +59,7 @@ void transformation_rotate(Transformation* t, float dx, float dy, float dz) {
 }
 
 void transformation_translate(Transformation* t, float dx, float dy, float dz) {
-    transformation_set_translation(
-        t, t->translation.data[0] + dx, t->translation.data[1] + dy, t->translation.data[2] + dz);
+    transformation_set_position(
+        t, t->positions.data[0] + dx, t->position.data[1] + dy, t->position.data[2] + dz);
 }
 
