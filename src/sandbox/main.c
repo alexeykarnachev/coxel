@@ -3,7 +3,8 @@
 int main(void) {
     window_create(SCREEN_WIDTH, SCREEN_HEIGHT);
     Renderer renderer;
-    renderer_create(&renderer, POINT_SHADOW_SIZE);
+    renderer_create(
+        &renderer, POINT_SHADOW_SIZE, GBUFFER_WIDTH, GBUFFER_HEIGHT);
 
     size_t plane_0 = ecs_create_entity();
     ecs_add_component(
@@ -112,6 +113,34 @@ int main(void) {
         point_light_1, POINT_LIGHT_T, point_light_create_default());
     ecs_add_component(
         point_light_1, POINT_SHADOW_CASTER_T, point_shadow_caster_create_default());
+
+    size_t point_light_2 = ecs_create_entity();
+    ecs_add_component(
+        point_light_2, TRANSFORMATION_T,
+        transformation_create(
+            vec3(1.0, 1.0, 1.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(-7.0, 7.0, 7.0)
+        )
+    );
+    ecs_add_component(
+        point_light_2, POINT_LIGHT_T, point_light_create_default());
+    ecs_add_component(
+        point_light_2, POINT_SHADOW_CASTER_T, point_shadow_caster_create_default());
+
+    size_t point_light_3 = ecs_create_entity();
+    ecs_add_component(
+        point_light_3, TRANSFORMATION_T,
+        transformation_create(
+            vec3(1.0, 1.0, 1.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(7.0, 7.0, 7.0)
+        )
+    );
+    ecs_add_component(
+        point_light_3, POINT_LIGHT_T, point_light_create_default());
+    ecs_add_component(
+        point_light_3, POINT_SHADOW_CASTER_T, point_shadow_caster_create_default());
 
     size_t camera_0 = ecs_create_entity();
     ecs_add_component(

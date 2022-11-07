@@ -3,15 +3,17 @@ typedef struct Renderer {
     size_t viewport_height;
 
     DepthCubemapArray point_shadow_buffer;
+    TextureBuffer gbuffer;
 } Renderer;
 
 
 void _update_scripts();
 void _render_point_shadows();
 void _render_gbuffer();
-void _render_meshes();
+void _render_color();
 void _render_gui_panes();
 void _render_gui_texts();
+void _render_meshes(GLuint program, int set_material, int set_mesh_id);
 
 void _set_uniform_camera(GLuint program);
 void _set_uniform_point_lights(GLuint program);
@@ -20,7 +22,9 @@ void _set_uniform_material(GLuint program, Material* material);
 
 int renderer_create(
     Renderer* renderer,
-    size_t point_shadow_size
+    size_t point_shadow_size,
+    size_t gbuffer_width,
+    size_t gbuffer_height
 ) {
     clear_struct(renderer);
 
@@ -30,6 +34,15 @@ int renderer_create(
         &renderer->point_shadow_buffer,
         point_shadow_size,
         MAX_N_POINT_SHADOW_CASTERS_TO_RENDER
+    ); 
+    ok &= texture_buffer_create(
+        &renderer->gbuffer,
+        NULL,
+        gbuffer_width,
+        gbuffer_height,
+        GL_R8,
+        GL_RED,
+        GL_UNSIGNED_BYTE
     ); 
 
     return ok;
@@ -50,6 +63,12 @@ int renderer_update(Renderer* renderer) {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
+
+    // Target: gbuffer
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer->gbuffer.fbo);
+    glViewport(0, 0, renderer->gbuffer.width, renderer->gbuffer.height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    _render_gbuffer();
     
     // Target: point shadow buffer
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->point_shadow_buffer.fbo);
@@ -59,17 +78,11 @@ int renderer_update(Renderer* renderer) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_point_shadows();
 
-    // Target: gbuffer
-    // glBindFramebuffer(GL_FRAMEBUFFER, SCENE.gbuffer);
-    // glViewport(0, 0, GBUFFER_WIDTH, GBUFFER_HEIGHT);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // _render_gbuffer();
-
     // Target: screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _render_meshes(renderer->point_shadow_buffer.tex);
+    _render_color(renderer->point_shadow_buffer.tex);
     // _render_sun_icon_sprites();
     
     // glDisable(GL_DEPTH_TEST);
@@ -88,17 +101,8 @@ void _update_scripts() {
     }
 }
 
-void _render_meshes(GLuint point_shadow_buffer_tex) {
-    GLuint program = PROGRAM_MATERIAL;
-    glUseProgram(program);
-
+void _render_meshes(GLuint program, int set_material, int set_mesh_id) {
     _set_uniform_camera(program);
-    _set_uniform_point_lights(program);
-    _set_uniform_point_shadow_casters(program, 0);
-
-    glUniform1i(POINT_SHADOW_TEXTURE_LOCATION_IDX, 0);
-    glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, point_shadow_buffer_tex);
 
     VAOBuffer* vao_buffer = NULL;
     for (size_t i = 0; i < N_RENDERABLE_ENTITIES; ++i) {
@@ -106,7 +110,6 @@ void _render_meshes(GLuint point_shadow_buffer_tex) {
         Transformation* transformation =
             (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
         Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
-        Material* material = (Material*)COMPONENTS[MATERIAL_T][entity];
 
         if (
             vao_buffer == NULL
@@ -117,16 +120,43 @@ void _render_meshes(GLuint point_shadow_buffer_tex) {
             program_set_attribute(program, "model_pos", 3, GL_FLOAT);
         }
 
-        // TODO: Don't bind the material if already binded.
-        _set_uniform_material(program, material);
+        if (set_material) {
+            // TODO: Don't bind the material if already binded.
+            Material* material = (Material*)COMPONENTS[MATERIAL_T][entity];
+            _set_uniform_material(program, material);
+        }
+
+        if (set_mesh_id) {
+            program_set_uniform_1i(program, "mesh_id", i);
+        }
 
         Mat4 world_mat = transformation_get_world_mat(transformation);
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true);
         glDrawElements(
             GL_TRIANGLES, vao_buffer->n_faces, GL_UNSIGNED_INT, 0);
-
     }
+}
+
+void _render_color(GLuint point_shadow_buffer_tex) {
+    GLuint program = PROGRAM_MATERIAL;
+    glUseProgram(program);
+
+    _set_uniform_point_lights(program);
+    _set_uniform_point_shadow_casters(program, 0);
+
+    glUniform1i(POINT_SHADOW_TEXTURE_LOCATION_IDX, 0);
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, point_shadow_buffer_tex);
+
+    _render_meshes(program, 1, 0);
+}
+
+void _render_gbuffer() {
+    GLuint program = PROGRAM_DEFERRED;
+    glUseProgram(program);
+
+    _render_meshes(program, 0, 1);
 }
 
 void _render_point_shadows() {
@@ -136,7 +166,7 @@ void _render_point_shadows() {
     _set_uniform_point_shadow_casters(program, 1);
 
     VAOBuffer* vao_buffer = NULL;
-    // TODO: This loop mostly repeat the _render_meshes function.
+    // TODO: This loop mostly repeat the _render_color function.
     // Could be factored out.
     for (size_t i = 0; i < N_HAS_POINT_SHADOW_ENTITIES; ++i) {
         size_t entity = HAS_POINT_SHADOW_ENTITIES[i];
@@ -161,28 +191,6 @@ void _render_point_shadows() {
     }
 }
 
-// void _render_gbuffer() {
-//     GLuint program = PROGRAM_DEFERRED;
-//     glUseProgram(program);
-// 
-//     // TODO: factor out this loop
-//     VAOBuffer* vao_buffer = NULL;
-//     for (size_t mesh_id = 0; mesh_id < SCENE.n_meshes; ++mesh_id) {
-//         Mesh* mesh = &SCENE.meshes[mesh_id];
-//         program_set_uniform_1i(program, "mesh_id", mesh_id);
-// 
-//         if (vao_buffer == NULL || mesh->vao_buffer.vao != vao_buffer->vao) {
-//             vao_buffer = &mesh->vao_buffer;
-//             vao_buffer_bind(vao_buffer);
-//             program_set_attribute(program, "model_pos", 3, GL_FLOAT);
-//         }
-//         
-//         Mat4 world_mat = transformation_get_world_mat(&mesh->transformation);
-//         program_set_uniform_matrix_4fv(program, "world_mat", world_mat.data, 1, true);
-//         glDrawElements(GL_TRIANGLES, vao_buffer->n_faces, GL_UNSIGNED_INT, 0);
-//     }
-// }
-// 
 // void _render_sprites() {
 //     GLuint program = PROGRAM_SPRITE;
 //     glUseProgram(program);

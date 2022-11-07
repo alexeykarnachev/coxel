@@ -6,7 +6,7 @@ typedef struct VAOBuffer {
 } VAOBuffer;
 
 
-bool vao_buffer_create(
+int vao_buffer_create(
     VAOBuffer* buffer,
     const uint32_t* faces,
     size_t faces_size,
@@ -32,7 +32,7 @@ bool vao_buffer_create(
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    return true;
+    return 1;
 }
 
 void vao_buffer_bind(VAOBuffer* buffer) {

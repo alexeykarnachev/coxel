@@ -73,6 +73,15 @@ bool program_create_all() {
         2, deps_file_paths
     );
 
+    PROGRAM_DEFERRED = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_DEFERRED,
+        VERT_PROJECTION_SHADER,
+        NULL, NULL, NULL,
+        FRAG_GBUFFER_SHADER,
+        2, deps_file_paths
+    );
+
     // PROGRAM_GUI_PANE = glCreateProgram();
     // ok &= program_create(
     //     PROGRAM_GUI_PANE,
@@ -88,15 +97,6 @@ bool program_create_all() {
     //     VERT_GUI_TEXT_SHADER,
     //     NULL, NULL, NULL,
     //     FRAG_GUI_TEXT_SHADER,
-    //     2, deps_file_paths
-    // );
-
-    // PROGRAM_DEFERRED = glCreateProgram();
-    // ok &= program_create(
-    //     PROGRAM_DEFERRED,
-    //     VERT_PROJECTION_SHADER,
-    //     NULL, NULL, NULL,
-    //     FRAG_GBUFFER_SHADER,
     //     2, deps_file_paths
     // );
 
