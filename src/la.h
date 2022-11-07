@@ -455,3 +455,33 @@ void vec3_pack(float dst[], Vec3 vecs[], size_t n_vecs) {
         memcpy(&dst[i * 3], vecs[i].data, sizeof(vecs[i].data[0]) * 3);
     } 
 }
+
+typedef struct CubemapViewProj {
+    float data[96];
+} CubemapViewProj;
+
+CubemapViewProj get_cubemap_view_proj(
+    float near_plane, float far_plane, Vec3* world_pos
+) {
+    Mat4 proj_mat = get_perspective_projection_mat(
+        deg2rad(90.0), near_plane, far_plane, 1.0);
+
+    static Mat4 view_mats[6];
+    view_mats[0] = get_view_mat(&vec3_pos_x, &vec3_neg_y, world_pos);
+    view_mats[1] = get_view_mat(&vec3_neg_x, &vec3_neg_y, world_pos);
+    view_mats[2] = get_view_mat(&vec3_pos_y, &vec3_pos_z, world_pos);
+    view_mats[3] = get_view_mat(&vec3_neg_y, &vec3_neg_z, world_pos);
+    view_mats[4] = get_view_mat(&vec3_pos_z, &vec3_neg_y, world_pos);
+    view_mats[5] = get_view_mat(&vec3_neg_z, &vec3_neg_y, world_pos);
+
+    static Mat4 view_proj_mats[6];
+    for (size_t i = 0; i < 6; ++i) {
+        view_proj_mats[i] = mat4_mat4_mul(&proj_mat, &view_mats[i]);
+    }
+
+    CubemapViewProj cubemap_view_proj;
+    mat4_transpose_pack(cubemap_view_proj.data, view_proj_mats, 6);
+
+    return cubemap_view_proj;
+}
+

@@ -1,40 +1,136 @@
 #include "../includes.h"
 
-float CAMERA_FOV = 45.0;
-float CAMERA_NEAR_PLANE = 0.1;
-float CAMERA_FAR_PLANE = 1000.0;
-
-float CAMERA_SIDE_SENS = 50.0;
-float CAMERA_STRAIGHT_SENS = 3.0;
-float CAMERA_ROTATION_SENS = 2.0;
-
 int main(void) {
     window_create(SCREEN_WIDTH, SCREEN_HEIGHT);
+    Renderer renderer;
+    renderer_create(&renderer, POINT_SHADOW_SIZE);
 
     size_t plane_0 = ecs_create_entity();
     ecs_add_component(
-        plane_0, TRANSFORMATION_T, transformation_create_default());
+        plane_0, TRANSFORMATION_T, 
+        transformation_create(
+            vec3(1000.0, 1000.0, 1000.0),
+            vec3(-deg2rad(90.0), 0.0, 0.0),
+            vec3(0.0, -5.0, 0.0)
+        )
+    );
     ecs_add_component(
         plane_0, MESH_T, mesh_create_plane());
     ecs_add_component(
         plane_0, MATERIAL_T, material_create_default());
 
+    size_t sphere_0 = ecs_create_entity();
+    ecs_add_component(
+        sphere_0, TRANSFORMATION_T, 
+        transformation_create(
+            vec3(1.0, 1.0, 1.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(-2.0, 2.0, -2.0)
+        )
+    );
+    ecs_add_component(
+        sphere_0, MESH_T, mesh_create_icosahedron());
+    ecs_add_component(
+        sphere_0, MATERIAL_T, 
+        material_create(
+            vec3(0.9, 0.2, 0.2),
+            vec3(0.009, 0.002, 0.002),
+            vec3(1.0, 1.0, 1.0),
+            256
+        )
+    );
+    ecs_add_component(sphere_0, HAS_POINT_SHADOW_T, NULL);
+
+    size_t sphere_1 = ecs_create_entity();
+    ecs_add_component(
+        sphere_1, TRANSFORMATION_T, 
+        transformation_create(
+            vec3(1.0, 1.0, 1.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 2.0, -2.0)
+        )
+    );
+    ecs_add_component(
+        sphere_1, MESH_T, mesh_create_icosahedron());
+    ecs_add_component(
+        sphere_1, MATERIAL_T, 
+        material_create(
+            vec3(0.2, 0.9, 0.2),
+            vec3(0.002, 0.009, 0.002),
+            vec3(1.0, 1.0, 1.0),
+            256
+        )
+    );
+    ecs_add_component(sphere_1, HAS_POINT_SHADOW_T, NULL);
+
+    size_t sphere_2 = ecs_create_entity();
+    ecs_add_component(
+        sphere_2, TRANSFORMATION_T, 
+        transformation_create(
+            vec3(1.0, 1.0, 1.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(2.0, 2.0, -2.0)
+        )
+    );
+    ecs_add_component(
+        sphere_2, MESH_T, mesh_create_icosahedron());
+    ecs_add_component(
+        sphere_2, MATERIAL_T, 
+        material_create(
+            vec3(0.2, 0.2, 0.9),
+            vec3(0.002, 0.002, 0.009),
+            vec3(1.0, 1.0, 1.0),
+            256
+        )
+    );
+    ecs_add_component(sphere_2, HAS_POINT_SHADOW_T, NULL);
+
     size_t point_light_0 = ecs_create_entity();
     ecs_add_component(
-        point_light_0, TRANSFORMATION_T, transformation_create_default());
+        point_light_0, TRANSFORMATION_T,
+        transformation_create(
+            vec3(1.0, 1.0, 1.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 12.0, 0.0)
+        )
+    );
     ecs_add_component(
         point_light_0, POINT_LIGHT_T, point_light_create_default());
+    ecs_add_component(
+        point_light_0, POINT_SHADOW_CASTER_T, point_shadow_caster_create_default());
+
+    size_t point_light_1 = ecs_create_entity();
+    ecs_add_component(
+        point_light_1, TRANSFORMATION_T,
+        transformation_create(
+            vec3(1.0, 1.0, 1.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 7.0, 7.0)
+        )
+    );
+    ecs_add_component(
+        point_light_1, POINT_LIGHT_T, point_light_create_default());
+    ecs_add_component(
+        point_light_1, POINT_SHADOW_CASTER_T, point_shadow_caster_create_default());
 
     size_t camera_0 = ecs_create_entity();
     ecs_add_component(
-        camera_0, TRANSFORMATION_T, transformation_create_default());
+        camera_0, TRANSFORMATION_T,
+        transformation_create(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 5.0))
+    );
     ecs_add_component(
         camera_0, CAMERA_T, camera_create_default());
+    CameraMouseControllerArgs camera_mouse_controller_args =
+        camera_mouse_controller_create_default_args();
+    ecs_add_component(
+        camera_0, SCRIPT_T,
+        camera_mouse_controller_create_script(
+            &camera_mouse_controller_args));
 
     while (!INPUT.window_should_close) {
         window_update();
         ecs_update();
-        renderer_update();
+        renderer_update(&renderer);
     }
 
     glfwTerminate();

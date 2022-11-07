@@ -1,12 +1,13 @@
 in vec3 model_pos;
 
-uniform mat4 world_mat;
-
 struct Camera {
     vec4 world_pos;
     mat4 view_mat;
     mat4 proj_mat;
-} camera;
+};
+
+uniform mat4 world_mat;
+uniform Camera camera;
 
 out VertexData {
     vec4 model_pos;

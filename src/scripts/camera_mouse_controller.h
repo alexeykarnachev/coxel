@@ -1,24 +1,29 @@
 typedef struct CameraMouseControllerArgs {
-    int32_t camera_id;
-
     float side_sens;
     float straight_sens;
     float rotation_sens;
 } CameraMouseControllerArgs;
 
 
-Mat3 _camera_get_basis_mat(Camera* cam) {
-    Mat3 rotation = mat3_rotation(cam->rotation.data[0], cam->rotation.data[1], 0.0f);
+Mat3 _get_basis_mat(Camera* cam, Transformation* t) {
+    Mat3 rotation = mat3_rotation(
+        t->rotation.data[0], t->rotation.data[1], 0.0f);
     Vec3 view_dir = mat3_vec3_mul(&rotation, &cam->view_dir);
     Mat3 basis = get_basis_mat(&view_dir, &cam->up);
     return basis;
 }
     
-void _camera_translate(Camera* cam, float dx, float dy, float dz) {
+void _translate(
+    Camera* cam,
+    Transformation* t,
+    float dx,
+    float dy,
+    float dz
+) {
     if (fabs(dx) + fabs(dy) + fabs(dz) < EPS) {
         return;
     }
-    Mat3 basis = _camera_get_basis_mat(cam);
+    Mat3 basis = _get_basis_mat(cam, t);
     Vec3 x = mat3_get_row(&basis, 0);
     Vec3 y = mat3_get_row(&basis, 1);
     Vec3 z = mat3_get_row(&basis, 2);
@@ -27,58 +32,67 @@ void _camera_translate(Camera* cam, float dx, float dy, float dz) {
     y = vec3_scale(&y, dy);
     z = vec3_scale(&z, dz);
     
-    cam->translation.data[0] += x.data[0] + y.data[0] + z.data[0];
-    cam->translation.data[1] += x.data[1] + y.data[1] + z.data[1];
-    cam->translation.data[2] += x.data[2] + y.data[2] + z.data[2];
+    t->position.data[0] += x.data[0] + y.data[0] + z.data[0];
+    t->position.data[1] += x.data[1] + y.data[1] + z.data[1];
+    t->position.data[2] += x.data[2] + y.data[2] + z.data[2];
 }
 
-void _camera_rotate(Camera* cam, float pitch, float yaw) {
+void _rotate(Transformation* t, float pitch, float yaw) {
     // TODO: mod by PI
-    cam->rotation.data[0] += pitch;
-    cam->rotation.data[1] += yaw;
+    t->rotation.data[0] += pitch;
+    t->rotation.data[1] += yaw;
 }
 
-void _camera_set_aspect(Camera* cam, float aspect) {
+void _set_aspect(Camera* cam, float aspect) {
     cam->aspect = aspect;
 }
 
-void _camera_mouse_controller_update(void* args_p) {
+void _camera_mouse_controller_update(size_t entity, void* args_p) {
     CameraMouseControllerArgs* args = (CameraMouseControllerArgs*)(args_p);
-    Camera* cam = &SCENE.cameras[args->camera_id];
-    bool needs_update = false;
+    Camera* cam = (Camera*)COMPONENTS[CAMERA_T][entity];
+    Transformation* t = (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
 
     if (INPUT.shift_pressed && INPUT.mouse_middle_pressed) {
-        needs_update = true;
-        _camera_translate(
+        _translate(
             cam,
+            t,
             INPUT.cursor_dx * args->side_sens,
             INPUT.cursor_dy * args->side_sens,
             0.0
         );
     } else if (INPUT.mouse_middle_pressed) {
-        needs_update = true;
-        _camera_rotate(
-            cam, INPUT.cursor_dy * args->rotation_sens, -INPUT.cursor_dx * args->rotation_sens);
+        _rotate(
+            t,
+            INPUT.cursor_dy * args->rotation_sens,
+            -INPUT.cursor_dx * args->rotation_sens
+        );
     } else if (fabs(INPUT.scroll_dy) > EPS) {
-        needs_update = true;
-        _camera_translate(
-            cam, 0.0f, 0.0f, INPUT.scroll_dy * args->straight_sens);
+        _translate(
+            cam,
+            t,
+            0.0f,
+            0.0f,
+            INPUT.scroll_dy * args->straight_sens
+        );
     }
 
     float aspect = INPUT.window_width / INPUT.window_height;
     if (fabs(aspect - cam->aspect) > EPS) {
-        needs_update = true;
-        _camera_set_aspect(cam, aspect);
-    }
-
-    if (needs_update) {
-        scene_update_camera(args->camera_id);
+        _set_aspect(cam, aspect);
     }
 }
 
-Script camera_mouse_controller_create_script(CameraMouseControllerArgs* args) {
-    Script script;
-    script.update = _camera_mouse_controller_update;
-    script.args = args; 
-    return script;
+CameraMouseControllerArgs camera_mouse_controller_create_default_args() {
+    float side_sens = 30.0;
+    float straight_sens = 3.0;
+    float rotation_sens = 2.0;
+    CameraMouseControllerArgs args = {
+        side_sens, straight_sens, rotation_sens};
+    return args;
+}
+
+Script* camera_mouse_controller_create_script(
+    CameraMouseControllerArgs* args
+) {
+    return script_create(_camera_mouse_controller_update, args);
 }

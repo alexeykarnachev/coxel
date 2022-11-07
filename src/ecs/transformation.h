@@ -23,7 +23,11 @@ Transformation* transformation_create(
 }
 
 Transformation* transformation_create_default() {
-    return transformation_create(vec3_ones(), vec3_zeros(), vec3_zeros());
+    return transformation_create(
+        DEFAULT_TRANSFORMATION_SCALE,
+        DEFAULT_TRANSFORMATION_ROTATION,
+        DEFAULT_TRANSFORMATION_POSITION 
+    );
 }
 
 Mat4 transformation_get_world_mat(Transformation* t) {
@@ -60,6 +64,6 @@ void transformation_rotate(Transformation* t, float dx, float dy, float dz) {
 
 void transformation_translate(Transformation* t, float dx, float dy, float dz) {
     transformation_set_position(
-        t, t->positions.data[0] + dx, t->position.data[1] + dy, t->position.data[2] + dz);
+        t, t->position.data[0] + dx, t->position.data[1] + dy, t->position.data[2] + dz);
 }
 

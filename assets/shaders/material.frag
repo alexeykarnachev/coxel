@@ -4,16 +4,13 @@ in VertexData {
     vec4 proj_pos;
 } fs_in;
 
-// uniform int mesh_id;
-// layout(location=POINT_SHADOW_TEXTURE_LOCATION_IDX) uniform samplerCubeArrayShadow point_shadow_tex;
-// layout(location=GBUFFER_TEXTURE_LOCATION_IDX) uniform sampler2D gbuffer_tex;
-uniform int n_point_lights;
+layout(location=POINT_SHADOW_TEXTURE_LOCATION_IDX) uniform samplerCubeArrayShadow point_shadow_tex;
 
 struct Camera {
     vec4 world_pos;
     mat4 view_mat;
     mat4 proj_mat;
-} camera;
+};
 
 struct Material {
     vec4 diffuse_color;
@@ -21,64 +18,71 @@ struct Material {
     vec4 specular_color;
     vec4 constant_color;
     float shininess;
-} material;
+};
 
 struct PointLight {
     vec4 world_pos;
     vec4 color;
     float energy;
-} point_lights[MAX_N_POINT_LIGHTS_TO_RENDER];
+};
 
-// struct PointShadowCaster {
-//     float near_plane;
-//     float far_plane;
-//     float min_n_samples;
-//     float max_n_samples;
-//     float disk_radius;
-//     float bias_min;
-//     float bias_max;
-//     vec4 world_pos;
-//     mat4 vew_proj_mats[6];
-// };
+struct PointShadowCaster {
+    float near_plane;
+    float far_plane;
+    float min_n_samples;
+    float max_n_samples;
+    float disk_radius;
+    float bias_min;
+    float bias_max;
+    vec4 world_pos;
+    mat4 vew_proj_mats[6];
+};
+
+uniform Camera camera;
+uniform Material material;
+uniform PointLight point_lights[MAX_N_POINT_LIGHTS_TO_RENDER];
+uniform PointShadowCaster point_shadow_casters[MAX_N_POINT_SHADOW_CASTERS_TO_RENDER];
+uniform int n_point_lights;
+uniform int n_point_shadow_casters;
 
 out vec4 frag_color;
 
 vec2 poisson_disk64(int idx);
 
-// float get_point_shadow(vec3 normal) {
-//     float shadow = 0.0;
-//     
-//     for(int i_caster = 0; i_caster < n_point_shadow_casters; ++i_caster) {
-//         PointShadowCaster caster = point_shadow_casters[i_caster];
-//         vec3 ray = fs_in.world_pos.xyz - caster.world_pos.xyz;
-//         float ray_len = length(ray);
-//         ray = normalize(ray);
-// 
-//         float bias = max(caster.bias_max * (1.0 - dot(normal, -ray)), caster.bias_min);
-//         float curr_depth = ray_len / caster.far_plane - bias;
-// 
-//         float curr_shadow = 0;
-//         int n_samples = 0;
-//         for(int i_sample = 0; i_sample < caster.max_n_samples; ++i_sample) {
-//             vec2 rnd_vec = poisson_disk64(i_sample) * caster.disk_radius;
-//             curr_shadow += texture(
-//                 point_shadow_tex,
-//                 vec4(ray + vec3(rnd_vec, 0.0), i_caster),
-//                 curr_depth
-//             );
-//             n_samples += 1;
-// 
-//             if (
-//                 (n_samples == caster.min_n_samples)
-//                 && (abs(curr_shadow) < 0.001 || abs(curr_shadow) - 1.0 < 0.001)
-//             ) {
-//                 break;
-//             }
-//         }
-//         shadow += curr_shadow / n_samples;
-//     }
-//     return shadow / n_point_shadow_casters;
-// }
+float get_point_shadow(vec3 normal) {
+    float shadow = 0.0;
+    
+    for(int i_caster = 0; i_caster < n_point_shadow_casters; ++i_caster) {
+        PointShadowCaster caster = point_shadow_casters[i_caster];
+        vec3 ray = fs_in.world_pos.xyz - caster.world_pos.xyz;
+        float ray_len = length(ray);
+        ray = normalize(ray);
+
+        float bias = max(caster.bias_max * (1.0 - dot(normal, -ray)), caster.bias_min);
+        float curr_depth = ray_len / caster.far_plane - bias;
+
+        float curr_shadow = 0;
+        int n_samples = 0;
+        for(int i_sample = 0; i_sample < caster.max_n_samples; ++i_sample) {
+            vec2 rnd_vec = poisson_disk64(i_sample) * caster.disk_radius;
+            curr_shadow += texture(
+                point_shadow_tex,
+                vec4(ray + vec3(rnd_vec, 0.0), i_caster),
+                curr_depth
+            );
+            n_samples += 1;
+
+            if (
+                (n_samples == caster.min_n_samples)
+                && (abs(curr_shadow) < 0.001 || abs(curr_shadow) - 1.0 < 0.001)
+            ) {
+                break;
+            }
+        }
+        shadow += curr_shadow / n_samples;
+    }
+    return shadow / n_point_shadow_casters;
+}
 
 void main() {
     vec3 camera_world_pos = camera.world_pos.xyz;
@@ -96,8 +100,7 @@ void main() {
     vec3 ambient = ambient_color.rgb;
 
     // Shadows:
-    // float shadow = get_point_shadow(normal);
-    float shadow = 0.0;
+    float shadow = get_point_shadow(normal);
 
     vec3 diffuse = vec3(0);
     vec3 specular = vec3(0);

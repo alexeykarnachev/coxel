@@ -17,5 +17,8 @@ PointLight* point_light_create(Vec3 color, float energy) {
 }
 
 PointLight* point_light_create_default() {
-    return point_light_create(vec3_ones(), 50.0);
+    return point_light_create(
+        DEFAULT_POINT_LIGHT_COLOR,
+        DEFAULT_POINT_LIGHT_ENERGY
+    );
 }

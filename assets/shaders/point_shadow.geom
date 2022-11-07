@@ -1,4 +1,4 @@
-layout (triangles, invocations=MAX_N_POINT_SHADOW_CASTERS) in;
+layout (triangles, invocations=MAX_N_POINT_SHADOW_CASTERS_TO_RENDER) in;
 in VertexData {
     vec4 model_pos;
     vec4 world_pos;
@@ -17,10 +17,8 @@ struct PointShadowCaster {
     mat4 view_proj_mats[6];
 };
 
-layout (std140, binding=POINT_SHADOW_CASTER_BINDING_IDX) uniform PointShadowCasters {
-    PointShadowCaster point_shadow_casters[MAX_N_POINT_SHADOW_CASTERS];
-    int n_point_shadow_casters;
-};
+uniform int n_point_shadow_casters;
+uniform PointShadowCaster point_shadow_casters[MAX_N_POINT_SHADOW_CASTERS_TO_RENDER];
 
 layout (triangle_strip, max_vertices=18) out;
 out VertexData {

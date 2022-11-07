@@ -6,7 +6,7 @@ typedef struct DepthCubemapArray {
 } DepthCubemapArray;
 
 
-bool depth_cubemap_array_create(DepthCubemapArray* d, size_t size, size_t n_layers) {
+int depth_cubemap_array_create(DepthCubemapArray* d, size_t size, size_t n_layers) {
     glGenFramebuffers(1, &d->fbo);
     glGenTextures(1, &d->tex);
     
@@ -38,12 +38,12 @@ bool depth_cubemap_array_create(DepthCubemapArray* d, size_t size, size_t n_laye
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
 
-    check_framebuffer(false);
+    check_framebuffer(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     d->size = size;
     d->n_layers = n_layers;
 
-    return true;
+    return 1;
 }
 

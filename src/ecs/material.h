@@ -14,10 +14,10 @@ Material* material_create(
     Vec3 diffuse_color,
     Vec3 ambient_color,
     Vec3 specular_color,
-    Vec3 constant_color,
     float shininess
 ) {
     Material* material = &_MATERIALS_ARENA[_N_MATERIALS++];
+    Vec3 constant_color = {{0.0, 0.0, 0.0}};
 
     material->diffuse_color = diffuse_color;
     material->ambient_color = ambient_color;
@@ -29,11 +29,10 @@ Material* material_create(
 }
 
 Material* material_create_default() {
-    Vec3 diffuse_color = {{0.7, 0.7, 0.7}};
-    Vec3 ambient_color = {{0.007, 0.007, 0.007}};
-    Vec3 specular_color = {{1.0, 1.0, 1.0}};
-    Vec3 constant_color = {{0.0, 0.0, 0.0}};
-    float shininess = 128.0;
-
-    return material_create(diffuse_color, ambient_color, specular_color, constant_color, shininess);
+    return material_create(
+        DEFAULT_MATERIAL_DIFFUSE_COLOR,
+        DEFAULT_MATERIAL_AMBIENT_COLOR,
+        DEFAULT_MATERIAL_SPECULAR_COLOR,
+        DEFAULT_MATERIAL_SHININESS
+    );
 }
