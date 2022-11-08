@@ -10,9 +10,9 @@ int main(void) {
     ecs_add_component(
         plane_0, TRANSFORMATION_T, 
         transformation_create(
-            vec3(1000.0, 1000.0, 1000.0),
+            vec3(50.0, 50.0, 1.0),
             vec3(-deg2rad(90.0), 0.0, 0.0),
-            vec3(0.0, -5.0, 0.0)
+            vec3(0.0, -5.0, -20.0)
         )
     );
     ecs_add_component(
@@ -149,12 +149,22 @@ int main(void) {
     );
     ecs_add_component(
         camera_0, CAMERA_T, camera_create_default());
+    // TODO: use script args as a pointer? Like all other components.
     CameraMouseControllerArgs camera_mouse_controller_args =
         camera_mouse_controller_create_default_args();
     ecs_add_component(
         camera_0, SCRIPT_T,
         camera_mouse_controller_create_script(
             &camera_mouse_controller_args));
+    
+    size_t entity_selection_0 = ecs_create_entity();
+    // TODO: use script args as a pointer? Like all other components.
+    EntitySelectionArgs entity_selection_args =
+        entity_selection_create_default_args(&renderer.gbuffer);
+    ecs_add_component(
+        entity_selection_0, SCRIPT_T,
+        entity_selection_create_script(
+            &entity_selection_args));
 
     while (!INPUT.window_should_close) {
         window_update();

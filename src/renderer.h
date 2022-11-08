@@ -13,7 +13,7 @@ void _render_gbuffer();
 void _render_color();
 void _render_gui_panes();
 void _render_gui_texts();
-void _render_meshes(GLuint program, int set_material, int set_mesh_id);
+void _render_meshes(GLuint program, int set_material, int set_entity_id);
 
 void _set_uniform_camera(GLuint program);
 void _set_uniform_point_lights(GLuint program);
@@ -35,6 +35,9 @@ int renderer_create(
         point_shadow_size,
         MAX_N_POINT_SHADOW_CASTERS_TO_RENDER
     ); 
+
+    // TODO: 1 byte for element is not enough for sure!
+    // There could be more than 256 entities.
     ok &= texture_buffer_create(
         &renderer->gbuffer,
         NULL,
@@ -101,7 +104,7 @@ void _update_scripts() {
     }
 }
 
-void _render_meshes(GLuint program, int set_material, int set_mesh_id) {
+void _render_meshes(GLuint program, int set_material, int set_entity_id) {
     _set_uniform_camera(program);
 
     VAOBuffer* vao_buffer = NULL;
@@ -126,8 +129,8 @@ void _render_meshes(GLuint program, int set_material, int set_mesh_id) {
             _set_uniform_material(program, material);
         }
 
-        if (set_mesh_id) {
-            program_set_uniform_1i(program, "mesh_id", i);
+        if (set_entity_id) {
+            program_set_uniform_1i(program, "entity_id", entity);
         }
 
         Mat4 world_mat = transformation_get_world_mat(transformation);

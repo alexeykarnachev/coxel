@@ -1,4 +1,4 @@
-uniform int mesh_id;
+uniform int entity_id;
 
 in VertexData {
     vec4 model_pos;
@@ -6,9 +6,9 @@ in VertexData {
     vec4 proj_pos;
 } vertex_data;
 
-out float mesh_id_color;
+out float entity_id_color;
 
 
 void main() {
-    mesh_id_color = (mesh_id + 1) / 255.0;
+    entity_id_color = (entity_id + 1) / 255.0;
 }
