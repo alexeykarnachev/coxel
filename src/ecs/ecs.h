@@ -3,13 +3,13 @@ typedef enum COMPONENT_TYPE {
     MATERIAL_T,
     MESH_T,
     CAMERA_T,
-    SPRITE_T,
     POINT_LIGHT_T,
     POINT_SHADOW_CASTER_T,
     HAS_POINT_SHADOW_T,
     GUI_TEXT_T,
     GUI_PANE_T,
     SCRIPT_T,
+    SPRITE_T,
 
     N_COMPONENT_TYPES
 } COMPONENT_TYPE;
@@ -35,6 +35,7 @@ size_t HAS_POINT_SHADOW_ENTITIES[MAX_N_ENTITIES];
 size_t SCRIPT_ENTITIES[MAX_N_ENTITIES];
 size_t GUI_PANE_ENTITIES[MAX_N_ENTITIES];
 size_t GUI_TEXT_ENTITIES[MAX_N_ENTITIES];
+size_t SPRITE_ENTITIES[MAX_N_ENTITIES];
 
 size_t N_RENDERABLE_ENTITIES = 0;
 size_t N_CAMERA_ENTITIES = 0;
@@ -44,6 +45,7 @@ size_t N_HAS_POINT_SHADOW_ENTITIES = 0;
 size_t N_SCRIPT_ENTITIES = 0;
 size_t N_GUI_PANE_ENTITIES = 0;
 size_t N_GUI_TEXT_ENTITIES = 0;
+size_t N_SPRITE_ENTITIES = 0;
 
 void ecs_update();
 size_t ecs_create_entity();
@@ -56,6 +58,7 @@ int ecs_check_if_has_point_shadow(size_t entity);
 int ecs_check_if_script(size_t entity);
 int ecs_check_if_gui_pane(size_t entity);
 int ecs_check_if_gui_text(size_t entity);
+int ecs_check_if_sprite(size_t entity);
 
 
 void ecs_update() {
@@ -68,6 +71,7 @@ void ecs_update() {
     N_SCRIPT_ENTITIES = 0;
     N_GUI_PANE_ENTITIES = 0;
     N_GUI_TEXT_ENTITIES = 0;
+    N_SPRITE_ENTITIES = 0;
 
     for (size_t entity = 0; entity < N_ENTITIES; ++entity) {
         if (ecs_check_if_renderable(entity)) {
@@ -93,6 +97,9 @@ void ecs_update() {
         }
         if (ecs_check_if_gui_text(entity)) {
             GUI_TEXT_ENTITIES[N_GUI_TEXT_ENTITIES++] = entity;
+        }
+        if (ecs_check_if_sprite(entity)) {
+            SPRITE_ENTITIES[N_SPRITE_ENTITIES++] = entity;
         }
     }
 }
@@ -164,3 +171,9 @@ int ecs_check_if_gui_text(size_t entity) {
         && bitset_get_bit(b, TRANSFORMATION_T);
 }
 
+int ecs_check_if_sprite(size_t entity) {
+    Bitset* b = &ENTITIES[entity].components;
+    return
+        bitset_get_bit(b, SPRITE_T)
+        && bitset_get_bit(b, TRANSFORMATION_T);
+}

@@ -18,7 +18,10 @@ int texture_buffer_create(
 ) {
     glGenFramebuffers(1, &buffer->fbo);
     glGenRenderbuffers(1, &buffer->rbo);
-    texture_create_2d(&buffer->texture, data, 0, width, height, internal_format, format, type);
+    texture_create_2d(
+        &buffer->texture, data, 0,
+        width, height,
+        internal_format, format, type, GL_NEAREST);
 
     glBindRenderbuffer(GL_RENDERBUFFER, buffer->rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);

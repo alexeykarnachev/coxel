@@ -86,11 +86,17 @@ int main(void) {
     );
     ecs_add_component(sphere_2, HAS_POINT_SHADOW_T, NULL);
 
+    Texture sun_icon_texture;
+    texture_create_2d(
+        &sun_icon_texture, SUN_ICON_32.pixel_data, 0,
+        SUN_ICON_32.width, SUN_ICON_32.height,
+        GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR);
     size_t point_light_0 = ecs_create_entity();
+
     ecs_add_component(
         point_light_0, TRANSFORMATION_T,
         transformation_create(
-            vec3(1.0, 1.0, 1.0),
+            vec3(0.5, 0.5, 0.5),
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 12.0, 0.0)
         )
@@ -99,12 +105,14 @@ int main(void) {
         point_light_0, POINT_LIGHT_T, point_light_create_default());
     ecs_add_component(
         point_light_0, POINT_SHADOW_CASTER_T, point_shadow_caster_create_default());
+    ecs_add_component(
+        point_light_0, SPRITE_T, sprite_create(0.0, 0.0, 1.0, 1.0, &sun_icon_texture));
 
     size_t point_light_1 = ecs_create_entity();
     ecs_add_component(
         point_light_1, TRANSFORMATION_T,
         transformation_create(
-            vec3(1.0, 1.0, 1.0),
+            vec3(0.5, 0.5, 0.5),
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 7.0, 7.0)
         )
@@ -113,12 +121,14 @@ int main(void) {
         point_light_1, POINT_LIGHT_T, point_light_create_default());
     ecs_add_component(
         point_light_1, POINT_SHADOW_CASTER_T, point_shadow_caster_create_default());
+    ecs_add_component(
+        point_light_1, SPRITE_T, sprite_create(0.0, 0.0, 1.0, 1.0, &sun_icon_texture));
 
     size_t point_light_2 = ecs_create_entity();
     ecs_add_component(
         point_light_2, TRANSFORMATION_T,
         transformation_create(
-            vec3(1.0, 1.0, 1.0),
+            vec3(0.5, 0.5, 0.5),
             vec3(0.0, 0.0, 0.0),
             vec3(-7.0, 7.0, 7.0)
         )
@@ -127,12 +137,14 @@ int main(void) {
         point_light_2, POINT_LIGHT_T, point_light_create_default());
     ecs_add_component(
         point_light_2, POINT_SHADOW_CASTER_T, point_shadow_caster_create_default());
+    ecs_add_component(
+        point_light_2, SPRITE_T, sprite_create(0.0, 0.0, 1.0, 1.0, &sun_icon_texture));
 
     size_t point_light_3 = ecs_create_entity();
     ecs_add_component(
         point_light_3, TRANSFORMATION_T,
         transformation_create(
-            vec3(1.0, 1.0, 1.0),
+            vec3(0.5, 0.5, 0.5),
             vec3(0.0, 0.0, 0.0),
             vec3(7.0, 7.0, 7.0)
         )
@@ -141,6 +153,8 @@ int main(void) {
         point_light_3, POINT_LIGHT_T, point_light_create_default());
     ecs_add_component(
         point_light_3, POINT_SHADOW_CASTER_T, point_shadow_caster_create_default());
+    ecs_add_component(
+        point_light_3, SPRITE_T, sprite_create(0.0, 0.0, 1.0, 1.0, &sun_icon_texture));
 
     size_t camera_0 = ecs_create_entity();
     ecs_add_component(

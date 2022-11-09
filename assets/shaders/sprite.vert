@@ -1,33 +1,13 @@
-uniform int camera_id;
-uniform vec3 world_pos;
-uniform float width;
-uniform float height;
-
-struct Sprite {
-    vec3 world_pos;
-    float world_width;
-    float world_height;
-
-    vec2 tex_pos;
-    float tex_width;
-    float tex_height;
-};
-
 struct Camera {
     vec3 world_pos;
     mat4 view_mat;
     mat4 proj_mat;
 };
 
-layout (std140, binding=CAMERA_BINDING_IDX) uniform Cameras {
-    Camera cameras[MAX_N_CAMERAS];
-    int n_cameras;
-};
-
-layout (std140, binding=SPRITE_BINDING_IDX) uniform Sprites {
-    Sprite sprites[MAX_N_SPRITES];
-    int n_sprites;
-};
+uniform Camera camera;
+uniform vec4 tex_pos; // x, y, w, h
+uniform vec3 world_pos; // x, y, z
+uniform vec3 world_size; // w, h
 
 out VertexData {
     vec4 proj_pos;
@@ -36,15 +16,41 @@ out VertexData {
 
 
 void main() {
-    // mat4 view_mat = cameras[camera_id].view_mat;
-    // mat4 proj_mat = cameras[camera_id].proj_mat;
+    int id = gl_VertexID;
 
-    // vec4 m = vec4(model_pos, 1.0);
-    // vec4 w = world_mat * m; 
-    // vec4 p = proj_mat * view_mat * w; 
+    mat4 view_mat = camera.view_mat;
+    mat4 proj_mat = camera.proj_mat;
 
-    // vertex_data.model_pos = m;
-    // vertex_data.world_pos = w;
-    // vertex_data.proj_pos = p;
-    // gl_Position = p;
+    vec4 w = vec4(world_pos, 1);
+    vec4 v = view_mat * w;
+    vec2 t;
+
+    // TODO: Refactor this if-statement to bit operation.
+    if (id == 3) {
+        v.x -= 0.5 * world_size.x;
+        v.y -= 0.5 * world_size.y;
+        t.x = tex_pos.x;
+        t.y = tex_pos.y;
+    } else if (id == 1) {
+        v.x -= 0.5 * world_size.x;
+        v.y += 0.5 * world_size.y;
+        t.x = tex_pos.x;
+        t.y = tex_pos.y + tex_pos.w;
+    } else if (id == 2) {
+        v.x += 0.5 * world_size.x;
+        v.y -= 0.5 * world_size.y;
+        t.x = tex_pos.x + tex_pos.z;
+        t.y = tex_pos.y;
+    } else if (id == 0) {
+        v.x += 0.5 * world_size.x;
+        v.y += 0.5 * world_size.y;
+        t.x = tex_pos.x + tex_pos.z;
+        t.y = tex_pos.y + tex_pos.w;
+    }
+
+    vec4 p = proj_mat * v;
+
+    vertex_data.proj_pos = p;
+    vertex_data.tex_pos = t;
+    gl_Position = p;
 }

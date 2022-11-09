@@ -14,6 +14,7 @@ void _render_gbuffer();
 void _render_color(GLuint point_shadow_tex);
 void _render_gui_panes();
 void _render_gui_texts(GLuint font_tex);
+void _render_sprites();
 void _render_meshes(GLuint program, int set_material, int set_entity_id);
 
 void _set_uniform_camera(GLuint program);
@@ -97,6 +98,9 @@ int renderer_update(Renderer* renderer) {
     glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_color(renderer->point_shadow_buffer.tex);
+
+    // glDisable(GL_CULL_FACE);
+    _render_sprites();
     
     glDisable(GL_DEPTH_TEST);
     _render_gui_panes();
@@ -203,25 +207,6 @@ void _render_point_shadows() {
     }
 }
 
-// void _render_sprites() {
-//     GLuint program = PROGRAM_SPRITE;
-//     glUseProgram(program);
-//     program_set_uniform_1i(program, "camera_id", SCENE.active_camera_id);
-// 
-//     int32_t tex = -1;
-//     for (size_t sprite_id = 0; sprite_id < SCENE.n_sprites; ++sprite_id) {
-//         Sprite* sprite = &SCENE.sprites[sprite_id];
-//         if (tex == -1 || tex != sprite->tex) {
-//             tex = sprite->tex;
-//             glUniform1i(SUN_ICON_TEXTURE_LOCATION_IDX, 0);
-//             glActiveTexture(GL_TEXTURE0 + 0);
-//             glBindTexture(GL_TEXTURE_2D, SCENE.sun_icon_texture);
-//         }
-//         program_set_uniform_1i(program, "sprite_id", sprite_id);
-//         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//     }
-// }
-// 
 void _render_gui_panes() {
     GLuint program = PROGRAM_GUI_PANE; 
     glUseProgram(program);
@@ -231,6 +216,8 @@ void _render_gui_panes() {
         Transformation* transformation =
             (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
 
+        // TODO: Don't need Vec4 here. Data buffer could be constructed
+        // and passed explicitly.
         Vec4 pane_vec = {{
             transformation->position.data[0],
             transformation->position.data[1],
@@ -254,6 +241,8 @@ void _render_gui_texts(GLuint font_tex) {
             (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
         GUIText* text = (GUIText*)COMPONENTS[GUI_TEXT_T][entity];
 
+        // TODO: Don't need Vec4 here. Data buffer could be constructed
+        // and passed explicitly.
         Vec4 text_vec = {{
             transformation->position.data[0],
             transformation->position.data[1],
@@ -265,6 +254,38 @@ void _render_gui_texts(GLuint font_tex) {
     }
 }
 
+void _render_sprites() {
+    GLuint program = PROGRAM_SPRITE;
+    glUseProgram(program);
+    glUniform1i(SPRITE_TEXTURE_LOCATION_IDX, 0);
+
+    _set_uniform_camera(program);
+
+    for (size_t i = 0; i < N_SPRITE_ENTITIES; ++i) {
+        size_t entity = SPRITE_ENTITIES[i];
+        Transformation* transformation =
+            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+        // TODO: Dont't bind the same texture and the same sprite if
+        // already binded!
+        Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_T][entity];
+        GLuint tex = sprite->texture->tex;
+        glActiveTexture(GL_TEXTURE0 + 0);
+        glBindTexture(GL_TEXTURE_2D, tex);
+
+        float tex_pos[4] = {
+            sprite->tex_x,
+            sprite->tex_y,
+            sprite->tex_width,
+            sprite->tex_height};
+        program_set_uniform_4fv(program, "tex_pos", tex_pos, 1);
+        program_set_uniform_3fv(
+            program, "world_pos", transformation->position.data, 1);
+        program_set_uniform_3fv(
+            program, "world_size", transformation->scale.data, 1);
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
+}
 
 void _set_uniform_camera(GLuint program) {
     for (size_t i = 0; i < N_CAMERA_ENTITIES; ++i) {

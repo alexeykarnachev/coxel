@@ -103,14 +103,14 @@ bool program_create_all() {
         2, deps_file_paths
     );
 
-    // PROGRAM_SPRITE = glCreateProgram();
-    // ok &= program_create(
-    //     PROGRAM_SPRITE,
-    //     VERT_SPRITE_SHADER,
-    //     NULL, NULL, NULL,
-    //     FRAG_SPRITE_SHADER,
-    //     2, deps_file_paths
-    // );
+    PROGRAM_SPRITE = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_SPRITE,
+        VERT_SPRITE_SHADER,
+        NULL, NULL, NULL,
+        FRAG_SPRITE_SHADER,
+        2, deps_file_paths
+    );
 
     return ok;
 }
