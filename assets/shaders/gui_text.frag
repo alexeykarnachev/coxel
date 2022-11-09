@@ -1,6 +1,6 @@
 in VertexData {
     vec2 tex_pos;
-    flat int char_id;
+    flat uint char_id;
 } fs_in;
 
 layout(location=GUI_FONT_TEXTURE_LOCATION_IDX) uniform sampler1D font_tex;

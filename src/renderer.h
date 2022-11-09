@@ -4,15 +4,16 @@ typedef struct Renderer {
 
     DepthCubemapArray point_shadow_buffer;
     TextureBuffer gbuffer;
+    Texture gui_font_texture;
 } Renderer;
 
 
 void _update_scripts();
 void _render_point_shadows();
 void _render_gbuffer();
-void _render_color();
+void _render_color(GLuint point_shadow_tex);
 void _render_gui_panes();
-void _render_gui_texts();
+void _render_gui_texts(GLuint font_tex);
 void _render_meshes(GLuint program, int set_material, int set_entity_id);
 
 void _set_uniform_camera(GLuint program);
@@ -47,6 +48,16 @@ int renderer_create(
         GL_RED,
         GL_UNSIGNED_BYTE
     ); 
+
+    ok &= texture_create_1d(
+        &renderer->gui_font_texture,
+        (void*)GUI_FONT_RASTER,
+        0,
+        GUI_FONT_TEXTURE_WIDTH,
+        GL_R8,
+        GL_RED,
+        GL_UNSIGNED_BYTE
+    );
 
     return ok;
 }
@@ -86,12 +97,10 @@ int renderer_update(Renderer* renderer) {
     glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_color(renderer->point_shadow_buffer.tex);
-    // _render_sun_icon_sprites();
     
-    // glDisable(GL_DEPTH_TEST);
-    // glViewport(0, 0, renderer.viewport_width, renderer.viewport_height);
-    // _render_gui_panes();
-    // _render_gui_texts();
+    glDisable(GL_DEPTH_TEST);
+    _render_gui_panes();
+    _render_gui_texts(renderer->gui_font_texture.tex);
 
     return 1;
 }
@@ -141,7 +150,7 @@ void _render_meshes(GLuint program, int set_material, int set_entity_id) {
     }
 }
 
-void _render_color(GLuint point_shadow_buffer_tex) {
+void _render_color(GLuint point_shadow_tex) {
     GLuint program = PROGRAM_MATERIAL;
     glUseProgram(program);
 
@@ -150,7 +159,7 @@ void _render_color(GLuint point_shadow_buffer_tex) {
 
     glUniform1i(POINT_SHADOW_TEXTURE_LOCATION_IDX, 0);
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, point_shadow_buffer_tex);
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, point_shadow_tex);
 
     _render_meshes(program, 1, 0);
 }
@@ -213,33 +222,49 @@ void _render_point_shadows() {
 //     }
 // }
 // 
-// void _render_gui_panes() {
-//     GLuint program = PROGRAM_GUI_PANE; 
-//     glUseProgram(program);
-// 
-//     for (size_t pane_id = 0; pane_id < SCENE.n_gui_panes; ++pane_id) {
-//         GUIPane* pane = &SCENE.gui_panes[pane_id];
-//         Vec4 pane_vec = {{pane->x, pane->y, pane->width, pane->height}};
-//         program_set_uniform_4fv(program, "gui_pane", pane_vec.data, 1);
-//         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-//     }
-// }
-// 
-// void _render_gui_texts() {
-//     GLuint program = PROGRAM_GUI_TEXT;
-//     glUseProgram(program);
-//     glUniform1i(GUI_FONT_TEXTURE_LOCATION_IDX, 0);
-//     glActiveTexture(GL_TEXTURE0 + 0);
-//     glBindTexture(GL_TEXTURE_1D, SCENE.gui_font_texture);
-// 
-//     for (size_t text_id = 0; text_id < SCENE.n_gui_texts; ++text_id) {
-//         GUIText* text = &SCENE.gui_texts[text_id];
-//         program_set_uniform_1i(program, "screen_height", renderer.viewport_height);
-//         program_set_uniform_1i(program, "gui_text_id", text_id);
-//         glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
-//     }
-// }
-// 
+void _render_gui_panes() {
+    GLuint program = PROGRAM_GUI_PANE; 
+    glUseProgram(program);
+
+    for (size_t i = 0; i < N_GUI_PANE_ENTITIES; ++i) {
+        size_t entity = GUI_PANE_ENTITIES[i];
+        Transformation* transformation =
+            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+
+        Vec4 pane_vec = {{
+            transformation->position.data[0],
+            transformation->position.data[1],
+            transformation->scale.data[0],
+            transformation->scale.data[1]}};
+        program_set_uniform_4fv(program, "gui_pane", pane_vec.data, 1);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
+}
+
+void _render_gui_texts(GLuint font_tex) {
+    GLuint program = PROGRAM_GUI_TEXT;
+    glUseProgram(program);
+    glUniform1i(GUI_FONT_TEXTURE_LOCATION_IDX, 0);
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glBindTexture(GL_TEXTURE_1D, font_tex);
+
+    for (size_t i = 0; i < N_GUI_TEXT_ENTITIES; ++i) {
+        size_t entity = GUI_TEXT_ENTITIES[i];
+        Transformation* transformation =
+            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+        GUIText* text = (GUIText*)COMPONENTS[GUI_TEXT_T][entity];
+
+        Vec4 text_vec = {{
+            transformation->position.data[0],
+            transformation->position.data[1],
+            transformation->scale.data[0],
+            transformation->scale.data[1]}};
+        program_set_uniform_4fv(program, "gui_text", text_vec.data, 1);
+        program_set_uniform_1uiv(program, "char_inds", text->char_inds, text->n_chars);
+        glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
+    }
+}
+
 
 void _set_uniform_camera(GLuint program) {
     for (size_t i = 0; i < N_CAMERA_ENTITIES; ++i) {

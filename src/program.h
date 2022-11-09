@@ -22,6 +22,9 @@ bool program_get_uniform_location(GLuint program, GLuint* loc, const char* name)
 bool program_set_attribute(GLuint program, const char* name, size_t n_components, GLenum type);
 bool program_set_uniform_1i(GLuint program, const char* name, GLint val);
 bool program_set_uniform_1f(GLuint program, const char* name, GLfloat val);
+bool program_set_uniform_1fv(GLuint program, const char* name, GLfloat* data, size_t n_values);
+bool program_set_uniform_1iv(GLuint program, const char* name, GLint* data, size_t n_values);
+bool program_set_uniform_1uiv(GLuint program, const char* name, GLint* data, size_t n_values);
 bool program_set_uniform_2f(GLuint program, const char* name, GLfloat v1, GLfloat v2);
 bool program_set_uniform_3fv(GLuint program, const char* name, GLfloat* data, size_t n_vectors);
 bool program_set_uniform_4fv(GLuint program, const char* name, GLfloat* data, size_t n_vectors);
@@ -82,23 +85,23 @@ bool program_create_all() {
         2, deps_file_paths
     );
 
-    // PROGRAM_GUI_PANE = glCreateProgram();
-    // ok &= program_create(
-    //     PROGRAM_GUI_PANE,
-    //     VERT_GUI_PANE_SHADER,
-    //     NULL, NULL, NULL,
-    //     FRAG_GUI_PANE_SHADER,
-    //     2, deps_file_paths
-    // );
+    PROGRAM_GUI_PANE = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_GUI_PANE,
+        VERT_GUI_PANE_SHADER,
+        NULL, NULL, NULL,
+        FRAG_GUI_PANE_SHADER,
+        2, deps_file_paths
+    );
 
-    // PROGRAM_GUI_TEXT = glCreateProgram();
-    // ok &= program_create(
-    //     PROGRAM_GUI_TEXT,
-    //     VERT_GUI_TEXT_SHADER,
-    //     NULL, NULL, NULL,
-    //     FRAG_GUI_TEXT_SHADER,
-    //     2, deps_file_paths
-    // );
+    PROGRAM_GUI_TEXT = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_GUI_TEXT,
+        VERT_GUI_TEXT_SHADER,
+        NULL, NULL, NULL,
+        FRAG_GUI_TEXT_SHADER,
+        2, deps_file_paths
+    );
 
     // PROGRAM_SPRITE = glCreateProgram();
     // ok &= program_create(
@@ -296,6 +299,18 @@ bool program_set_uniform_1f(GLuint program, const char* name, GLfloat val) {
 bool program_set_uniform_1fv(GLuint program, const char* name, GLfloat* data, size_t n_values) {
     _GET_UNIFORM_LOC
     glUniform1fv(loc, n_values, data);
+    return true;
+}
+
+bool program_set_uniform_1iv(GLuint program, const char* name, GLint* data, size_t n_values) {
+    _GET_UNIFORM_LOC
+    glUniform1iv(loc, n_values, data);
+    return true;
+}
+
+bool program_set_uniform_1uiv(GLuint program, const char* name, GLint* data, size_t n_values) {
+    _GET_UNIFORM_LOC
+    glUniform1uiv(loc, n_values, data);
     return true;
 }
 

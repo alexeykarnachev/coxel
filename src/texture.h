@@ -1,5 +1,10 @@
-bool texture_create_1d(
-    GLuint* tex,
+typedef struct Texture {
+    GLuint tex;
+} Texture;
+
+
+int texture_create_1d(
+    Texture* texture,
     void* data,
     size_t level,
     size_t width,
@@ -7,8 +12,8 @@ bool texture_create_1d(
     size_t format,
     size_t type
 ) {
-    glCreateTextures(GL_TEXTURE_1D, 1, tex);
-    glBindTexture(GL_TEXTURE_1D, *tex);
+    glCreateTextures(GL_TEXTURE_1D, 1, &texture->tex);
+    glBindTexture(GL_TEXTURE_1D, texture->tex);
 
     // TODO: check opengl errors and return false in the case of any fails.
     glTexImage1D(GL_TEXTURE_1D, level, internal_format, width, 0, format, type, data);
@@ -18,11 +23,11 @@ bool texture_create_1d(
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_1D, 0);
 
-    return true;
+    return 1;
 }
 
-bool texture_create_2d(
-    GLuint* tex,
+int texture_create_2d(
+    Texture* texture,
     void* data,
     size_t level,
     size_t width,
@@ -31,8 +36,8 @@ bool texture_create_2d(
     size_t format,
     size_t type
 ) {
-    glCreateTextures(GL_TEXTURE_2D, 1, tex);
-    glBindTexture(GL_TEXTURE_2D, *tex);
+    glCreateTextures(GL_TEXTURE_2D, 1, &texture->tex);
+    glBindTexture(GL_TEXTURE_2D, texture->tex);
 
     // TODO: check opengl errors and return false in the case of any fails.
     glTexImage2D(GL_TEXTURE_2D, level, internal_format, width, height, 0, format, type, data);
@@ -42,6 +47,6 @@ bool texture_create_2d(
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    return true;
+    return 1;
 }
 
