@@ -5,9 +5,9 @@ void entity_create_gui_pane(
     float height,
     char* title_text
 ) {
-    size_t pane = ecs_create_entity();
-    ecs_add_component(pane, GUI_RECT_T, gui_rect_create());
-    ecs_add_component(
+    size_t pane = entity_create(-1);
+    entity_add_component(pane, GUI_RECT_T, gui_rect_create());
+    entity_add_component(
         pane, TRANSFORMATION_T,
         transformation_create(
             vec3(width, height, 0.0),
@@ -16,9 +16,9 @@ void entity_create_gui_pane(
         ) 
     );
 
-    size_t title = ecs_create_entity();
-    ecs_add_component(title, GUI_TEXT_T, gui_text_create(title_text));
-    ecs_add_component(
+    size_t title = entity_create(-1);
+    entity_add_component(title, GUI_TEXT_T, gui_text_create(title_text));
+    entity_add_component(
         title, TRANSFORMATION_T,
         transformation_create(
             vec3(0.008, 0.018, 0.0),

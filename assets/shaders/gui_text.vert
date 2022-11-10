@@ -1,4 +1,4 @@
-uniform vec4 gui_text; // x, y, font_width, font_height
+uniform mat4 world_mat;
 uniform uint char_inds[GUI_TEXT_MAX_N_CHARS];
 
 out VertexData {
@@ -10,10 +10,11 @@ out VertexData {
 void main() {
     int id = gl_VertexID;
 
-    float x = gui_text.x;
-    float y = gui_text.y;
-    float font_width = gui_text.z;
-    float font_height = gui_text.w;
+    float font_width = world_mat[0][0];
+    float font_height = world_mat[1][1];
+    float x = world_mat[3][0];
+    float y = world_mat[3][1];
+
     float font_aspect = font_width / font_height;
 
     int char_id = id / 6;

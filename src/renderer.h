@@ -123,8 +123,7 @@ void _render_meshes(GLuint program, int set_material, int set_entity_id) {
     VAOBuffer* vao_buffer = NULL;
     for (size_t i = 0; i < N_RENDERABLE_ENTITIES; ++i) {
         size_t entity = RENDERABLE_ENTITIES[i];
-        Transformation* transformation =
-            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+        Mat4 world_mat = entity_get_world_mat(entity);
         Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
 
         if (
@@ -146,7 +145,6 @@ void _render_meshes(GLuint program, int set_material, int set_entity_id) {
             program_set_uniform_1i(program, "entity_id", entity);
         }
 
-        Mat4 world_mat = transformation_get_world_mat(transformation);
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true);
         glDrawElements(
@@ -186,8 +184,7 @@ void _render_point_shadows() {
     // Could be factored out.
     for (size_t i = 0; i < N_HAS_POINT_SHADOW_ENTITIES; ++i) {
         size_t entity = HAS_POINT_SHADOW_ENTITIES[i];
-        Transformation* transformation =
-            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+        Mat4 world_mat = entity_get_world_mat(entity);
         Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
 
         if (
@@ -199,7 +196,6 @@ void _render_point_shadows() {
             program_set_attribute(program, "model_pos", 3, GL_FLOAT);
         }
         
-        Mat4 world_mat = transformation_get_world_mat(transformation);
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true);
         glDrawElements(
@@ -213,17 +209,9 @@ void _render_gui_rects() {
 
     for (size_t i = 0; i < N_GUI_RECT_ENTITIES; ++i) {
         size_t entity = GUI_RECT_ENTITIES[i];
-        Transformation* transformation =
-            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
-
-        // TODO: Don't need Vec4 here. Data buffer could be constructed
-        // and passed explicitly.
-        Vec4 rect_vec = {{
-            transformation->position.data[0],
-            transformation->position.data[1],
-            transformation->scale.data[0],
-            transformation->scale.data[1]}};
-        program_set_uniform_4fv(program, "gui_rect", rect_vec.data, 1);
+        Mat4 world_mat = entity_get_world_mat(entity);
+        program_set_uniform_matrix_4fv(
+            program, "world_mat", world_mat.data, 1, true);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 }
@@ -237,18 +225,11 @@ void _render_gui_texts(GLuint font_tex) {
 
     for (size_t i = 0; i < N_GUI_TEXT_ENTITIES; ++i) {
         size_t entity = GUI_TEXT_ENTITIES[i];
-        Transformation* transformation =
-            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+        Mat4 world_mat = entity_get_world_mat(entity);
         GUIText* text = (GUIText*)COMPONENTS[GUI_TEXT_T][entity];
 
-        // TODO: Don't need Vec4 here. Data buffer could be constructed
-        // and passed explicitly.
-        Vec4 text_vec = {{
-            transformation->position.data[0],
-            transformation->position.data[1],
-            transformation->scale.data[0],
-            transformation->scale.data[1]}};
-        program_set_uniform_4fv(program, "gui_text", text_vec.data, 1);
+        program_set_uniform_matrix_4fv(
+            program, "world_mat", world_mat.data, 1, true);
         program_set_uniform_1uiv(program, "char_inds", text->char_inds, text->n_chars);
         glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
     }
@@ -263,8 +244,8 @@ void _render_sprites() {
 
     for (size_t i = 0; i < N_SPRITE_ENTITIES; ++i) {
         size_t entity = SPRITE_ENTITIES[i];
-        Transformation* transformation =
-            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+        Mat4 world_mat = entity_get_world_mat(entity);
+
         // TODO: Dont't bind the same texture and the same sprite if
         // already binded!
         Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_T][entity];
@@ -278,10 +259,8 @@ void _render_sprites() {
             sprite->tex_width,
             sprite->tex_height};
         program_set_uniform_4fv(program, "tex_pos", tex_pos, 1);
-        program_set_uniform_3fv(
-            program, "world_pos", transformation->position.data, 1);
-        program_set_uniform_3fv(
-            program, "world_size", transformation->scale.data, 1);
+        program_set_uniform_matrix_4fv(
+            program, "world_mat", world_mat.data, 1, true);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }

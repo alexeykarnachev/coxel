@@ -15,8 +15,9 @@ typedef enum COMPONENT_TYPE {
 } COMPONENT_TYPE;
 
 typedef struct Entity {
-    size_t id;
     Bitset components;
+    size_t parent_id;
+    size_t id;
 } Entity;
 
 void* COMPONENTS[N_COMPONENT_TYPES][MAX_N_ENTITIES];
@@ -47,9 +48,11 @@ size_t N_GUI_RECT_ENTITIES = 0;
 size_t N_GUI_TEXT_ENTITIES = 0;
 size_t N_SPRITE_ENTITIES = 0;
 
+size_t entity_create(size_t parent);
+void entity_add_component(size_t entity, COMPONENT_TYPE type, void* ptr);
+Mat4 entity_get_world_mat(size_t entity);
+
 void ecs_update();
-size_t ecs_create_entity();
-void ecs_add_component(size_t entity, COMPONENT_TYPE type, void* ptr);
 int ecs_check_if_camera(size_t entity);
 int ecs_check_if_renderable(size_t entity);
 int ecs_check_if_point_light(size_t entity);
@@ -104,13 +107,31 @@ void ecs_update() {
     }
 }
 
-size_t ecs_create_entity() {
+size_t entity_create(size_t parent) {
     Entity* entity = &ENTITIES[N_ENTITIES];
-    entity->id = N_ENTITIES;
-    return N_ENTITIES++;
+    size_t id = N_ENTITIES++;
+
+    entity->id = id;
+    entity->parent_id = parent;
+
+    return id;
 }
 
-void ecs_add_component(size_t entity, COMPONENT_TYPE type, void* ptr) {
+Mat4 entity_get_world_mat(size_t entity) {
+    Mat4 result = mat4_identity();
+    int parent_id; 
+
+    do {
+        Transformation* t = COMPONENTS[TRANSFORMATION_T][entity];
+        parent_id = ENTITIES[entity].parent_id;
+        Mat4 m = transformation_get_world_mat(t);
+        result = mat4_mat4_mul(&result, &m);
+    } while (parent_id != -1);
+
+    return result;
+}
+
+void entity_add_component(size_t entity, COMPONENT_TYPE type, void* ptr) {
     COMPONENTS[type][entity] = ptr; 
     bitset_set_bit(&ENTITIES[entity].components, type);
 }
