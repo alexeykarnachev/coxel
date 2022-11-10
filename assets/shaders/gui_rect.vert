@@ -1,4 +1,4 @@
-uniform vec4 gui_pane; // {x, y, width, height}
+uniform vec4 gui_rect; // {x, y, width, height}
 
 out VertexData {
     vec4 model_pos;
@@ -10,10 +10,10 @@ out VertexData {
 void main() {
     int id = gl_VertexID;
 
-    float x0 = (gui_pane.x * 2.0) - 1.0;
-    float y0 = (gui_pane.y * 2.0) - 1.0;
-    float x1 = x0 + gui_pane.z * 2.0;
-    float y1 = y0 + gui_pane.w * 2.0;
+    float x0 = (gui_rect.x * 2.0) - 1.0;
+    float y0 = (gui_rect.y * 2.0) - 1.0;
+    float x1 = x0 + gui_rect.z * 2.0;
+    float y1 = y0 + gui_rect.w * 2.0;
 
     if (id == 0) {
         vs_out.proj_pos = vec4(x0, y0, 0, 1);

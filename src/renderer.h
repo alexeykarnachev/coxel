@@ -12,7 +12,7 @@ void _update_scripts();
 void _render_point_shadows();
 void _render_gbuffer();
 void _render_color(GLuint point_shadow_tex);
-void _render_gui_panes();
+void _render_gui_rects();
 void _render_gui_texts(GLuint font_tex);
 void _render_sprites();
 void _render_meshes(GLuint program, int set_material, int set_entity_id);
@@ -103,7 +103,7 @@ int renderer_update(Renderer* renderer) {
     _render_sprites();
     
     glDisable(GL_DEPTH_TEST);
-    _render_gui_panes();
+    _render_gui_rects();
     _render_gui_texts(renderer->gui_font_texture.tex);
 
     return 1;
@@ -207,23 +207,23 @@ void _render_point_shadows() {
     }
 }
 
-void _render_gui_panes() {
-    GLuint program = PROGRAM_GUI_PANE; 
+void _render_gui_rects() {
+    GLuint program = PROGRAM_GUI_RECT; 
     glUseProgram(program);
 
-    for (size_t i = 0; i < N_GUI_PANE_ENTITIES; ++i) {
-        size_t entity = GUI_PANE_ENTITIES[i];
+    for (size_t i = 0; i < N_GUI_RECT_ENTITIES; ++i) {
+        size_t entity = GUI_RECT_ENTITIES[i];
         Transformation* transformation =
             (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
 
         // TODO: Don't need Vec4 here. Data buffer could be constructed
         // and passed explicitly.
-        Vec4 pane_vec = {{
+        Vec4 rect_vec = {{
             transformation->position.data[0],
             transformation->position.data[1],
             transformation->scale.data[0],
             transformation->scale.data[1]}};
-        program_set_uniform_4fv(program, "gui_pane", pane_vec.data, 1);
+        program_set_uniform_4fv(program, "gui_rect", rect_vec.data, 1);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 }

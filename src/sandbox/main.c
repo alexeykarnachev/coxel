@@ -171,28 +171,7 @@ int main(void) {
         camera_mouse_controller_create_script(
             &camera_mouse_controller_args));
 
-    size_t gui_pane_0 = ecs_create_entity();
-    ecs_add_component(gui_pane_0, GUI_PANE_T, gui_pane_create());
-    ecs_add_component(
-        gui_pane_0, TRANSFORMATION_T,
-        transformation_create(
-            vec3(0.2, 0.05, 0.0),
-            vec3(0.0, 0.0, 0.0),
-            vec3(0.001, 0.948, 0.0)
-        )
-    );
-
-    size_t gui_text_0 = ecs_create_entity();
-    ecs_add_component(
-        gui_text_0, GUI_TEXT_T, gui_text_create("Hello, ZALOOPA 8==o"));
-    ecs_add_component(
-        gui_text_0, TRANSFORMATION_T,
-        transformation_create(
-            vec3(0.008, 0.018, 0.0),
-            vec3(0.0, 0.0, 0.0),
-            vec3(0.003, 0.975, 0.0)
-        )
-    );
+    entity_create_gui_pane(0.001, 0.948, 0.2, 0.05, "Hello, ZALOOPA 8==o");
 
     size_t entity_selection_0 = ecs_create_entity();
     // TODO: use script args as a pointer? Like all other components.

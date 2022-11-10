@@ -32,13 +32,13 @@ bool program_set_uniform_matrix_4fv(
         GLuint program, const char* name, GLfloat* data, size_t n_matrices, GLboolean transpose);
 
 const char* VERT_PROJECTION_SHADER = "./assets/shaders/projection.vert";
-const char* VERT_GUI_PANE_SHADER = "./assets/shaders/gui_pane.vert";
+const char* VERT_GUI_RECT_SHADER = "./assets/shaders/gui_rect.vert";
 const char* VERT_GUI_TEXT_SHADER = "./assets/shaders/gui_text.vert";
 const char* VERT_SPRITE_SHADER = "./assets/shaders/sprite.vert";
 const char* GEOM_POINT_SHADOW_SHADER = "./assets/shaders/point_shadow.geom";
 const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
 const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
-const char* FRAG_GUI_PANE_SHADER = "./assets/shaders/gui_pane.frag";
+const char* FRAG_GUI_RECT_SHADER = "./assets/shaders/gui_rect.frag";
 const char* FRAG_GUI_TEXT_SHADER = "./assets/shaders/gui_text.frag";
 const char* FRAG_GBUFFER_SHADER = "./assets/shaders/gbuffer.frag";
 const char* FRAG_SPRITE_SHADER = "./assets/shaders/sprite.frag";
@@ -48,7 +48,7 @@ const char* CONSTANTS_SHADER = "./src/constants.h";
 
 GLuint PROGRAM_MATERIAL;
 GLuint PROGRAM_POINT_SHADOW;
-GLuint PROGRAM_GUI_PANE;
+GLuint PROGRAM_GUI_RECT;
 GLuint PROGRAM_GUI_TEXT;
 GLuint PROGRAM_DEFERRED;
 GLuint PROGRAM_SPRITE;
@@ -85,12 +85,12 @@ bool program_create_all() {
         2, deps_file_paths
     );
 
-    PROGRAM_GUI_PANE = glCreateProgram();
+    PROGRAM_GUI_RECT = glCreateProgram();
     ok &= program_create(
-        PROGRAM_GUI_PANE,
-        VERT_GUI_PANE_SHADER,
+        PROGRAM_GUI_RECT,
+        VERT_GUI_RECT_SHADER,
         NULL, NULL, NULL,
-        FRAG_GUI_PANE_SHADER,
+        FRAG_GUI_RECT_SHADER,
         2, deps_file_paths
     );
 

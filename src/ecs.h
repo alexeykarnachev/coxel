@@ -7,7 +7,7 @@ typedef enum COMPONENT_TYPE {
     POINT_SHADOW_CASTER_T,
     HAS_POINT_SHADOW_T,
     GUI_TEXT_T,
-    GUI_PANE_T,
+    GUI_RECT_T,
     SCRIPT_T,
     SPRITE_T,
 
@@ -33,7 +33,7 @@ size_t POINT_LIGHT_ENTITIES[MAX_N_ENTITIES];
 size_t POINT_SHADOW_CASTER_ENTITIES[MAX_N_ENTITIES];
 size_t HAS_POINT_SHADOW_ENTITIES[MAX_N_ENTITIES];
 size_t SCRIPT_ENTITIES[MAX_N_ENTITIES];
-size_t GUI_PANE_ENTITIES[MAX_N_ENTITIES];
+size_t GUI_RECT_ENTITIES[MAX_N_ENTITIES];
 size_t GUI_TEXT_ENTITIES[MAX_N_ENTITIES];
 size_t SPRITE_ENTITIES[MAX_N_ENTITIES];
 
@@ -43,7 +43,7 @@ size_t N_POINT_LIGHT_ENTITIES = 0;
 size_t N_POINT_SHADOW_CASTER_ENTITIES = 0;
 size_t N_HAS_POINT_SHADOW_ENTITIES = 0;
 size_t N_SCRIPT_ENTITIES = 0;
-size_t N_GUI_PANE_ENTITIES = 0;
+size_t N_GUI_RECT_ENTITIES = 0;
 size_t N_GUI_TEXT_ENTITIES = 0;
 size_t N_SPRITE_ENTITIES = 0;
 
@@ -56,7 +56,7 @@ int ecs_check_if_point_light(size_t entity);
 int ecs_check_if_point_shadow_caster(size_t entity);
 int ecs_check_if_has_point_shadow(size_t entity);
 int ecs_check_if_script(size_t entity);
-int ecs_check_if_gui_pane(size_t entity);
+int ecs_check_if_gui_rect(size_t entity);
 int ecs_check_if_gui_text(size_t entity);
 int ecs_check_if_sprite(size_t entity);
 
@@ -69,7 +69,7 @@ void ecs_update() {
     N_POINT_SHADOW_CASTER_ENTITIES = 0;
     N_HAS_POINT_SHADOW_ENTITIES = 0;
     N_SCRIPT_ENTITIES = 0;
-    N_GUI_PANE_ENTITIES = 0;
+    N_GUI_RECT_ENTITIES = 0;
     N_GUI_TEXT_ENTITIES = 0;
     N_SPRITE_ENTITIES = 0;
 
@@ -92,8 +92,8 @@ void ecs_update() {
         if (ecs_check_if_script(entity)) {
             SCRIPT_ENTITIES[N_SCRIPT_ENTITIES++] = entity;
         }
-        if (ecs_check_if_gui_pane(entity)) {
-            GUI_PANE_ENTITIES[N_GUI_PANE_ENTITIES++] = entity;
+        if (ecs_check_if_gui_rect(entity)) {
+            GUI_RECT_ENTITIES[N_GUI_RECT_ENTITIES++] = entity;
         }
         if (ecs_check_if_gui_text(entity)) {
             GUI_TEXT_ENTITIES[N_GUI_TEXT_ENTITIES++] = entity;
@@ -157,10 +157,10 @@ int ecs_check_if_script(size_t entity) {
         bitset_get_bit(b, SCRIPT_T);
 }
 
-int ecs_check_if_gui_pane(size_t entity) {
+int ecs_check_if_gui_rect(size_t entity) {
     Bitset* b = &ENTITIES[entity].components;
     return
-        bitset_get_bit(b, GUI_PANE_T)
+        bitset_get_bit(b, GUI_RECT_T)
         && bitset_get_bit(b, TRANSFORMATION_T);
 }
 
