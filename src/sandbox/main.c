@@ -86,6 +86,29 @@ int main(void) {
     );
     entity_add_component(sphere_2, HAS_POINT_SHADOW_T, NULL);
 
+    size_t sphere_3 = entity_create(sphere_2);
+    entity_add_component(
+        sphere_3, TRANSFORMATION_T, 
+        transformation_create(
+            vec3(0.3, 0.3, 0.3),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, -1.5, 0.0)
+        )
+    );
+    entity_add_component(
+        sphere_3, MESH_T, mesh_create_icosahedron());
+    entity_add_component(
+        sphere_3, MATERIAL_T, 
+        material_create(
+            vec3(0.1, 0.1, 0.95),
+            vec3(0.001, 0.001, 0.0095),
+            vec3(1.0, 1.0, 1.0),
+            256
+        )
+    );
+    entity_add_component(sphere_3, HAS_POINT_SHADOW_T, NULL);
+        
+
     Texture sun_icon_texture;
     texture_create_2d(
         &sun_icon_texture, SUN_ICON_32.pixel_data, 0,

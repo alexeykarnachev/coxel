@@ -119,15 +119,16 @@ size_t entity_create(size_t parent) {
 
 Mat4 entity_get_world_mat(size_t entity) {
     Mat4 result = mat4_identity();
-    int parent_id; 
 
     do {
         Transformation* t = COMPONENTS[TRANSFORMATION_T][entity];
-        parent_id = ENTITIES[entity].parent_id;
+        entity = ENTITIES[entity].parent_id;
         Mat4 m = transformation_get_world_mat(t);
+        m = mat4_transpose(&m);
         result = mat4_mat4_mul(&result, &m);
-    } while (parent_id != -1);
-
+    } while (entity != -1);
+    
+    result = mat4_transpose(&result);
     return result;
 }
 
