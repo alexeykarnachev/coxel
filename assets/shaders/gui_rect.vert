@@ -1,4 +1,8 @@
 uniform mat4 world_mat;
+uniform int width;
+uniform int height;
+uniform int viewport_width;
+uniform int viewport_height;
 
 out VertexData {
     vec4 model_pos;
@@ -10,10 +14,10 @@ out VertexData {
 void main() {
     int id = gl_VertexID;
 
-    float w = world_mat[0][0];
-    float h = world_mat[1][1];
-    float x = world_mat[3][0];
-    float y = world_mat[3][1];
+    float x = world_mat[3][0] / float(viewport_width);
+    float y = world_mat[3][1] / float(viewport_height);
+    float w = float(width) / float(viewport_width);
+    float h = float(height) / float(viewport_height);
 
     float x0 = (x * 2.0) - 1.0;
     float y0 = (y * 2.0) - 1.0;

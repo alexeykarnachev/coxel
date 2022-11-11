@@ -69,7 +69,7 @@ int main(void) {
         sphere_2, TRANSFORMATION_T, 
         transformation_create(
             vec3(1.0, 1.0, 1.0),
-            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 0.0, deg2rad(45.0)),
             vec3(2.0, 2.0, -2.0)
         )
     );
@@ -107,6 +107,28 @@ int main(void) {
         )
     );
     entity_add_component(sphere_3, HAS_POINT_SHADOW_T, NULL);
+
+    size_t sphere_4 = entity_create(sphere_2);
+    entity_add_component(
+        sphere_4, TRANSFORMATION_T, 
+        transformation_create(
+            vec3(0.3, 0.3, 0.3),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 1.5, 0.0)
+        )
+    );
+    entity_add_component(
+        sphere_4, MESH_T, mesh_create_icosahedron());
+    entity_add_component(
+        sphere_4, MATERIAL_T, 
+        material_create(
+            vec3(0.1, 0.1, 0.95),
+            vec3(0.001, 0.001, 0.0095),
+            vec3(1.0, 1.0, 1.0),
+            256
+        )
+    );
+    entity_add_component(sphere_4, HAS_POINT_SHADOW_T, NULL);
         
 
     Texture sun_icon_texture;
@@ -194,7 +216,8 @@ int main(void) {
         camera_mouse_controller_create_script(
             &camera_mouse_controller_args));
 
-    entity_create_gui_pane(0.001, 0.948, 0.2, 0.05, "Hello, ZALOOPA 8==o");
+    entity_create_gui_pane(
+        10, 10, 800, 72, 24, "Hello, ZALOOPA 8==o");
 
     size_t entity_selection_0 = entity_create(-1);
     // TODO: use script args as a pointer? Like all other components.

@@ -12,8 +12,9 @@ void _update_scripts();
 void _render_point_shadows();
 void _render_gbuffer();
 void _render_color(GLuint point_shadow_tex);
-void _render_gui_rects();
-void _render_gui_texts(GLuint font_tex);
+void _render_gui_rects(size_t viewport_width, size_t viewport_height);
+void _render_gui_texts(
+    GLuint font_tex, size_t viewport_width, size_t viewport_height);
 void _render_sprites();
 void _render_meshes(GLuint program, int set_material, int set_entity_id);
 
@@ -103,8 +104,13 @@ int renderer_update(Renderer* renderer) {
     _render_sprites();
     
     glDisable(GL_DEPTH_TEST);
-    _render_gui_rects();
-    _render_gui_texts(renderer->gui_font_texture.tex);
+    _render_gui_rects(
+        renderer->viewport_width, renderer->viewport_height);
+    _render_gui_texts(
+        renderer->gui_font_texture.tex,
+        renderer->viewport_width,
+        renderer->viewport_height
+    );
 
     return 1;
 }
@@ -203,20 +209,26 @@ void _render_point_shadows() {
     }
 }
 
-void _render_gui_rects() {
+void _render_gui_rects(size_t viewport_width, size_t viewport_height) {
     GLuint program = PROGRAM_GUI_RECT; 
     glUseProgram(program);
 
     for (size_t i = 0; i < N_GUI_RECT_ENTITIES; ++i) {
         size_t entity = GUI_RECT_ENTITIES[i];
+        GUIRect* rect = (GUIRect*)COMPONENTS[GUI_RECT_T][entity];
+
         Mat4 world_mat = entity_get_world_mat(entity);
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true);
+        program_set_uniform_1i(program, "width", rect->width);
+        program_set_uniform_1i(program, "height", rect->height);
+        program_set_uniform_1i(program, "viewport_width", viewport_width);
+        program_set_uniform_1i(program, "viewport_height", viewport_height);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 }
 
-void _render_gui_texts(GLuint font_tex) {
+void _render_gui_texts(GLuint font_tex, size_t viewport_width, size_t viewport_height) {
     GLuint program = PROGRAM_GUI_TEXT;
     glUseProgram(program);
     glUniform1i(GUI_FONT_TEXTURE_LOCATION_IDX, 0);
@@ -230,6 +242,9 @@ void _render_gui_texts(GLuint font_tex) {
 
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true);
+        program_set_uniform_1i(program, "font_height", text->font_height);
+        program_set_uniform_1i(program, "viewport_width", viewport_width);
+        program_set_uniform_1i(program, "viewport_height", viewport_height);
         program_set_uniform_1uiv(program, "char_inds", text->char_inds, text->n_chars);
         glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
     }

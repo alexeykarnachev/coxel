@@ -1,4 +1,7 @@
 uniform mat4 world_mat;
+uniform int font_height;
+uniform int viewport_width;
+uniform int viewport_height;
 uniform uint char_inds[GUI_TEXT_MAX_N_CHARS];
 
 out VertexData {
@@ -10,20 +13,20 @@ out VertexData {
 void main() {
     int id = gl_VertexID;
 
-    float font_width = world_mat[0][0];
-    float font_height = world_mat[1][1];
-    float x = world_mat[3][0];
-    float y = world_mat[3][1];
+    float h = float(font_height) / float(viewport_height);
+    float w = h * GUI_FONT_ASPECT;
+    float x = world_mat[3][0] / float(viewport_width);
+    float y = world_mat[3][1] / float(viewport_height);
 
-    float font_aspect = font_width / font_height;
+    float font_aspect = w / h;
 
     int char_id = id / 6;
     int id_mod_6 = id % 6;
     int id_mod_2 = id % 2;
     vec2 tex_pos = vec2(float(id_mod_6 == 0 || id_mod_6 == 4 || id_mod_6 == 5), float(id_mod_2 == 1));
 
-    float x_ = x + font_width * char_id + font_width * tex_pos.x + GUI_FONT_TRACKING * char_id;
-    float y_ = y + font_height * tex_pos.y;
+    float x_ = x + w * char_id + w * tex_pos.x + GUI_FONT_TRACKING * char_id;
+    float y_ = y + h * tex_pos.y;
     x_ = x_ * 2.0 - 1.0;
     y_ = y_ * 2.0 - 1.0;
 
