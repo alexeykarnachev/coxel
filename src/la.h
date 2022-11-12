@@ -387,6 +387,7 @@ void mat4_print(Mat4* m) {
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 void mat3_print(Mat3* m) {
@@ -396,6 +397,7 @@ void mat3_print(Mat3* m) {
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 void vec3_print(Vec3* v) {

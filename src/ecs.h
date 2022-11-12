@@ -48,9 +48,11 @@ size_t N_GUI_RECT_ENTITIES = 0;
 size_t N_GUI_TEXT_ENTITIES = 0;
 size_t N_SPRITE_ENTITIES = 0;
 
-size_t entity_create(size_t parent);
-void entity_add_component(size_t entity, COMPONENT_TYPE type, void* ptr);
-Mat4 entity_get_world_mat(size_t entity);
+size_t ecs_create_entity(size_t parent);
+void ecs_add_component(size_t entity, COMPONENT_TYPE type, void* ptr);
+Mat4 ecs_get_world_mat(size_t entity);
+
+int ecs_get_active_camera_entity();
 
 void ecs_update();
 int ecs_check_if_camera(size_t entity);
@@ -107,7 +109,7 @@ void ecs_update() {
     }
 }
 
-size_t entity_create(size_t parent) {
+size_t ecs_create_entity(size_t parent) {
     Entity* entity = &ENTITIES[N_ENTITIES];
     size_t id = N_ENTITIES++;
 
@@ -117,7 +119,7 @@ size_t entity_create(size_t parent) {
     return id;
 }
 
-Mat4 entity_get_world_mat(size_t entity) {
+Mat4 ecs_get_world_mat(size_t entity) {
     Mat4 result = mat4_identity();
 
     do {
@@ -132,7 +134,15 @@ Mat4 entity_get_world_mat(size_t entity) {
     return result;
 }
 
-void entity_add_component(size_t entity, COMPONENT_TYPE type, void* ptr) {
+int ecs_get_active_camera_entity() {
+    if (N_CAMERA_ENTITIES) {
+        return CAMERA_ENTITIES[0];
+    } else {
+        return -1;
+    }
+}
+
+void ecs_add_component(size_t entity, COMPONENT_TYPE type, void* ptr) {
     COMPONENTS[type][entity] = ptr; 
     bitset_set_bit(&ENTITIES[entity].components, type);
 }

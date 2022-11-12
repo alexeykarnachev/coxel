@@ -50,7 +50,8 @@ GLuint PROGRAM_MATERIAL;
 GLuint PROGRAM_POINT_SHADOW;
 GLuint PROGRAM_GUI_RECT;
 GLuint PROGRAM_GUI_TEXT;
-GLuint PROGRAM_DEFERRED;
+GLuint PROGRAM_MESH_GBUFFER;
+GLuint PROGRAM_GUI_GBUFFER;
 GLuint PROGRAM_SPRITE;
 
 bool program_create_all() {
@@ -76,10 +77,19 @@ bool program_create_all() {
         2, deps_file_paths
     );
 
-    PROGRAM_DEFERRED = glCreateProgram();
+    PROGRAM_MESH_GBUFFER = glCreateProgram();
     ok &= program_create(
-        PROGRAM_DEFERRED,
+        PROGRAM_MESH_GBUFFER,
         VERT_PROJECTION_SHADER,
+        NULL, NULL, NULL,
+        FRAG_GBUFFER_SHADER,
+        2, deps_file_paths
+    );
+
+    PROGRAM_GUI_GBUFFER = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_GUI_GBUFFER,
+        VERT_GUI_RECT_SHADER,
         NULL, NULL, NULL,
         FRAG_GBUFFER_SHADER,
         2, deps_file_paths

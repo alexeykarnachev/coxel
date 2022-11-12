@@ -10,9 +10,14 @@ typedef struct Renderer {
 
 void _update_scripts();
 void _render_point_shadows();
-void _render_gbuffer();
+void _render_gbuffer(size_t viewport_width, size_t vieport_height);
 void _render_color(GLuint point_shadow_tex);
-void _render_gui_rects(size_t viewport_width, size_t viewport_height);
+void _render_gui_rects(
+    GLuint program,
+    size_t viewport_width,
+    size_t viewport_height,
+    int set_entity_id
+);
 void _render_gui_texts(
     GLuint font_tex, size_t viewport_width, size_t viewport_height);
 void _render_sprites();
@@ -84,7 +89,7 @@ int renderer_update(Renderer* renderer) {
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->gbuffer.fbo);
     glViewport(0, 0, renderer->gbuffer.width, renderer->gbuffer.height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _render_gbuffer();
+    _render_gbuffer(renderer->viewport_width, renderer->viewport_height);
     
     // Target: point shadow buffer
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->point_shadow_buffer.fbo);
@@ -105,7 +110,10 @@ int renderer_update(Renderer* renderer) {
     
     glDisable(GL_DEPTH_TEST);
     _render_gui_rects(
-        renderer->viewport_width, renderer->viewport_height);
+        PROGRAM_GUI_RECT,
+        renderer->viewport_width,
+        renderer->viewport_height, 0
+    );
     _render_gui_texts(
         renderer->gui_font_texture.tex,
         renderer->viewport_width,
@@ -123,13 +131,18 @@ void _update_scripts() {
     }
 }
 
-void _render_meshes(GLuint program, int set_material, int set_entity_id) {
+void _render_meshes(
+    GLuint program,
+    int set_material,
+    int set_entity_id
+) {
+    glUseProgram(program);
     _set_uniform_camera(program);
 
     VAOBuffer* vao_buffer = NULL;
     for (size_t i = 0; i < N_RENDERABLE_ENTITIES; ++i) {
         size_t entity = RENDERABLE_ENTITIES[i];
-        Mat4 world_mat = entity_get_world_mat(entity);
+        Mat4 world_mat = ecs_get_world_mat(entity);
         Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
 
         if (
@@ -172,11 +185,10 @@ void _render_color(GLuint point_shadow_tex) {
     _render_meshes(program, 1, 0);
 }
 
-void _render_gbuffer() {
-    GLuint program = PROGRAM_DEFERRED;
-    glUseProgram(program);
-
-    _render_meshes(program, 0, 1);
+void _render_gbuffer(size_t viewport_width, size_t viewport_height) {
+    _render_meshes(PROGRAM_MESH_GBUFFER, 0, 1);
+    _render_gui_rects(
+        PROGRAM_GUI_GBUFFER, viewport_width, viewport_height, 1);
 }
 
 void _render_point_shadows() {
@@ -190,7 +202,7 @@ void _render_point_shadows() {
     // Could be factored out.
     for (size_t i = 0; i < N_HAS_POINT_SHADOW_ENTITIES; ++i) {
         size_t entity = HAS_POINT_SHADOW_ENTITIES[i];
-        Mat4 world_mat = entity_get_world_mat(entity);
+        Mat4 world_mat = ecs_get_world_mat(entity);
         Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
 
         if (
@@ -209,21 +221,30 @@ void _render_point_shadows() {
     }
 }
 
-void _render_gui_rects(size_t viewport_width, size_t viewport_height) {
-    GLuint program = PROGRAM_GUI_RECT; 
+void _render_gui_rects(
+    GLuint program,
+    size_t viewport_width,
+    size_t viewport_height,
+    int set_entity_id
+) {
     glUseProgram(program);
 
     for (size_t i = 0; i < N_GUI_RECT_ENTITIES; ++i) {
         size_t entity = GUI_RECT_ENTITIES[i];
         GUIRect* rect = (GUIRect*)COMPONENTS[GUI_RECT_T][entity];
 
-        Mat4 world_mat = entity_get_world_mat(entity);
+        Mat4 world_mat = ecs_get_world_mat(entity);
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true);
         program_set_uniform_1i(program, "width", rect->width);
         program_set_uniform_1i(program, "height", rect->height);
         program_set_uniform_1i(program, "viewport_width", viewport_width);
         program_set_uniform_1i(program, "viewport_height", viewport_height);
+
+        if (set_entity_id) {
+            program_set_uniform_1i(program, "entity_id", entity);
+        }
+
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 }
@@ -237,7 +258,7 @@ void _render_gui_texts(GLuint font_tex, size_t viewport_width, size_t viewport_h
 
     for (size_t i = 0; i < N_GUI_TEXT_ENTITIES; ++i) {
         size_t entity = GUI_TEXT_ENTITIES[i];
-        Mat4 world_mat = entity_get_world_mat(entity);
+        Mat4 world_mat = ecs_get_world_mat(entity);
         GUIText* text = (GUIText*)COMPONENTS[GUI_TEXT_T][entity];
 
         program_set_uniform_matrix_4fv(
@@ -259,7 +280,7 @@ void _render_sprites() {
 
     for (size_t i = 0; i < N_SPRITE_ENTITIES; ++i) {
         size_t entity = SPRITE_ENTITIES[i];
-        Mat4 world_mat = entity_get_world_mat(entity);
+        Mat4 world_mat = ecs_get_world_mat(entity);
 
         // TODO: Dont't bind the same texture and the same sprite if
         // already binded!
@@ -282,27 +303,24 @@ void _render_sprites() {
 }
 
 void _set_uniform_camera(GLuint program) {
-    for (size_t i = 0; i < N_CAMERA_ENTITIES; ++i) {
-        size_t entity = CAMERA_ENTITIES[i];
-        Camera* camera = (Camera*)COMPONENTS[CAMERA_T][entity];
-        Transformation* transformation =
-            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
-
-        program_set_uniform_4fv(
-            program, "camera.world_pos",
-            transformation->position.data, 1);
-        program_set_uniform_matrix_4fv(
-            program, "camera.view_mat",
-            camera_get_view_mat(camera, transformation).data, 1, 1);
-        program_set_uniform_matrix_4fv(
-            program, "camera.proj_mat",
-            camera_get_perspective_projection_mat(camera).data, 1, 1);
-
-        // TODO: Currently I handle only one camera: the first one in the
-        // CAMERA_ENTITIES array. I need to handle another ones if exist.
-        // Maybe, introduce camera flag `is_active` or so.
-        break;
+    int entity = ecs_get_active_camera_entity();
+    if (entity == -1) {
+        return;
     }
+
+    Camera* camera = (Camera*)COMPONENTS[CAMERA_T][entity];
+    Transformation* transformation =
+        (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+
+    program_set_uniform_4fv(
+        program, "camera.world_pos",
+        transformation->position.data, 1);
+    program_set_uniform_matrix_4fv(
+        program, "camera.view_mat",
+        camera_get_view_mat(camera, transformation).data, 1, 1);
+    program_set_uniform_matrix_4fv(
+        program, "camera.proj_mat",
+        camera_get_perspective_projection_mat(camera).data, 1, 1);
 }
 
 void _set_uniform_point_lights(GLuint program) {

@@ -50,7 +50,6 @@ Mat4 camera_get_view_mat(Camera* cam, Transformation* t) {
     return get_view_mat(&view_dir, &cam->up, &t->position);
 }
 
-// TODO: This function is not needed! It's just add abstraction complexity!
 Mat4 camera_get_perspective_projection_mat(Camera* camera) {
     return get_perspective_projection_mat(
         camera->fov, camera->near, camera->far, camera->aspect);
