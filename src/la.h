@@ -312,6 +312,71 @@ Mat4 mat4_transpose(Mat4* m) {
     return t;
 }
 
+Mat4 mat4_inverse(Mat4* m) {
+    float m00 = m->data[0 * 4 + 0]; 
+    float m01 = m->data[0 * 4 + 1]; 
+    float m02 = m->data[0 * 4 + 2]; 
+    float m03 = m->data[0 * 4 + 3]; 
+    float m10 = m->data[1 * 4 + 0]; 
+    float m11 = m->data[1 * 4 + 1]; 
+    float m12 = m->data[1 * 4 + 2]; 
+    float m13 = m->data[1 * 4 + 3]; 
+    float m20 = m->data[2 * 4 + 0]; 
+    float m21 = m->data[2 * 4 + 1]; 
+    float m22 = m->data[2 * 4 + 2]; 
+    float m23 = m->data[2 * 4 + 3]; 
+    float m30 = m->data[3 * 4 + 0]; 
+    float m31 = m->data[3 * 4 + 1]; 
+    float m32 = m->data[3 * 4 + 2]; 
+    float m33 = m->data[3 * 4 + 3]; 
+
+    float A2323 = m22 * m33 - m23 * m32;
+    float A1323 = m21 * m33 - m23 * m31;
+    float A1223 = m21 * m32 - m22 * m31;
+    float A0323 = m20 * m33 - m23 * m30;
+    float A0223 = m20 * m32 - m22 * m30;
+    float A0123 = m20 * m31 - m21 * m30;
+    float A2313 = m12 * m33 - m13 * m32;
+    float A1313 = m11 * m33 - m13 * m31;
+    float A1213 = m11 * m32 - m12 * m31;
+    float A2312 = m12 * m23 - m13 * m22;
+    float A1312 = m11 * m23 - m13 * m21;
+    float A1212 = m11 * m22 - m12 * m21;
+    float A0313 = m10 * m33 - m13 * m30;
+    float A0213 = m10 * m32 - m12 * m30;
+    float A0312 = m10 * m23 - m13 * m20;
+    float A0212 = m10 * m22 - m12 * m20;
+    float A0113 = m10 * m31 - m11 * m30;
+    float A0112 = m10 * m21 - m11 * m20;
+
+    float det = m00 * ( m11 * A2323 - m12 * A1323 + m13 * A1223 )
+        - m01 * ( m10 * A2323 - m12 * A0323 + m13 * A0223 )
+        + m02 * ( m10 * A1323 - m11 * A0323 + m13 * A0123 )
+        - m03 * ( m10 * A1223 - m11 * A0223 + m12 * A0123 );
+    det = 1 / det;
+
+    Mat4 res = {{
+       det *   ( m11 * A2323 - m12 * A1323 + m13 * A1223 ),
+       det * - ( m01 * A2323 - m02 * A1323 + m03 * A1223 ),
+       det *   ( m01 * A2313 - m02 * A1313 + m03 * A1213 ),
+       det * - ( m01 * A2312 - m02 * A1312 + m03 * A1212 ),
+       det * - ( m10 * A2323 - m12 * A0323 + m13 * A0223 ),
+       det *   ( m00 * A2323 - m02 * A0323 + m03 * A0223 ),
+       det * - ( m00 * A2313 - m02 * A0313 + m03 * A0213 ),
+       det *   ( m00 * A2312 - m02 * A0312 + m03 * A0212 ),
+       det *   ( m10 * A1323 - m11 * A0323 + m13 * A0123 ),
+       det * - ( m00 * A1323 - m01 * A0323 + m03 * A0123 ),
+       det *   ( m00 * A1313 - m01 * A0313 + m03 * A0113 ),
+       det * - ( m00 * A1312 - m01 * A0312 + m03 * A0112 ),
+       det * - ( m10 * A1223 - m11 * A0223 + m12 * A0123 ),
+       det *   ( m00 * A1223 - m01 * A0223 + m02 * A0123 ),
+       det * - ( m00 * A1213 - m01 * A0213 + m02 * A0113 ),
+       det *   ( m00 * A1212 - m01 * A0212 + m02 * A0112 ),
+    }};
+
+    return res;
+}
+
 Mat4 get_world_mat(Vec3* scale, Vec3* rotation, Vec3* translation) {
     Mat3 scale_mat = {{
         scale->data[0], 0.0, 0.0,

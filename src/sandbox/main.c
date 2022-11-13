@@ -1,5 +1,6 @@
 #include "../includes.h"
 
+
 int main(void) {
     window_create(SCREEN_WIDTH, SCREEN_HEIGHT);
     Renderer renderer;

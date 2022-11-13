@@ -33,8 +33,8 @@ static void cursor_position_callback(GLFWwindow* window, double x, double y) {
     y /= INPUT.window_height;
     y = 1.0 - y;
 
-    inp->cursor_dx = inp->cursor_x - x; 
-    inp->cursor_dy = inp->cursor_y - y;
+    inp->cursor_dx = x - inp->cursor_x; 
+    inp->cursor_dy = y - inp->cursor_y;
     inp->cursor_x = x;
     inp->cursor_y = y;
 }

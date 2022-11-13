@@ -28,8 +28,8 @@ void _translate(
     Vec3 y = mat3_get_row(&basis, 1);
     Vec3 z = mat3_get_row(&basis, 2);
 
-    x = vec3_scale(&x, dx);
-    y = vec3_scale(&y, dy);
+    x = vec3_scale(&x, -dx);
+    y = vec3_scale(&y, -dy);
     z = vec3_scale(&z, dz);
     
     t->position.data[0] += x.data[0] + y.data[0] + z.data[0];
@@ -63,8 +63,8 @@ void _camera_mouse_controller_update(size_t entity, void* args_p) {
     } else if (INPUT.mouse_middle_pressed) {
         _rotate(
             t,
-            INPUT.cursor_dy * args->rotation_sens,
-            -INPUT.cursor_dx * args->rotation_sens
+            -INPUT.cursor_dy * args->rotation_sens,
+            INPUT.cursor_dx * args->rotation_sens
         );
     } else if (fabs(INPUT.scroll_dy) > EPS) {
         _translate(
