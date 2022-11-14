@@ -6,12 +6,12 @@ typedef struct Input {
     float window_height;
     int32_t window_should_close;
 
-    float cursor_x;
-    float cursor_y;
-    float cursor_dx;
-    float cursor_dy;
+    double cursor_x;
+    double cursor_y;
+    double cursor_dx;
+    double cursor_dy;
 
-    float scroll_dy;
+    double scroll_dy;
 
     int32_t mouse_middle_pressed;
     int32_t mouse_left_pressed;
@@ -24,14 +24,15 @@ typedef struct Input {
 
 Input INPUT;
 
+
 static void cursor_position_callback(GLFWwindow* window, double x, double y) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     x /= INPUT.window_width;
     y /= INPUT.window_height;
     y = 1.0 - y;
 
-    inp->cursor_dx = x - inp->cursor_x; 
-    inp->cursor_dy = y - inp->cursor_y;
+    inp->cursor_dx += x - inp->cursor_x; 
+    inp->cursor_dy += y - inp->cursor_y;
     inp->cursor_x = x;
     inp->cursor_y = y;
 }
@@ -49,7 +50,7 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
 
 static void scroll_callback(GLFWwindow* window, double x, double y) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
-    inp->scroll_dy = y;
+    inp->scroll_dy += y;
 }
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
