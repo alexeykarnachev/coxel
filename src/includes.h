@@ -6,7 +6,7 @@
 #define clear_struct(s) (memset(s, 0, sizeof(*s)))
 #define min(a,b) (((a)<(b))?(a):(b))
 #define max(a,b) (((a)>(b))?(a):(b))
-#define sign(x) ((fabs(x) > EPS ? (x > 0 ? 1 : -1) : 0))
+#define sign(x) ((fabs(x) > EPS ? (x > 0.0 ? 1.0 : -1.0) : 0.0))
 #define check_framebuffer(fail_return_value) \
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {\
         fprintf(stderr, "ERROR: framebuffer not complete\n");\

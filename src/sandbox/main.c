@@ -230,7 +230,7 @@ int main(void) {
 
     size_t entity_mouse_drag_0 = ecs_create_entity(-1);
     EntityMouseDragArgs entity_mouse_drag_args =
-        {&entity_mouse_selection_args.cursor_on_entity};
+        {&entity_mouse_selection_args.entity};
     ecs_add_component(
         entity_mouse_drag_0, SCRIPT_T,
         entity_mouse_drag_create_script(
