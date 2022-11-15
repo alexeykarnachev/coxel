@@ -52,6 +52,7 @@ GLuint PROGRAM_GUI_RECT;
 GLuint PROGRAM_GUI_TEXT;
 GLuint PROGRAM_MESH_GBUFFER;
 GLuint PROGRAM_GUI_GBUFFER;
+GLuint PROGRAM_SPRITE_GBUFFER;
 GLuint PROGRAM_SPRITE;
 
 bool program_create_all() {
@@ -90,6 +91,15 @@ bool program_create_all() {
     ok &= program_create(
         PROGRAM_GUI_GBUFFER,
         VERT_GUI_RECT_SHADER,
+        NULL, NULL, NULL,
+        FRAG_GBUFFER_SHADER,
+        2, deps_file_paths
+    );
+
+    PROGRAM_SPRITE_GBUFFER = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_SPRITE_GBUFFER,
+        VERT_SPRITE_SHADER,
         NULL, NULL, NULL,
         FRAG_GBUFFER_SHADER,
         2, deps_file_paths

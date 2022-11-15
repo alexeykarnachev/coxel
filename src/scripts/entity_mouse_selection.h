@@ -43,7 +43,7 @@ void _entity_mouse_selection_update(size_t _, void* args_p) {
 EntityMouseSelectionArgs entity_mouse_selection_create_default_args(
     TextureBuffer* gbuffer
 ) {
-    Vec3 color = {{0.5, 0.5, 0.0}};
+    Vec3 color = {{0.8, 0.8, -1000.0}};
     EntityMouseSelectionArgs args = {-1, color, gbuffer};
     return args;
 }

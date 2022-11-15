@@ -3,6 +3,15 @@ in VertexData {
     vec2 tex_pos;
 } vertex_data;
 
+struct Material {
+    vec4 diffuse_color;
+    vec4 ambient_color;
+    vec4 specular_color;
+    vec4 constant_color;
+    float shininess;
+};
+
+uniform Material material;
 layout(location=SPRITE_TEXTURE_LOCATION_IDX) uniform sampler2D sprite_texture;
 
 out vec4 frag_color;
@@ -14,5 +23,5 @@ void main() {
     if (color.a < 0.01) {
         discard;
     }
-    frag_color = color;
+    frag_color = color + material.constant_color;
 }

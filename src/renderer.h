@@ -20,7 +20,12 @@ void _render_gui_rects(
 );
 void _render_gui_texts(
     GLuint font_tex, size_t viewport_width, size_t viewport_height);
-void _render_sprites();
+void _render_sprites(
+    GLuint program,
+    int set_texture,
+    int set_material,
+    int set_intity_id
+);
 void _render_meshes(GLuint program, int set_material, int set_entity_id);
 
 void _set_uniform_camera(GLuint program);
@@ -104,9 +109,6 @@ int renderer_update(Renderer* renderer) {
     glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_color(renderer->point_shadow_buffer.tex);
-
-    // glDisable(GL_CULL_FACE);
-    _render_sprites();
     
     glDisable(GL_DEPTH_TEST);
     _render_gui_rects(
@@ -183,10 +185,12 @@ void _render_color(GLuint point_shadow_tex) {
     glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, point_shadow_tex);
 
     _render_meshes(program, 1, 0);
+    _render_sprites(PROGRAM_SPRITE, 1, 1, 0);
 }
 
 void _render_gbuffer(size_t viewport_width, size_t viewport_height) {
     _render_meshes(PROGRAM_MESH_GBUFFER, 0, 1);
+    _render_sprites(PROGRAM_SPRITE_GBUFFER, 0, 0, 1);
     _render_gui_rects(
         PROGRAM_GUI_GBUFFER, viewport_width, viewport_height, 1);
 }
@@ -271,8 +275,12 @@ void _render_gui_texts(GLuint font_tex, size_t viewport_width, size_t viewport_h
     }
 }
 
-void _render_sprites() {
-    GLuint program = PROGRAM_SPRITE;
+void _render_sprites(
+    GLuint program,
+    int set_texture,
+    int set_material,
+    int set_entity_id
+) {
     glUseProgram(program);
     glUniform1i(SPRITE_TEXTURE_LOCATION_IDX, 0);
 
@@ -283,20 +291,37 @@ void _render_sprites() {
         Mat4 world_mat = ecs_get_world_mat(entity);
 
         // TODO: Dont't bind the same texture and the same sprite if
-        // already binded!
+        // already binded.
         Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_T][entity];
         GLuint tex = sprite->texture->tex;
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, tex);
 
-        float tex_pos[4] = {
-            sprite->tex_x,
-            sprite->tex_y,
-            sprite->tex_width,
-            sprite->tex_height};
-        program_set_uniform_4fv(program, "tex_pos", tex_pos, 1);
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true);
+
+        if (set_texture) {
+            float tex_pos[4] = {
+                sprite->tex_x,
+                sprite->tex_y,
+                sprite->tex_width,
+                sprite->tex_height};
+            program_set_uniform_4fv(program, "tex_pos", tex_pos, 1);
+        }
+
+        if (set_material) {
+            // TODO: Don't bind the material if already binded.
+            Material* material = (Material*)COMPONENTS[MATERIAL_T][entity];
+            // TODO: Maybe it's possible to replace this logic with the
+            // notion of a default material.
+            if (material) {
+                _set_uniform_material(program, material);
+            }
+        }
+
+        if (set_entity_id) {
+            program_set_uniform_1i(program, "entity_id", entity);
+        }
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
