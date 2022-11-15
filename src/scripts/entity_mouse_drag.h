@@ -26,8 +26,6 @@ void _entity_mouse_drag_update(size_t _, void* args_p) {
 
     Transformation* entity_transformation = 
         (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
-    Vec3 entity_position = entity_transformation->position;
-
     if (!entity_transformation) {
         return;
     }
@@ -43,14 +41,25 @@ void _entity_mouse_drag_update(size_t _, void* args_p) {
     Mat4 view_inv = mat4_inverse(&view_mat);
     Mat4 vp_inv = mat4_mat4_mul(&view_inv, &proj_inv);
 
-    Vec4 entity_proj_position = mat4_vec3_mul(&vp_mat, &entity_position);
+    Vec3 entity_world_position = ecs_get_world_position(entity);
+    Vec4 entity_proj_position = mat4_vec3_mul(
+        &vp_mat, &entity_world_position);
 
     float dx = INPUT.cursor_dx * 2.0;
     float dy = INPUT.cursor_dy * 2.0;
     entity_proj_position.data[0] += dx * entity_proj_position.data[3];
     entity_proj_position.data[1] += dy * entity_proj_position.data[3];
-    Vec4 entity_new_position = mat4_vec4_mul(&vp_inv, &entity_proj_position);
-    entity_transformation->position = vec4_to_vec3(&entity_new_position);
+    Vec4 entity_new_world_position_4 = mat4_vec4_mul(
+        &vp_inv, &entity_proj_position);
+    Vec3 entity_new_world_position = vec4_to_vec3(
+        &entity_new_world_position_4);
+
+    Mat4 origin_world_mat = ecs_get_origin_world_mat(entity);
+    origin_world_mat = mat4_inverse(&origin_world_mat);
+    Vec4 entity_new_position_4 = mat4_vec3_mul(
+        &origin_world_mat, &entity_new_world_position);
+    entity_transformation->position = vec4_to_vec3(
+        &entity_new_position_4);
 }
 
 Script* entity_mouse_drag_create_script(

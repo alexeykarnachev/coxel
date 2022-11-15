@@ -51,7 +51,8 @@ size_t N_SPRITE_ENTITIES = 0;
 size_t ecs_create_entity(size_t parent);
 void ecs_add_component(size_t entity, COMPONENT_TYPE type, void* ptr);
 Mat4 ecs_get_world_mat(size_t entity);
-Vec3 ecs_get_origin_position(size_t entity);
+Vec3 ecs_get_world_position(size_t entity);
+Mat4 ecs_get_origin_world_mat(size_t entity);
 
 int ecs_get_active_camera_entity();
 
@@ -135,19 +136,24 @@ Mat4 ecs_get_world_mat(size_t entity) {
     return result;
 }
 
-Vec3 ecs_get_origin_position(size_t entity) {
+Mat4 ecs_get_origin_world_mat(size_t entity) {
     size_t parent = ENTITIES[entity].parent_id;
-    Vec3 pos;
+    Mat4 world_mat;
     if (parent != -1) {
-        Mat4 world_mat = ecs_get_world_mat(parent);
-        pos = vec3(
-            world_mat.data[3],
-            world_mat.data[7],
-            world_mat.data[11]
-        );
+        world_mat = ecs_get_world_mat(parent);
     } else {
-        pos = vec3_zeros();
+        world_mat = mat4_identity();
     }
+    return world_mat;
+}
+
+Vec3 ecs_get_world_position(size_t entity) {
+    Mat4 world_mat = ecs_get_world_mat(entity);
+    Vec3 pos = vec3(
+        world_mat.data[3],
+        world_mat.data[7],
+        world_mat.data[11]
+    );
     return pos;
 }
 
