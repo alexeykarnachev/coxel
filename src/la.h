@@ -100,6 +100,11 @@ Vec3 vec3_add_vals(Vec3 v, float x, float y, float z) {
     v.data[2] += z;
 }
 
+Vec4 vec3_to_vec4(Vec3* v, float w) {
+    Vec4 res = {{v->data[0], v->data[1], v->data[2], w}};
+    return res;
+}
+
 Vec3 vec4_to_vec3(Vec4* v) {
     Vec3 res = {{v->data[0], v->data[1], v->data[2]}};
     return res;

@@ -79,7 +79,8 @@ bool window_create(size_t width, size_t height) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    _WINDOW = glfwCreateWindow(width, height, "Coxel", glfwGetPrimaryMonitor(), NULL);
+    // _WINDOW = glfwCreateWindow(width, height, "Coxel", glfwGetPrimaryMonitor(), NULL);
+    _WINDOW = glfwCreateWindow(width, height, "Coxel", NULL, NULL);
     if (_WINDOW == NULL) {
         printf("ERROR: failed to create GLFW window");
         glfwTerminate();
