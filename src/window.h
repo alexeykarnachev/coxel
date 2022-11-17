@@ -1,6 +1,6 @@
 typedef struct Input {
-    float t;
-    float dt;
+    double t;
+    double dt;
 
     float window_width;
     float window_height;
