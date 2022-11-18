@@ -52,7 +52,6 @@
 #include "editor/gui_pane.h"
 #include "window.h"
 #include "scripts/camera_mouse_controller.h"
-#include "scripts/entity_mouse_selection.h"
 #include "scripts/entity_mouse_drag.h"
 #include "renderer.h"
 
