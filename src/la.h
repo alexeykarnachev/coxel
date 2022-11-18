@@ -29,12 +29,20 @@ void mat3_print(Mat3* m);
 void vec3_print(Vec3* v);
 void vec4_print(Vec4* v);
 
+Vec3 vec3_zeros = {{0.0, 0.0, 0.0}};
+Vec3 vec3_ones = {{1.0, 1.0, 1.0}};
 Vec3 vec3_pos_x = {{1.0, 0.0, 0.0}};
 Vec3 vec3_neg_x = {{-1.0, 0.0, 0.0}};
 Vec3 vec3_pos_y = {{0.0, 1.0, 0.0}};
 Vec3 vec3_neg_y = {{0.0, -1.0, 0.0}};
 Vec3 vec3_pos_z = {{0.0, 0.0, 1.0}};
 Vec3 vec3_neg_z = {{0.0, 0.0, -1.0}};
+Mat4 mat4_identity = {{
+    1.0, 0.0, 0.0, 0.0,
+    0.0, 1.0, 0.0, 0.0,
+    0.0, 0.0, 1.0, 0.0,
+    0.0, 0.0, 0.0, 1.0
+}};
 
 Vec3 vec3_cross(Vec3* v1, Vec3* v2) {
     Vec3 res = {
@@ -489,26 +497,6 @@ void vec4_print(Vec4* v) {
     printf("\n");
 }
 
-Vec3 vec3_zeros() {
-    Vec3 vec = {{0.0f, 0.0f, 0.0f}};
-    return vec;
-}
-
-Vec3 vec3_ones() {
-    Vec3 vec = {{1.0f, 1.0f, 1.0f}};
-    return vec;
-}
-
-Mat4 mat4_identity() {
-    Mat4 mat = {{
-        1.0f, 0.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    }};
-    return mat;
-}
-
 void mat4_pack(float dst[], Mat4 mats[], size_t n_mats) {
     for (size_t i = 0; i < n_mats; ++i) {
         memcpy(&dst[i * 16], mats[i].data, sizeof(mats[i].data[0]) * 16);
@@ -560,5 +548,25 @@ CubemapViewProj get_cubemap_view_proj(
     mat4_transpose_pack(cubemap_view_proj.data, view_proj_mats, 6);
 
     return cubemap_view_proj;
+}
+
+int isect_line_plane(
+    Vec3* out_p,
+    Vec3* line_p0,
+    Vec3* line_p1,
+    Vec3* plane_p,
+    Vec3* plane_normal
+) {
+    Vec3 u = vec3_diff(line_p1, line_p0);
+    float dot = vec3_dot(plane_normal, &u);
+    if (fabs(dot) <= EPS) {
+        return 0;
+    }
+
+    Vec3 w = vec3_diff(line_p0, plane_p);
+    float k = -vec3_dot(plane_normal, &w) / dot;
+    u = vec3_scale(&u, k); 
+    *out_p = vec3_sum(line_p0, &u);
+    return 1;
 }
 

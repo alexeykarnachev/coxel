@@ -1,25 +1,33 @@
 typedef struct Input {
-    double t;
-    double dt;
+    float t;
+    float dt;
 
     float window_width;
     float window_height;
-    int32_t window_should_close;
+    int window_should_close;
 
-    double cursor_x;
-    double cursor_y;
-    double cursor_dx;
-    double cursor_dy;
+    float cursor_x;
+    float cursor_y;
+    float cursor_dx;
+    float cursor_dy;
 
-    double scroll_dy;
+    float scroll_dy;
 
-    int32_t mouse_middle_pressed;
-    int32_t mouse_left_pressed;
-    int32_t mouse_middle_released;
-    int32_t mouse_left_released;
+    int mouse_middle_released;
+    int mouse_left_released;
+    int shift_released;
+    int g_released;
+    int x_released;
+    int y_released;
+    int z_released;
 
-    int32_t shift_pressed;
-    int32_t g_pressed;
+    int mouse_middle_pressed;
+    int mouse_left_pressed;
+    int shift_pressed;
+    int g_pressed;
+    int x_pressed;
+    int y_pressed;
+    int z_pressed;
 } Input;
 
 Input INPUT;
@@ -60,8 +68,19 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         inp->window_should_close = true;
     } else if (key == GLFW_KEY_LEFT_SHIFT) {
         inp->shift_pressed = action == GLFW_PRESS;
+        inp->shift_released = action == GLFW_PRESS;
     } else if (key == GLFW_KEY_G) {
         inp->g_pressed = action == GLFW_PRESS;
+        inp->g_released = action == GLFW_PRESS;
+    } else if (key == GLFW_KEY_X) {
+        inp->x_pressed = action == GLFW_PRESS;
+        inp->x_released = action == GLFW_PRESS;
+    } else if (key == GLFW_KEY_Y) {
+        inp->y_pressed = action == GLFW_PRESS;
+        inp->y_released = action == GLFW_PRESS;
+    } else if (key == GLFW_KEY_Z) {
+        inp->z_pressed = action == GLFW_PRESS;
+        inp->z_released = action == GLFW_PRESS;
     }
 }
 
@@ -110,7 +129,13 @@ void input_clear() {
     INPUT.cursor_dx = 0.0;
     INPUT.cursor_dy = 0.0;
     INPUT.scroll_dy = 0.0;
-    INPUT.mouse_left_released = 0.0;
+    INPUT.mouse_middle_released = 0;
+    INPUT.mouse_left_released = 0;
+    INPUT.shift_released = 0;
+    INPUT.g_released = 0;
+    INPUT.x_released = 0;
+    INPUT.y_released = 0;
+    INPUT.z_released = 0;
 }
 
 void window_update() {

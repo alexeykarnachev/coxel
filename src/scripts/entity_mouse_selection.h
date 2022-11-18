@@ -31,7 +31,7 @@ void _entity_mouse_selection_update(size_t _, void* args_p) {
     Material* prev_material = _get_material(prev_entity);
 
     if (prev_material) {
-        prev_material->constant_color = vec3_zeros();
+        prev_material->constant_color = vec3_zeros;
     }
     if (material) {
         material->constant_color = args->color;

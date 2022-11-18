@@ -122,7 +122,7 @@ size_t ecs_create_entity(size_t parent) {
 }
 
 Mat4 ecs_get_world_mat(size_t entity) {
-    Mat4 result = mat4_identity();
+    Mat4 result = mat4_identity;
 
     do {
         Transformation* t = COMPONENTS[TRANSFORMATION_T][entity];
@@ -142,7 +142,7 @@ Mat4 ecs_get_origin_world_mat(size_t entity) {
     if (parent != -1) {
         world_mat = ecs_get_world_mat(parent);
     } else {
-        world_mat = mat4_identity();
+        world_mat = mat4_identity;
     }
     return world_mat;
 }

@@ -1,7 +1,13 @@
 typedef struct EntityMouseDragArgs {
     int* entity;
     int active;
+    int axis;
+    float cursor_x;
+    float cursor_y;
+    Vec3 entity_start_world_position;
+    Vec3 entity_start_local_position;
 } EntityMouseDragArgs;
+
 
 void _entity_mouse_drag_update(size_t _, void* args_p) {
     EntityMouseDragArgs* args = (EntityMouseDragArgs*)(args_p);
@@ -12,11 +18,6 @@ void _entity_mouse_drag_update(size_t _, void* args_p) {
         || INPUT.mouse_middle_pressed
     ) {
         args->active = 0;
-        return;
-    }
-    args->active = 1;
-
-    if ((fabs(INPUT.cursor_dx) + fabs(INPUT.cursor_dy)) < EPS) {
         return;
     }
 
@@ -54,8 +55,39 @@ void _entity_mouse_drag_update(size_t _, void* args_p) {
     entity_proj_position = vec3_scale(
         &entity_proj_position, 1.0 / entity_proj_position_4.data[3]);
 
-    float cursor_proj_x = INPUT.cursor_x * 2.0 - 1.0;
-    float cursor_proj_y = INPUT.cursor_y * 2.0 - 1.0;
+    if (!args->active) {
+        args->active = 1;
+        args->axis = -1;
+        args->cursor_x = 0.5 * (entity_proj_position.data[0] + 1.0);
+        args->cursor_y = 0.5 * (entity_proj_position.data[1] + 1.0);
+        args->entity_start_world_position = entity_world_position;
+        args->entity_start_local_position = entity_transformation->position;
+    } else if (INPUT.x_released) {
+        args->axis = args->axis == 0 ? -1 : 0;
+        entity_transformation->position = args->entity_start_local_position;
+        args->cursor_x = 0.5 * (entity_proj_position.data[0] + 1.0);
+        args->cursor_y = 0.5 * (entity_proj_position.data[1] + 1.0);
+    } else if (INPUT.y_released) {
+        args->axis = args->axis == 1 ? -1 : 1;
+        entity_transformation->position = args->entity_start_local_position;
+        args->cursor_x = 0.5 * (entity_proj_position.data[0] + 1.0);
+        args->cursor_y = 0.5 * (entity_proj_position.data[1] + 1.0);
+    } else if (INPUT.z_released) {
+        args->axis = args->axis == 2 ? -1 : 2;
+        entity_transformation->position = args->entity_start_local_position;
+        args->cursor_x = 0.5 * (entity_proj_position.data[0] + 1.0);
+        args->cursor_y = 0.5 * (entity_proj_position.data[1] + 1.0);
+    }
+
+    if ((fabs(INPUT.cursor_dx) + fabs(INPUT.cursor_dy)) < EPS) {
+        return;
+    }
+
+    args->cursor_x += INPUT.cursor_dx;
+    args->cursor_y += INPUT.cursor_dy;
+
+    float cursor_proj_x = args->cursor_x * 2.0 - 1.0;
+    float cursor_proj_y = args->cursor_y * 2.0 - 1.0;
 
     Vec4 cursor_near_proj = {{cursor_proj_x, cursor_proj_y, -1.0, 1.0}};
     Vec4 cursor_near_world_4 = mat4_vec4_mul(&vp_inv, &cursor_near_proj);
@@ -69,38 +101,39 @@ void _entity_mouse_drag_update(size_t _, void* args_p) {
     
     Vec3 cursor_dir = vec3_diff(&cursor_far_world, &cursor_near_world);
     cursor_dir = vec3_norm(&cursor_dir);
-    Vec3 cursor_plane_vec = vec3_cross(&cursor_dir, &vec3_pos_x);
-    cursor_plane_vec = vec3_norm(&cursor_plane_vec);
-    Vec3 cursor_plane_perp = vec3_cross(&cursor_dir, &cursor_plane_vec);
-    cursor_plane_perp = vec3_norm(&cursor_plane_perp);
 
-    // https://stackoverflow.com/questions/5666222/3d-line-plane-intersection
-    // p0, p1: Define the line.
-    // p_co, p_no: define the plane:
-    //     p_co Is a point on the plane (plane coordinate).
-    //     p_no Is a normal vector defining the plane direction;
-    //          (does not need to be normalized).
+    if (args->axis != -1) {
+        Vec3 line = vec3_zeros;
+        line.data[args->axis] = 1.0;
+        Vec3 cursor_plane_vec = vec3_cross(&cursor_dir, &line);
+        cursor_plane_vec = vec3_norm(&cursor_plane_vec);
+        Vec3 cursor_plane_normal = vec3_cross(&cursor_dir, &cursor_plane_vec);
+        cursor_plane_normal = vec3_norm(&cursor_plane_normal);
 
-    // Return a Vector or None (when the intersection can't be found).
+        Vec3 isect_p;
+        Vec3 line_p = args->entity_start_world_position;
+        line_p.data[args->axis] += 1;
+        int is_isect = isect_line_plane(
+            &isect_p,
+            &args->entity_start_world_position,
+            &line_p,
+            &cursor_near_world,
+            &cursor_plane_normal
+        );
 
-    Vec3 u = vec3_pos_x;
-    float dot = vec3_dot(&cursor_plane_perp, &u);
-    Vec3 w = vec3_negate(&cursor_near_world);
-    float fac = -vec3_dot(&cursor_plane_perp, &w) / dot;
-    u = vec3_scale(&u, fac);
+        if (!is_isect) {
+            return;
+        }
 
-    vec3_print(&u);
-    printf("\n");
+        entity_world_position.data[args->axis] = isect_p.data[args->axis];
 
-    entity_transformation->position.data[0] = u.data[0];
-    // ----------------------------------------
-
-    // Mat4 origin_world_mat = ecs_get_origin_world_mat(entity);
-    // origin_world_mat = mat4_inverse(&origin_world_mat);
-    // Vec4 entity_new_position_4 = mat4_vec3_mul(
-    //     &origin_world_mat, &entity_new_world_position);
-    // entity_transformation->position = vec4_to_vec3(
-    //     &entity_new_position_4);
+        Mat4 origin_world_mat = ecs_get_origin_world_mat(entity);
+        Mat4 origin_world_inv = mat4_inverse(&origin_world_mat);
+        Vec4 entity_local_position_4 = mat4_vec3_mul(
+            &origin_world_inv, &entity_world_position);
+        Vec3 entity_local_position = vec4_to_vec3(&entity_local_position_4);
+        entity_transformation->position = entity_local_position;
+    }
 }
 
 Script* entity_mouse_drag_create_script(
