@@ -1,4 +1,4 @@
-typedef enum MODE {SELECT, DRAG, NONE} MODE;
+typedef enum MODE {SELECT, DRAG} MODE;
 typedef enum DRAG_AXIS {X, Y, Z, VIEWPORT} DRAG_AXIS;
 
 typedef struct EditorEntityControllerArgs {
@@ -36,6 +36,12 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     glReadPixels(x, y, 1, 1, GL_RED, GL_UNSIGNED_BYTE, &id);
 
     int entity = (int)id - 1;
+
+    if (INPUT.mouse_left_released && args->mode != SELECT) {
+        args->mode = SELECT;
+        return;
+    }
+    
     entity = INPUT.mouse_left_released ? entity : args->entity;
     Material* material = _get_material(entity);
 
@@ -52,13 +58,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     args->entity = entity;
 
     // ----------------------------------------------
-    
-    if (
-        (args->mode != DRAG && !INPUT.g_pressed)
-        || INPUT.mouse_left_pressed
-        || INPUT.mouse_middle_pressed
-    ) {
-        args->mode = SELECT;
+
+    if (!INPUT.g_pressed && args->mode != DRAG) {
         return;
     }
 
