@@ -106,20 +106,26 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         args->entity_start_world_position = entity_world_position;
         args->entity_start_local_position = entity_transformation->position;
     } else if (INPUT.x_released) {
-        args->drag_axis = args->drag_axis == X ? VIEWPORT : X;
+        // args->drag_axis = args->drag_axis == X ? VIEWPORT : X;
+        args->drag_axis = X;
         entity_transformation->position = args->entity_start_local_position;
         args->cursor_x = args->cursor_start_x;
         args->cursor_y = args->cursor_start_y;
+        return;
     } else if (INPUT.y_released) {
-        args->drag_axis = args->drag_axis == Y ? VIEWPORT : Y;
+        // args->drag_axis = args->drag_axis == Y ? VIEWPORT : Y;
+        args->drag_axis = Y;
         entity_transformation->position = args->entity_start_local_position;
         args->cursor_x = args->cursor_start_x;
         args->cursor_y = args->cursor_start_y;
+        return;
     } else if (INPUT.z_released) {
-        args->drag_axis = args->drag_axis == Z ? VIEWPORT : Z;
+        // args->drag_axis = args->drag_axis == Z ? VIEWPORT : Z;
+        args->drag_axis = Z;
         entity_transformation->position = args->entity_start_local_position;
         args->cursor_x = args->cursor_start_x;
         args->cursor_y = args->cursor_start_y;
+        return;
     }
 
     if ((fabs(INPUT.cursor_dx) + fabs(INPUT.cursor_dy)) < EPS) {
@@ -185,7 +191,7 @@ EditorEntityControllerArgs editor_entity_controller_create_default_args(
     EditorEntityControllerArgs args;
 
     args.entity = -1;
-    args.select_color = vec3(0.8, 0.8, -1000.0);
+    args.select_color = DEFAULT_SELECT_COLOR;
     args.gbuffer = gbuffer;
     args.mode = SELECT;
     args.drag_axis = VIEWPORT;

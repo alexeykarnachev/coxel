@@ -68,19 +68,19 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         inp->window_should_close = true;
     } else if (key == GLFW_KEY_LEFT_SHIFT) {
         inp->shift_pressed = action == GLFW_PRESS;
-        inp->shift_released = action == GLFW_PRESS;
+        inp->shift_released = action == GLFW_RELEASE;
     } else if (key == GLFW_KEY_G) {
         inp->g_pressed = action == GLFW_PRESS;
-        inp->g_released = action == GLFW_PRESS;
+        inp->g_released = action == GLFW_RELEASE;
     } else if (key == GLFW_KEY_X) {
         inp->x_pressed = action == GLFW_PRESS;
-        inp->x_released = action == GLFW_PRESS;
+        inp->x_released = action == GLFW_RELEASE;
     } else if (key == GLFW_KEY_Y) {
         inp->y_pressed = action == GLFW_PRESS;
-        inp->y_released = action == GLFW_PRESS;
+        inp->y_released = action == GLFW_RELEASE;
     } else if (key == GLFW_KEY_Z) {
         inp->z_pressed = action == GLFW_PRESS;
-        inp->z_released = action == GLFW_PRESS;
+        inp->z_released = action == GLFW_RELEASE;
     }
 }
 
