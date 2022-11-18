@@ -228,13 +228,13 @@ int main(void) {
     entity_create_gui_pane(
         20, 20, 800, 72, 24, "Hello, ZALOOPA 8==o");
 
-    size_t entity_mouse_drag_0 = ecs_create_entity(-1);
-    EntityMouseDragArgs entity_mouse_drag_args =
-        entity_mouse_drag_create_default_args(&renderer.gbuffer);
+    size_t editor_entity_controller_0 = ecs_create_entity(-1);
+    EditorEntityControllerArgs editor_entity_controller_args =
+        editor_entity_controller_create_default_args(&renderer.gbuffer);
     ecs_add_component(
-        entity_mouse_drag_0, SCRIPT_T,
-        entity_mouse_drag_create_script(
-            &entity_mouse_drag_args));
+        editor_entity_controller_0, SCRIPT_T,
+        editor_entity_controller_create_script(
+            &editor_entity_controller_args));
 
     while (!INPUT.window_should_close) {
         window_update();

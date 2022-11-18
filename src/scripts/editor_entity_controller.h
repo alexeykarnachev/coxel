@@ -1,7 +1,7 @@
 typedef enum MODE {SELECT, DRAG, NONE} MODE;
 typedef enum DRAG_AXIS {X, Y, Z, VIEWPORT} DRAG_AXIS;
 
-typedef struct EntityMouseDragArgs {
+typedef struct EditorEntityControllerArgs {
     int entity;
 
     Vec3 select_color;
@@ -16,7 +16,7 @@ typedef struct EntityMouseDragArgs {
     float cursor_y;
     Vec3 entity_start_world_position;
     Vec3 entity_start_local_position;
-} EntityMouseDragArgs;
+} EditorEntityControllerArgs;
 
 Material* _get_material(int entity) {
     if (entity == -1) {
@@ -26,8 +26,8 @@ Material* _get_material(int entity) {
     return material;
 }
 
-void _entity_mouse_drag_update(size_t _, void* args_p) {
-    EntityMouseDragArgs* args = (EntityMouseDragArgs*)(args_p);
+void _editor_entity_controller_update(size_t _, void* args_p) {
+    EditorEntityControllerArgs* args = (EditorEntityControllerArgs*)(args_p);
 
     unsigned char id = 0;
     int x = (int)(INPUT.cursor_x * args->gbuffer->width);
@@ -178,10 +178,10 @@ void _entity_mouse_drag_update(size_t _, void* args_p) {
     }
 }
 
-EntityMouseDragArgs entity_mouse_drag_create_default_args(
+EditorEntityControllerArgs editor_entity_controller_create_default_args(
     TextureBuffer* gbuffer
 ) {
-    EntityMouseDragArgs args;
+    EditorEntityControllerArgs args;
 
     args.entity = -1;
     args.select_color = vec3(0.8, 0.8, -1000.0);
@@ -192,8 +192,8 @@ EntityMouseDragArgs entity_mouse_drag_create_default_args(
     return args;
 }
 
-Script* entity_mouse_drag_create_script(
-    EntityMouseDragArgs* args
+Script* editor_entity_controller_create_script(
+    EditorEntityControllerArgs* args
 ) {
-    return script_create(_entity_mouse_drag_update, args);
+    return script_create(_editor_entity_controller_update, args);
 }
