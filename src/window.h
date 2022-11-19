@@ -28,6 +28,9 @@ typedef struct Input {
     int x_pressed;
     int y_pressed;
     int z_pressed;
+
+    int last_pressed_key;
+    int last_released_key;
 } Input;
 
 Input INPUT;
@@ -85,6 +88,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     } else if (key == GLFW_KEY_Z) {
         inp->z_pressed = action == GLFW_PRESS;
         inp->z_released = action == GLFW_RELEASE;
+    }
+
+    if (action == GLFW_PRESS) {
+        inp->last_pressed_key = key;
+    } else if (action == GLFW_RELEASE) {
+        inp->last_released_key = key;
     }
 }
 

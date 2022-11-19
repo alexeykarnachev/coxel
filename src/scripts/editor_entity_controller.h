@@ -16,7 +16,8 @@ typedef struct EditorEntityControllerArgs {
     Vec3 entity_start_local_position;
 } EditorEntityControllerArgs;
 
-Material* _get_material(int entity) {
+
+static Material* get_material(int entity) {
     if (entity == -1) {
         return NULL;
     }
@@ -24,9 +25,22 @@ Material* _get_material(int entity) {
     return material;
 }
 
+static int key_to_axis(int key) {
+    if (key == 88) {
+        return X;
+    } else if (key == 89) {
+        return Y;
+    } else if (key == 90) {
+        return Z;
+    }
+    return VIEWPORT;
+}
+
 void _editor_entity_controller_update(size_t _, void* args_p) {
     EditorEntityControllerArgs* args = (EditorEntityControllerArgs*)(args_p);
 
+    // ----------------------------------------------
+    // Entity selection:
     unsigned char id = 0;
     int x = (int)(INPUT.cursor_x * args->gbuffer->width);
     int y = (int)(INPUT.cursor_y * args->gbuffer->height);
@@ -42,10 +56,10 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     }
     
     entity = INPUT.mouse_left_released ? entity : args->entity;
-    Material* material = _get_material(entity);
+    Material* material = get_material(entity);
 
     int prev_entity = args->entity;
-    Material* prev_material = _get_material(prev_entity);
+    Material* prev_material = get_material(prev_entity);
 
     if (prev_material) {
         prev_material->constant_color = vec3_zeros;
@@ -57,7 +71,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     args->entity = entity;
 
     // ----------------------------------------------
-
+    // Entity drag:
     if (!INPUT.g_pressed && args->mode != DRAG) {
         return;
     }
@@ -89,11 +103,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     Mat4 vp_inv = mat4_mat4_mul(&view_inv, &proj_inv);
 
     Vec3 entity_world_position = ecs_get_world_position(entity);
-    Vec4 entity_proj_position_4 = mat4_vec3_mul(
-        &vp_mat, &entity_world_position);
-    Vec3 entity_proj_position = vec4_to_vec3(&entity_proj_position_4);
-    entity_proj_position = vec3_scale(
-        &entity_proj_position, 1.0 / entity_proj_position_4.data[3]);
+    Vec3 entity_proj_position = vec3_project(
+        &entity_world_position, &vp_mat);
 
     if (args->mode != DRAG) {
         window_set_drag_cursor();
@@ -103,41 +114,18 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         args->cursor_y = 0.5 * (entity_proj_position.data[1] + 1.0);
         args->entity_start_world_position = entity_world_position;
         args->entity_start_local_position = entity_transformation->position;
-    } else if (INPUT.x_released) {
-        args->drag_axis = args->drag_axis == X ? VIEWPORT : X;
+        return;
+    } 
+
+    if (INPUT.x_released || INPUT.y_released || INPUT.z_released) {
+        int axis = key_to_axis(INPUT.last_released_key);
+        args->drag_axis = args->drag_axis == axis ? VIEWPORT : axis;
         entity_transformation->position = args->entity_start_local_position;
 
         entity_world_position = ecs_get_world_position(entity);
-        entity_proj_position_4 = mat4_vec3_mul(
-            &vp_mat, &entity_world_position);
-        entity_proj_position = vec4_to_vec3(&entity_proj_position_4);
-        entity_proj_position = vec3_scale(
-            &entity_proj_position, 1.0 / entity_proj_position_4.data[3]);
-    } else if (INPUT.y_released) {
-        args->drag_axis = args->drag_axis == Y ? VIEWPORT : Y;
-        entity_transformation->position = args->entity_start_local_position;
-        
-        entity_world_position = ecs_get_world_position(entity);
-        entity_proj_position_4 = mat4_vec3_mul(
-            &vp_mat, &entity_world_position);
-        entity_proj_position = vec4_to_vec3(&entity_proj_position_4);
-        entity_proj_position = vec3_scale(
-            &entity_proj_position, 1.0 / entity_proj_position_4.data[3]);
-    } else if (INPUT.z_released) {
-        args->drag_axis = args->drag_axis == Z ? VIEWPORT : Z;
-        entity_transformation->position = args->entity_start_local_position;
-
-        entity_world_position = ecs_get_world_position(entity);
-        entity_proj_position_4 = mat4_vec3_mul(
-            &vp_mat, &entity_world_position);
-        entity_proj_position = vec4_to_vec3(&entity_proj_position_4);
-        entity_proj_position = vec3_scale(
-            &entity_proj_position, 1.0 / entity_proj_position_4.data[3]);
+        entity_proj_position = vec3_project(
+            &entity_world_position, &vp_mat);
     }
-
-    // if ((fabs(INPUT.cursor_dx) + fabs(INPUT.cursor_dy)) < EPS) {
-    //     return;
-    // }
 
     args->cursor_x += INPUT.cursor_dx;
     args->cursor_y += INPUT.cursor_dy;
@@ -156,51 +144,31 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         entity_new_world_position = vec3_scale(
             &entity_new_world_position, 1.0 / cursor_world_4.data[3]);
     } else {
-        Vec4 cursor_near_proj = {{cursor_proj_x, cursor_proj_y, -1.0, 1.0}};
-        Vec4 cursor_near_world_4 = mat4_vec4_mul(&vp_inv, &cursor_near_proj);
-        Vec3 cursor_near_world = vec4_to_vec3(&cursor_near_world_4);
-        cursor_near_world = vec3_scale(&cursor_near_world, 1.0 / cursor_near_world_4.data[3]);
+        Vec3 cursor_near_proj_position = {{cursor_proj_x, cursor_proj_y, -1.0}};
+        Vec3 cursor_near_world_position = vec3_project(&cursor_near_proj_position, &vp_inv);
 
-        Vec4 cursor_far_proj = {{cursor_proj_x, cursor_proj_y, 1.0, 1.0}};
-        Vec4 cursor_far_world_4 = mat4_vec4_mul(&vp_inv, &cursor_far_proj);
-        Vec3 cursor_far_world = vec4_to_vec3(&cursor_far_world_4);
-        cursor_far_world = vec3_scale(&cursor_far_world, 1.0 / cursor_far_world_4.data[3]);
-        
-        Vec3 cursor_dir = vec3_diff(&cursor_far_world, &cursor_near_world);
-        cursor_dir = vec3_norm(&cursor_dir);
+        Vec3 cursor_far_proj = {{cursor_proj_x, cursor_proj_y, 1.0}};
+        Vec3 cursor_far_world = vec3_project(&cursor_far_proj, &vp_inv);
 
-        Vec3 line = vec3_zeros;
-        line.data[args->drag_axis] = 1.0;
-        Vec3 cursor_plane_vec = vec3_cross(&cursor_dir, &line);
-        cursor_plane_vec = vec3_norm(&cursor_plane_vec);
-        Vec3 cursor_plane_normal = vec3_cross(&cursor_dir, &cursor_plane_vec);
-        cursor_plane_normal = vec3_norm(&cursor_plane_normal);
+        Vec3 p0 = args->entity_start_world_position;
+        Vec3 p1 = args->entity_start_world_position;
+        p1.data[args->drag_axis] += 1.0;
 
         Vec3 isect_p;
-        Vec3 line_p = args->entity_start_world_position;
-        line_p.data[args->drag_axis] += 1;
-        int is_isect = isect_line_plane(
-            &isect_p,
-            &args->entity_start_world_position,
-            &line_p,
-            &cursor_near_world,
-            &cursor_plane_normal
-        );
+        int is_isect = get_two_vecs_nearest_point(
+            &isect_p, &cursor_near_world_position, &cursor_far_world, &p0, &p1);
 
         if (!is_isect) {
             return;
         }
 
-        entity_new_world_position = entity_world_position;
-        entity_new_world_position.data[args->drag_axis] = isect_p.data[args->drag_axis];
+        entity_new_world_position = isect_p;
     }
 
     Mat4 origin_world_mat = ecs_get_origin_world_mat(entity);
     Mat4 origin_world_inv = mat4_inverse(&origin_world_mat);
-    Vec4 entity_new_local_position_4 = mat4_vec3_mul(
-        &origin_world_inv, &entity_new_world_position);
-    Vec3 entity_new_local_position = vec4_to_vec3(&entity_new_local_position_4);
-    entity_transformation->position = entity_new_local_position;
+    entity_transformation->position = vec3_project(
+        &entity_new_world_position, &origin_world_inv);
 }
 
 EditorEntityControllerArgs editor_entity_controller_create_default_args(

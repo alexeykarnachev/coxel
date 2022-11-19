@@ -570,3 +570,36 @@ int isect_line_plane(
     return 1;
 }
 
+int get_two_vecs_nearest_point(
+    Vec3* vec0_out_nearest_point,
+    Vec3* vec0_p0,
+    Vec3* vec0_p1,
+    Vec3* vec1_p0,
+    Vec3* vec1_p1
+) {
+    Vec3 vec0 = vec3_diff(vec0_p1, vec0_p0);
+    Vec3 vec1 = vec3_diff(vec1_p1, vec1_p0);
+    Vec3 plane_vec = vec3_cross(&vec0, &vec1);
+    plane_vec = vec3_norm(&plane_vec);
+    Vec3 plane_normal = vec3_cross(&vec0, &plane_vec);
+    plane_normal = vec3_norm(&plane_normal);
+
+    int is_isect = isect_line_plane(
+        vec0_out_nearest_point,
+        vec1_p0,
+        vec1_p1,
+        vec0_p0,
+        &plane_normal
+    );
+
+    return is_isect;
+}
+
+Vec3 vec3_project(Vec3* position, Mat4* proj_mat) {
+    Vec4 proj_position_4 = mat4_vec3_mul(proj_mat, position);
+    Vec3 proj_position = vec4_to_vec3(&proj_position_4);
+    proj_position = vec3_scale(
+        &proj_position, 1.0 / proj_position_4.data[3]);
+    return proj_position;
+}
+

@@ -50,8 +50,8 @@ Mat4 camera_get_view_mat(Camera* cam, Transformation* t) {
     return get_view_mat(&view_dir, &cam->up, &t->position);
 }
 
-Mat4 camera_get_perspective_projection_mat(Camera* camera) {
+Mat4 camera_get_perspective_projection_mat(Camera* cam) {
     return get_perspective_projection_mat(
-        camera->fov, camera->near, camera->far, camera->aspect);
+        cam->fov, cam->near, cam->far, cam->aspect);
 }
 
