@@ -20,6 +20,7 @@ int main(void) {
         plane_0, MESH_T, mesh_create_plane());
     ecs_add_component(
         plane_0, MATERIAL_T, material_create_default());
+    ecs_add_component(plane_0, HAS_POINT_SHADOW_T, NULL);
 
     size_t sphere_0 = ecs_create_entity(-1);
     ecs_add_component(

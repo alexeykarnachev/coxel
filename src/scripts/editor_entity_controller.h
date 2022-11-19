@@ -38,6 +38,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     int entity = (int)id - 1;
 
     if (INPUT.mouse_left_released && args->mode != SELECT) {
+        window_set_default_cursor();
         args->mode = SELECT;
         return;
     }
@@ -97,6 +98,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         &entity_proj_position, 1.0 / entity_proj_position_4.data[3]);
 
     if (args->mode != DRAG) {
+        window_set_drag_cursor();
         args->mode = DRAG;
         args->drag_axis = VIEWPORT;
         args->cursor_x = 0.5 * (entity_proj_position.data[0] + 1.0);
@@ -120,7 +122,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         args->cursor_y = args->cursor_start_y;
         return;
     } else if (INPUT.z_released) {
-        // args->drag_axis = args->drag_axis == Z ? VIEWPORT : Z;
+        args->drag_axis = args->drag_axis == Z ? VIEWPORT : Z;
         args->drag_axis = Z;
         entity_transformation->position = args->entity_start_local_position;
         args->cursor_x = args->cursor_start_x;

@@ -32,6 +32,10 @@ typedef struct Input {
 
 Input INPUT;
 
+GLFWwindow* _WINDOW;
+static GLFWcursor* _CURSOR_DRAG;
+static GLFWcursor* _CURSOR_DEFAULT;
+
 
 static void cursor_position_callback(GLFWwindow* window, double x, double y) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
@@ -90,8 +94,6 @@ static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     inp->window_height = height;
 }
 
-GLFWwindow* _WINDOW;
-
 bool window_create(size_t width, size_t height) {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -122,10 +124,21 @@ bool window_create(size_t width, size_t height) {
         return false;
     }
 
+    _CURSOR_DRAG = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
+    _CURSOR_DEFAULT = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
+
     return true;
 }
 
-void input_clear() {
+void window_set_drag_cursor() {
+    glfwSetCursor(_WINDOW, _CURSOR_DRAG);
+}
+
+void window_set_default_cursor() {
+    glfwSetCursor(_WINDOW, _CURSOR_DEFAULT);
+}
+
+void window_clear_input() {
     INPUT.cursor_dx = 0.0;
     INPUT.cursor_dy = 0.0;
     INPUT.scroll_dy = 0.0;
@@ -139,7 +152,7 @@ void input_clear() {
 }
 
 void window_update() {
-    input_clear();
+    window_clear_input();
     glfwSwapBuffers(_WINDOW);
     glfwPollEvents();
 }
