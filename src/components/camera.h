@@ -44,10 +44,8 @@ Camera* camera_create_default() {
 // IDEA: this function is not a camera function, it's essentially
 // a tranformation function!
 Mat4 camera_get_view_mat(Camera* cam, Transformation* t) {
-    Mat3 rotation = mat3_rotation(
-        t->rotation.data[0], t->rotation.data[1], 0.0f);
-    Vec3 view_dir = mat3_vec3_mul(&rotation, &cam->view_dir);
-    return get_view_mat(&view_dir, &cam->up, &t->position);
+    Vec3 view_dir = mat3_vec3_mul(&t->rotation_mat, &cam->view_dir);
+    return get_view_mat(&view_dir, &cam->up, &t->translation);
 }
 
 Mat4 camera_get_perspective_projection_mat(Camera* cam) {

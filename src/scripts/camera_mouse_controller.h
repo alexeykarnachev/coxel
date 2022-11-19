@@ -5,10 +5,8 @@ typedef struct CameraMouseControllerArgs {
 } CameraMouseControllerArgs;
 
 
-Mat3 _get_basis_mat(Camera* cam, Transformation* t) {
-    Mat3 rotation = mat3_rotation(
-        t->rotation.data[0], t->rotation.data[1], 0.0f);
-    Vec3 view_dir = mat3_vec3_mul(&rotation, &cam->view_dir);
+Mat3 _get_basis_mat(Camera* cam, Mat3 rotation_mat) {
+    Vec3 view_dir = mat3_vec3_mul(&rotation_mat, &cam->view_dir);
     Mat3 basis = get_basis_mat(&view_dir, &cam->up);
     return basis;
 }
@@ -23,7 +21,7 @@ void _translate(
     if (fabs(dx) + fabs(dy) + fabs(dz) < EPS) {
         return;
     }
-    Mat3 basis = _get_basis_mat(cam, t);
+    Mat3 basis = _get_basis_mat(cam, t->rotation_mat);
     Vec3 x = mat3_get_row(&basis, 0);
     Vec3 y = mat3_get_row(&basis, 1);
     Vec3 z = mat3_get_row(&basis, 2);
@@ -32,15 +30,15 @@ void _translate(
     y = vec3_scale(&y, -dy);
     z = vec3_scale(&z, dz);
     
-    t->position.data[0] += x.data[0] + y.data[0] + z.data[0];
-    t->position.data[1] += x.data[1] + y.data[1] + z.data[1];
-    t->position.data[2] += x.data[2] + y.data[2] + z.data[2];
+    t->translation.data[0] += x.data[0] + y.data[0] + z.data[0];
+    t->translation.data[1] += x.data[1] + y.data[1] + z.data[1];
+    t->translation.data[2] += x.data[2] + y.data[2] + z.data[2];
 }
 
 void _rotate(Transformation* t, float pitch, float yaw) {
-    // TODO: mod by PI
-    t->rotation.data[0] += pitch;
-    t->rotation.data[1] += yaw;
+    Vec3 rotation = vec3(pitch, yaw, 0.0);
+    Mat3 rotation_mat = mat3_rotation(&rotation);
+    t->rotation_mat = mat3_mat3_mul(&t->rotation_mat, &rotation_mat);
 }
 
 void _set_aspect(Camera* cam, float aspect) {

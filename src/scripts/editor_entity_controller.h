@@ -23,7 +23,7 @@ typedef struct EditorEntityControllerArgs {
     float cursor_start_y;
     Vec3 entity_start_world_position;
     Vec3 entity_start_local_position;
-    Vec3 entity_start_scale;
+    Vec3 entity_start_world_scale;
 } EditorEntityControllerArgs;
 
 
@@ -113,12 +113,14 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     if (INPUT.x_released || INPUT.y_released || INPUT.z_released) {
         int axis = key_to_axis(INPUT.last_released_key);
         args->axis = args->axis == axis ? AXIS_W : axis;
-        entity_transformation->position = args->entity_start_local_position;
+        entity_transformation->translation = args->entity_start_local_position;
 
         entity_world_position = ecs_get_world_position(entity);
         entity_proj_position = vec3_project(
             &entity_world_position, &vp_mat);
     }
+
+    Mat4 entity_world_mat = ecs_get_world_mat(entity);
 
     if (INPUT.g_pressed || args->mode == MODE_DRAG) {
         // ----------------------------------------------
@@ -132,8 +134,9 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
             args->cursor_start_x = args->cursor_x;
             args->cursor_start_y = args->cursor_y;
             args->entity_start_world_position = entity_world_position;
-            args->entity_start_local_position = entity_transformation->position;
-            args->entity_start_scale = entity_transformation->scale;
+            args->entity_start_local_position = entity_transformation->translation;
+            args->entity_start_world_scale = mat4_extract_scale_vec(
+                &entity_world_mat);
             return;
         } 
 
@@ -177,7 +180,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
 
         Mat4 origin_world_mat = ecs_get_origin_world_mat(entity);
         Mat4 origin_world_inv = mat4_inverse(&origin_world_mat);
-        entity_transformation->position = vec3_project(
+        entity_transformation->translation = vec3_project(
             &entity_new_world_position, &origin_world_inv);
     } else if (INPUT.s_pressed || args->mode == MODE_SCALE) {
         // ----------------------------------------------
@@ -191,38 +194,65 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
             args->cursor_start_x = args->cursor_x;
             args->cursor_start_y = args->cursor_y;
             args->entity_start_world_position = entity_world_position;
-            args->entity_start_local_position = entity_transformation->position;
-            args->entity_start_scale = entity_transformation->scale;
+            args->entity_start_local_position = entity_transformation->translation;
+            args->entity_start_world_scale = mat4_extract_scale_vec(
+                &entity_world_mat);
         }
 
-        args->cursor_x += INPUT.cursor_dx;
-        args->cursor_y += INPUT.cursor_dy;
-        
-        Vec2 cursor_start_xy = vec2(
-            args->cursor_start_x * 2.0 - 1.0,
-            args->cursor_start_y * 2.0 - 1.0
-        );
-        Vec2 cursor_xy = vec2(
-            args->cursor_x * 2.0 - 1.0,
-            args->cursor_y * 2.0 - 1.0
-        );
-        Vec2 entity_xy = vec3_to_vec2(&entity_proj_position);
+        // args->cursor_x += INPUT.cursor_dx;
+        // args->cursor_y += INPUT.cursor_dy;
+        // 
+        // Vec2 cursor_start_xy = vec2(
+        //     args->cursor_start_x * 2.0 - 1.0,
+        //     args->cursor_start_y * 2.0 - 1.0
+        // );
+        // Vec2 cursor_xy = vec2(
+        //     args->cursor_x * 2.0 - 1.0,
+        //     args->cursor_y * 2.0 - 1.0
+        // );
+        // Vec2 entity_xy = vec3_to_vec2(&entity_proj_position);
 
-        Vec2 entity_to_cursor_start = vec2_diff(
-            &entity_xy, &cursor_start_xy);
-        Vec2 entity_to_cursor = vec2_diff(
-            &entity_xy, &cursor_xy);
-        float len_start = vec2_length(&entity_to_cursor_start);
-        float len_curr = vec2_length(&entity_to_cursor);
-        float scale_factor = len_curr / len_start;
+        // Vec2 entity_to_cursor_start = vec2_diff(
+        //     &entity_xy, &cursor_start_xy);
+        // Vec2 entity_to_cursor = vec2_diff(
+        //     &entity_xy, &cursor_xy);
+        // float len_start = vec2_length(&entity_to_cursor_start);
+        // float len_curr = vec2_length(&entity_to_cursor);
+        // float scale_factor = len_curr / len_start;
 
-        if (args->axis == AXIS_W) {
-            entity_transformation->scale = vec3_scale(
-                &args->entity_start_scale, scale_factor);
-        } else {
-            entity_transformation->scale.data[args->axis] = 
-                args->entity_start_scale.data[args->axis] * scale_factor;
-        }
+        // Vec3 entity_world_scale_vec = mat4_extract_scale_vec(
+        //     &entity_world_mat);
+        // Vec3 entity_world_translation_vec = mat4_extract_translation_vec(
+        //     &entity_world_mat);
+        // Mat3 entity_world_rotation_mat = mat4_extract_rotation_mat(
+        //     &entity_world_mat);
+        // entity_world_scale_vec = args->entity_start_world_scale;
+        // entity_world_scale_vec.data[0] *= 1.1;
+        // 
+        // 
+        // entity_world_translation_vec = vec3(0.0, 4.0, -2.0);
+
+        // Mat4 entity_new_world_mat = get_world_mat2(
+        //     &entity_world_scale_vec,
+        //     &entity_world_rotation_mat,
+        //     &entity_world_translation_vec
+        // );
+
+        // Mat4 origin_world_mat = ecs_get_origin_world_mat(entity);
+        // Mat4 origin_world_inv = mat4_inverse(&origin_world_mat);
+        // Mat4 entity_new_local_mat = mat4_mat4_mul(
+        //     &origin_world_inv, &entity_new_world_mat);
+
+        // Vec3 entity_new_local_scale_vec = mat4_extract_scale_vec(
+        //     &entity_new_local_mat);
+        // Vec3 entity_new_local_translation_vec =
+        //     mat4_extract_translation_vec(&entity_new_local_mat);
+        // Vec3 entity_new_local_rotation_vec = mat4_extract_rotation_vec(
+        //     &entity_new_local_mat);
+
+        // entity_transformation->position = entity_new_local_translation_vec;
+        // entity_transformation->scale = entity_new_local_scale_vec;
+        // entity_transformation->rotation = entity_new_local_rotation_vec;
     }
 
 }

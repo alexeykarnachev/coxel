@@ -339,7 +339,7 @@ void _set_uniform_camera(GLuint program) {
 
     program_set_uniform_4fv(
         program, "camera.world_pos",
-        transformation->position.data, 1);
+        transformation->translation.data, 1);
     program_set_uniform_matrix_4fv(
         program, "camera.view_mat",
         camera_get_view_mat(camera, transformation).data, 1, 1);
@@ -360,7 +360,7 @@ void _set_uniform_point_lights(GLuint program) {
         sprintf(uniform_name_buffer, "point_lights[%ld].world_pos", i);
         program_set_uniform_4fv(
             program, uniform_name_buffer,
-            transformation->position.data, 1);
+            transformation->translation.data, 1);
         sprintf(uniform_name_buffer, "point_lights[%ld].color", i);
         program_set_uniform_4fv(
             program, uniform_name_buffer,
@@ -389,7 +389,7 @@ void _set_uniform_point_shadow_casters(GLuint program, int set_view_proj_mats) {
         CubemapViewProj cubemap_view_proj = get_cubemap_view_proj(
             point_shadow_caster->near_plane,
             point_shadow_caster->far_plane,
-            &transformation->position);
+            &transformation->translation);
 
         // TODO: It's horrible. Send this to the shader as a single data chunk.
         static char uniform_name_buffer[64];
@@ -424,7 +424,7 @@ void _set_uniform_point_shadow_casters(GLuint program, int set_view_proj_mats) {
         sprintf(uniform_name_buffer, "point_shadow_casters[%ld].world_pos", i);
         program_set_uniform_4fv(
             program, uniform_name_buffer,
-            transformation->position.data, 1);
+            transformation->translation.data, 1);
 
         if (set_view_proj_mats) {
             sprintf(uniform_name_buffer, "point_shadow_casters[%ld].view_proj_mats", i);

@@ -46,6 +46,16 @@ Vec3 vec3_pos_y = {{0.0, 1.0, 0.0}};
 Vec3 vec3_neg_y = {{0.0, -1.0, 0.0}};
 Vec3 vec3_pos_z = {{0.0, 0.0, 1.0}};
 Vec3 vec3_neg_z = {{0.0, 0.0, -1.0}};
+Mat3 mat3_zeros = {{
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0
+}};
+Mat3 mat3_identity = {{
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0
+}};
 Mat4 mat4_identity = {{
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
@@ -308,10 +318,10 @@ Mat4 mat4_mat4_mul(Mat4* m1, Mat4* m2) {
     return m;
 }
 
-Mat3 mat3_rotation(float xa, float ya, float za) {
-    Mat3 x_r = mat3_get_x_rotation(xa);
-    Mat3 y_r = mat3_get_y_rotation(ya);
-    Mat3 z_r = mat3_get_z_rotation(za);
+Mat3 mat3_rotation(Vec3* rotation) {
+    Mat3 x_r = mat3_get_x_rotation(rotation->data[0]);
+    Mat3 y_r = mat3_get_y_rotation(rotation->data[1]);
+    Mat3 z_r = mat3_get_z_rotation(rotation->data[2]);
 
     Mat3 r1 = mat3_mat3_mul(&y_r, &x_r);
     Mat3 m = mat3_mat3_mul(&z_r, &r1);
@@ -350,6 +360,16 @@ Vec4 mat4_vec4_mul(Mat4* m, Vec4* v) {
 Vec4 mat4_vec3_mul(Mat4* m, Vec3* v) {
     Vec4 h = vec3_append(v, 1.0f);
     return mat4_vec4_mul(m, &h);
+}
+
+Mat3 mat3_transpose(Mat3* m) {
+    Mat3 t;
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            t.data[i * 3 + j] = m->data[j * 3 + i];
+        }
+    }
+    return t;
 }
 
 Mat4 mat4_transpose(Mat4* m) {
@@ -427,19 +447,14 @@ Mat4 mat4_inverse(Mat4* m) {
     return res;
 }
 
-Mat4 get_world_mat(Vec3* scale, Vec3* rotation, Vec3* translation) {
+Mat4 get_world_mat(Vec3* scale, Mat3* rotation_mat, Vec3* translation) {
     Mat3 scale_mat = {{
         scale->data[0], 0.0, 0.0,
         0.0, scale->data[1], 0.0,
         0.0, 0.0, scale->data[2]
     }};
 
-    Mat3 rotation_mat = mat3_rotation(
-        rotation->data[0],
-        rotation->data[1],
-        rotation->data[2]
-    );
-    Mat3 rs_mat = mat3_mat3_mul(&rotation_mat, &scale_mat);
+    Mat3 rs_mat = mat3_mat3_mul(rotation_mat, &scale_mat);
     Mat4 world_mat = {{
         rs_mat.data[0], rs_mat.data[1], rs_mat.data[2], translation->data[0],
         rs_mat.data[3], rs_mat.data[4], rs_mat.data[5], translation->data[1],
@@ -493,6 +508,56 @@ Mat4 get_view_mat(Vec3* view_dir, Vec3* up, Vec3* pos) {
 
     Mat4 view = mat4_from_rows(&row0, &row1, &row2, &row3);
     return view;
+}
+
+Vec3 mat4_extract_scale_vec(Mat4* mat) {
+    Vec3 scale;
+    for (size_t i = 0; i < 3; ++i) {
+        Vec4 v4 = mat4_get_col(mat, i);
+        Vec3 v3 = vec4_to_vec3(&v4);
+        scale.data[i] = vec3_length(&v3);
+    }
+    return scale;
+}
+
+Vec3 mat4_extract_translation_vec(Mat4* mat) {
+    Vec4 last_col = mat4_get_col(mat, 3);
+    Vec3 translation = vec4_to_vec3(&last_col);
+    return translation;
+}
+
+Mat3 mat4_extract_rotation_mat(Mat4* mat) {
+    Vec3 scale = mat4_extract_scale_vec(mat);
+    Mat3 rotation_mat = mat3_identity;
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            rotation_mat.data[i * 3 + j] =
+                mat->data[i * 4 + j] / scale.data[i];
+        }
+    }
+
+    return rotation_mat;
+}
+
+Vec3 mat4_extract_rotation_vec(Mat4* mat) {
+    Mat3 r = mat4_extract_rotation_mat(mat);
+    float s = sqrt(r.data[0] * r.data[0] + r.data[3] * r.data[3]);
+    Vec3 rotation;
+    if (s >= 1e-6) {
+        rotation = vec3(
+            atan2(r.data[7], r.data[8]),
+            atan2(-r.data[6], s),
+            atan2(r.data[3], r.data[0])
+        );
+    } else {
+        rotation = vec3(
+            atan2(-r.data[5], r.data[4]),
+            atan2(-r.data[6], s),
+            0
+        );
+    } 
+
+    return rotation;
 }
 
 void mat4_print(Mat4* m) {

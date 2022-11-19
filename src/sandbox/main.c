@@ -26,8 +26,8 @@ int main(void) {
     ecs_add_component(
         sphere_0, TRANSFORMATION_T, 
         transformation_create(
-            vec3(1.0, 1.0, 1.0),
-            vec3(0.0, 0.0, 0.0),
+            vec3(0.89, 1.1, 0.73),
+            vec3(0.0, 0.0, deg2rad(45.0)),
             vec3(-2.0, 2.0, -2.0)
         )
     );
