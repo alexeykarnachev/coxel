@@ -133,6 +133,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
             args->cursor_start_y = args->cursor_y;
             args->entity_start_world_position = entity_world_position;
             args->entity_start_local_position = entity_transformation->position;
+            args->entity_start_scale = entity_transformation->scale;
             return;
         } 
 
@@ -189,6 +190,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
             args->cursor_y = INPUT.cursor_y;
             args->cursor_start_x = args->cursor_x;
             args->cursor_start_y = args->cursor_y;
+            args->entity_start_world_position = entity_world_position;
+            args->entity_start_local_position = entity_transformation->position;
             args->entity_start_scale = entity_transformation->scale;
         }
 
@@ -216,6 +219,9 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         if (args->axis == AXIS_W) {
             entity_transformation->scale = vec3_scale(
                 &args->entity_start_scale, scale_factor);
+        } else {
+            entity_transformation->scale.data[args->axis] = 
+                args->entity_start_scale.data[args->axis] * scale_factor;
         }
     }
 
