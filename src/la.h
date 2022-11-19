@@ -1,3 +1,7 @@
+typedef struct Vec2 {
+    float data[2];
+} Vec2;
+
 typedef struct Vec3 {
     float data[3];
 } Vec3;
@@ -13,6 +17,11 @@ typedef struct Mat3 {
 typedef struct Mat4 {
     float data[16];
 } Mat4;
+
+Vec2 vec2(float x, float y) {
+    Vec2 v = {{x, y}};
+    return v;
+}
 
 Vec3 vec3(float x, float y, float z) {
     Vec3 v = {{x, y, z}};
@@ -63,6 +72,14 @@ float vec3_dot(Vec3* v1, Vec3* v2) {
     return res;
 }
 
+float vec2_length(Vec2* v) {
+    float res = 0.0f;
+    for (size_t i = 0; i < 2; ++i) {
+        res += v->data[i] * v->data[i];
+    }
+    return sqrt(res);
+}
+
 float vec3_length(Vec3* v) {
     float res = 0.0f;
     for (size_t i = 0; i < 3; ++i) {
@@ -77,8 +94,18 @@ Vec3 vec3_norm(Vec3* v) {
     return res;
 }
 
+Vec2 vec2_sum(Vec2* v1, Vec2* v2) {
+    Vec2 res = {{v1->data[0] + v2->data[0], v1->data[1] + v2->data[1]}};
+    return res;
+}
+
 Vec3 vec3_sum(Vec3* v1, Vec3* v2) {
     Vec3 res = {{v1->data[0] + v2->data[0], v1->data[1] + v2->data[1], v1->data[2] + v2->data[2]}};
+    return res;
+}
+
+Vec2 vec2_diff(Vec2* v1, Vec2* v2) {
+    Vec2 res = {{v1->data[0] - v2->data[0], v1->data[1] - v2->data[1]}};
     return res;
 }
 
@@ -110,6 +137,11 @@ Vec3 vec3_add_vals(Vec3 v, float x, float y, float z) {
 
 Vec4 vec3_to_vec4(Vec3* v, float w) {
     Vec4 res = {{v->data[0], v->data[1], v->data[2], w}};
+    return res;
+}
+
+Vec2 vec3_to_vec2(Vec3* v) {
+    Vec2 res = {{v->data[0], v->data[1]}};
     return res;
 }
 
@@ -479,6 +511,13 @@ void mat3_print(Mat3* m) {
             printf("%f   ", m->data[i * 3 + j]);
         }
         printf("\n");
+    }
+    printf("\n");
+}
+
+void vec2_print(Vec2* v) {
+    for (size_t i = 0; i < 2; ++i) {
+        printf("%f   ", v->data[i]);
     }
     printf("\n");
 }
