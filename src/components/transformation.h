@@ -23,6 +23,14 @@ Transformation* transformation_create(
     return t;
 }
 
+void transformation_create_from_model_mat(
+    Transformation* t, Mat4* model_mat
+) {
+    t->scale = mat4_extract_scale_vec(model_mat);
+    t->rotation_mat = mat4_extract_rotation_mat(model_mat);
+    t->translation = mat4_extract_translation_vec(model_mat);
+}
+
 Transformation* transformation_create_default() {
     return transformation_create(
         DEFAULT_TRANSFORMATION_SCALE,
@@ -35,3 +43,12 @@ Mat4 transformation_get_world_mat(Transformation* t) {
     return get_world_mat(&t->scale, &t->rotation_mat, &t->translation);
 }
 
+void transformation_print(Transformation* t) {
+    printf("scale:\n");
+    vec3_print(&t->scale);
+    printf("translation:\n");
+    vec3_print(&t->translation);
+    printf("rotation_mat:\n");
+    mat3_print(&t->rotation_mat);
+    printf("\n");
+}

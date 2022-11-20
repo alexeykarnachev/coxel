@@ -531,33 +531,12 @@ Mat3 mat4_extract_rotation_mat(Mat4* mat) {
     Mat3 rotation_mat = mat3_identity;
     for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 3; ++j) {
-            rotation_mat.data[i * 3 + j] =
-                mat->data[i * 4 + j] / scale.data[i];
+            rotation_mat.data[j * 3 + i] =
+                mat->data[j * 4 + i] / scale.data[i];
         }
     }
 
     return rotation_mat;
-}
-
-Vec3 mat4_extract_rotation_vec(Mat4* mat) {
-    Mat3 r = mat4_extract_rotation_mat(mat);
-    float s = sqrt(r.data[0] * r.data[0] + r.data[3] * r.data[3]);
-    Vec3 rotation;
-    if (s >= 1e-6) {
-        rotation = vec3(
-            atan2(r.data[7], r.data[8]),
-            atan2(-r.data[6], s),
-            atan2(r.data[3], r.data[0])
-        );
-    } else {
-        rotation = vec3(
-            atan2(-r.data[5], r.data[4]),
-            atan2(-r.data[6], s),
-            0
-        );
-    } 
-
-    return rotation;
 }
 
 void mat4_print(Mat4* m) {

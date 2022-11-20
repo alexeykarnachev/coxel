@@ -11,7 +11,7 @@ int main(void) {
     ecs_add_component(
         plane_0, TRANSFORMATION_T, 
         transformation_create(
-            vec3(50.0, 50.0, 1.0),
+            vec3(100.0, 100.0, 1.0),
             vec3(-deg2rad(90.0), 0.0, 0.0),
             vec3(0.0, -5.0, -20.0)
         )
@@ -26,7 +26,7 @@ int main(void) {
     ecs_add_component(
         sphere_0, TRANSFORMATION_T, 
         transformation_create(
-            vec3(0.89, 1.1, 0.73),
+            vec3(5.0, 1.0, 1.0),
             vec3(0.0, 0.0, deg2rad(45.0)),
             vec3(-2.0, 2.0, -2.0)
         )
