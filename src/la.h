@@ -510,7 +510,7 @@ Mat4 get_view_mat(Vec3* view_dir, Vec3* up, Vec3* pos) {
     return view;
 }
 
-Vec3 mat4_extract_scale_vec(Mat4* mat) {
+Vec3 model_mat_extract_scale_vec(Mat4* mat) {
     Vec3 scale;
     for (size_t i = 0; i < 3; ++i) {
         Vec4 v4 = mat4_get_col(mat, i);
@@ -520,14 +520,14 @@ Vec3 mat4_extract_scale_vec(Mat4* mat) {
     return scale;
 }
 
-Vec3 mat4_extract_translation_vec(Mat4* mat) {
+Vec3 model_mat_extract_translation_vec(Mat4* mat) {
     Vec4 last_col = mat4_get_col(mat, 3);
     Vec3 translation = vec4_to_vec3(&last_col);
     return translation;
 }
 
-Mat3 mat4_extract_rotation_mat(Mat4* mat) {
-    Vec3 scale = mat4_extract_scale_vec(mat);
+Mat3 model_mat_extract_rotation_mat(Mat4* mat) {
+    Vec3 scale = model_mat_extract_scale_vec(mat);
     Mat3 rotation_mat = mat3_identity;
     for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 3; ++j) {
@@ -537,6 +537,19 @@ Mat3 mat4_extract_rotation_mat(Mat4* mat) {
     }
 
     return rotation_mat;
+}
+
+Mat4 model_mat_scale(Mat4 mat, Vec3* scale) {
+    mat.data[0] *= scale->data[0];
+    mat.data[1] *= scale->data[0];
+    mat.data[2] *= scale->data[0];
+    mat.data[4] *= scale->data[1];
+    mat.data[5] *= scale->data[1];
+    mat.data[6] *= scale->data[1];
+    mat.data[8] *= scale->data[2];
+    mat.data[9] *= scale->data[2];
+    mat.data[10] *= scale->data[2];
+    return mat;
 }
 
 void mat4_print(Mat4* m) {

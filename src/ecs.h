@@ -51,6 +51,7 @@ size_t N_SPRITE_ENTITIES = 0;
 size_t ecs_create_entity(size_t parent);
 void ecs_add_component(size_t entity, COMPONENT_TYPE type, void* ptr);
 Mat4 ecs_get_world_mat(size_t entity);
+Mat4 ecs_get_local_mat(size_t entity);
 Vec3 ecs_get_world_position(size_t entity);
 Mat4 ecs_get_origin_world_mat(size_t entity);
 
@@ -134,6 +135,11 @@ Mat4 ecs_get_world_mat(size_t entity) {
     
     result = mat4_transpose(&result);
     return result;
+}
+
+Mat4 ecs_get_local_mat(size_t entity) {
+    Transformation* t = COMPONENTS[TRANSFORMATION_T][entity];
+    return transformation_get_world_mat(t);
 }
 
 Mat4 ecs_get_origin_world_mat(size_t entity) {

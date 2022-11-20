@@ -21,9 +21,8 @@ typedef struct EditorEntityControllerArgs {
     float cursor_y;
     float cursor_start_x;
     float cursor_start_y;
-    Vec3 entity_start_world_position;
-    Vec3 entity_start_local_position;
     Mat4 entity_start_world_mat;
+    Mat4 entity_start_local_mat;
 } EditorEntityControllerArgs;
 
 
@@ -113,7 +112,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     if (INPUT.x_released || INPUT.y_released || INPUT.z_released) {
         int axis = key_to_axis(INPUT.last_released_key);
         args->axis = args->axis == axis ? AXIS_W : axis;
-        entity_transformation->translation = args->entity_start_local_position;
+        entity_transformation->translation =
+            model_mat_extract_translation_vec(&args->entity_start_local_mat);
 
         entity_world_position = ecs_get_world_position(entity);
         entity_proj_position = vec3_project(
@@ -121,6 +121,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     }
 
     Mat4 entity_world_mat = ecs_get_world_mat(entity);
+    Mat4 entity_local_mat = ecs_get_local_mat(entity);
 
     if (INPUT.g_pressed || args->mode == MODE_DRAG) {
         // ----------------------------------------------
@@ -133,8 +134,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
             args->cursor_y = 0.5 * (entity_proj_position.data[1] + 1.0);
             args->cursor_start_x = args->cursor_x;
             args->cursor_start_y = args->cursor_y;
-            args->entity_start_world_position = entity_world_position;
             args->entity_start_world_mat = entity_world_mat;
+            args->entity_start_local_mat = entity_local_mat;
             return;
         } 
 
@@ -161,8 +162,9 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
             Vec3 cursor_far_proj = {{cursor_proj_x, cursor_proj_y, 1.0}};
             Vec3 cursor_far_world = vec3_project(&cursor_far_proj, &vp_inv);
 
-            Vec3 p0 = args->entity_start_world_position;
-            Vec3 p1 = args->entity_start_world_position;
+            Vec3 p0 = model_mat_extract_translation_vec(
+                &args->entity_start_world_mat);
+            Vec3 p1 = p0;
             p1.data[args->axis] += 1.0;
 
             Vec3 isect_p;
@@ -191,9 +193,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
             args->cursor_y = INPUT.cursor_y;
             args->cursor_start_x = args->cursor_x;
             args->cursor_start_y = args->cursor_y;
-            args->entity_start_world_position = entity_world_position;
-            args->entity_start_local_position = entity_transformation->translation;
             args->entity_start_world_mat = entity_world_mat;
+            args->entity_start_local_mat = entity_local_mat;
         }
 
         args->cursor_x += INPUT.cursor_dx;
@@ -217,10 +218,15 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         float len_curr = vec2_length(&entity_to_cursor);
         float scale_factor = len_curr / len_start;
 
-        Mat4 entity_new_world_mat = args->entity_start_world_mat;
-        entity_new_world_mat.data[4] *= scale_factor;
-        entity_new_world_mat.data[5] *= scale_factor;
-        entity_new_world_mat.data[6] *= scale_factor;
+        Vec3 scale = vec3_ones;
+        if (args->axis == AXIS_W) {
+            scale = vec3_scale(&scale, scale_factor);
+        } else {
+            scale.data[args->axis] = scale_factor;
+        }
+
+        Mat4 entity_new_world_mat = model_mat_scale(
+            args->entity_start_world_mat, &scale);
 
         Mat4 origin_world_mat = ecs_get_origin_world_mat(entity);
         Mat4 origin_world_inv = mat4_inverse(&origin_world_mat);

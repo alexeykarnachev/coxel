@@ -26,9 +26,9 @@ Transformation* transformation_create(
 void transformation_create_from_model_mat(
     Transformation* t, Mat4* model_mat
 ) {
-    t->scale = mat4_extract_scale_vec(model_mat);
-    t->rotation_mat = mat4_extract_rotation_mat(model_mat);
-    t->translation = mat4_extract_translation_vec(model_mat);
+    t->scale = model_mat_extract_scale_vec(model_mat);
+    t->rotation_mat = model_mat_extract_rotation_mat(model_mat);
+    t->translation = model_mat_extract_translation_vec(model_mat);
 }
 
 Transformation* transformation_create_default() {
