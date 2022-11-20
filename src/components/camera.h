@@ -53,3 +53,12 @@ Mat4 camera_get_perspective_projection_mat(Camera* cam) {
         cam->fov, cam->near, cam->far, cam->aspect);
 }
 
+float camera_is_codirected(Camera* cam, Transformation* t, Vec3* v) {
+    Vec3 view_dir = mat3_vec3_mul(&t->rotation_mat, &cam->view_dir);
+    float sign = sign(vec3_dot(&view_dir, v));
+    if (fabs(sign) < EPS) {
+        return 1.0;
+    }
+    return sign;
+}
+

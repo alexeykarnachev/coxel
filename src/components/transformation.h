@@ -39,7 +39,7 @@ Transformation* transformation_create_default() {
     );
 }
 
-Mat4 transformation_get_world_mat(Transformation* t) {
+Mat4 transformation_get_model_mat(Transformation* t) {
     return get_world_mat(&t->scale, &t->rotation_mat, &t->translation);
 }
 

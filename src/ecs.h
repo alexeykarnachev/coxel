@@ -128,7 +128,7 @@ Mat4 ecs_get_world_mat(size_t entity) {
     do {
         Transformation* t = COMPONENTS[TRANSFORMATION_T][entity];
         entity = ENTITIES[entity].parent_id;
-        Mat4 m = transformation_get_world_mat(t);
+        Mat4 m = transformation_get_model_mat(t);
         m = mat4_transpose(&m);
         result = mat4_mat4_mul(&result, &m);
     } while (entity != -1);
@@ -139,7 +139,7 @@ Mat4 ecs_get_world_mat(size_t entity) {
 
 Mat4 ecs_get_local_mat(size_t entity) {
     Transformation* t = COMPONENTS[TRANSFORMATION_T][entity];
-    return transformation_get_world_mat(t);
+    return transformation_get_model_mat(t);
 }
 
 Mat4 ecs_get_origin_world_mat(size_t entity) {

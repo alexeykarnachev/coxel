@@ -74,6 +74,14 @@ Vec3 vec3_cross(Vec3* v1, Vec3* v2) {
     return res;
 }
 
+float vec2_dot(Vec2* v1, Vec2* v2) {
+    float res = 0.0f;
+    for (size_t i = 0; i < 2; ++i) {
+        res += v1->data[i] * v2->data[i];
+    }
+    return res;
+}
+
 float vec3_dot(Vec3* v1, Vec3* v2) {
     float res = 0.0f;
     for (size_t i = 0; i < 3; ++i) {
@@ -104,9 +112,33 @@ Vec3 vec3_norm(Vec3* v) {
     return res;
 }
 
+Vec2 vec2_norm(Vec2* v) {
+    float len = vec2_length(v);
+    Vec2 res = {{ v->data[0] / len, v->data[1] / len}};
+    return res;
+}
+
 Vec2 vec2_sum(Vec2* v1, Vec2* v2) {
     Vec2 res = {{v1->data[0] + v2->data[0], v1->data[1] + v2->data[1]}};
     return res;
+}
+
+float vec2_angle(Vec2* v1, Vec2* v2) {
+    Vec2 v1_norm = vec2_norm(v1);
+    Vec2 v2_norm = vec2_norm(v2);
+    float dot = vec2_dot(&v1_norm, &v2_norm);
+    if (1.0 - fabs(dot) < EPS) {
+        return 0.0;
+    }
+    float angle = acos(dot);
+    float z = v1->data[0] * v2->data[1] - v1->data[1] * v2->data[0];
+    if (fabs(z) < EPS) {
+        return 0.0;
+    } else if (z > 0) {
+        return angle;
+    } else {
+        return -angle;
+    }
 }
 
 Vec3 vec3_sum(Vec3* v1, Vec3* v2) {
@@ -186,6 +218,16 @@ Mat4 mat4_from_cols(Vec4* col0, Vec4* col1, Vec4* col2, Vec4* col3) {
     return mat;
 }
 
+Mat4 mat3_to_mat4(Mat3* m) {
+    Mat4 mat = mat4_identity;
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            mat.data[i * 4 + j] = m->data[i * 3 + j];
+        }
+    }
+    return mat;
+}
+
 Mat3 mat3_from_rows(Vec3* row0, Vec3* row1, Vec3* row2) {
     Mat3 mat = {
         {
@@ -194,7 +236,6 @@ Mat3 mat3_from_rows(Vec3* row0, Vec3* row1, Vec3* row2) {
             row2->data[0], row2->data[1], row2->data[2]
         }
     };
-
     return mat;
 }
 
@@ -207,6 +248,16 @@ Mat3 mat3_from_cols(Vec3* col0, Vec3* col1, Vec3* col2) {
         }
     };
 
+    return mat;
+}
+
+Mat3 mat4_to_mat3(Mat4* m) {
+    Mat3 mat;
+    for (size_t i = 0; i < 3; ++i) {
+        for (size_t j = 0; j < 3; ++j) {
+            mat.data[i * 3 + j] = m->data[i * 4 + j];
+        }
+    }
     return mat;
 }
 
