@@ -35,6 +35,7 @@
 #include "primitives.h"
 #include "bitset.h"
 #include "assets/sun_icon_32.h"
+#include "assets/obj.h"
 #include "buffers/vao_buffer.h"
 #include "buffers/texture_buffer.h"
 #include "buffers/depth_cubemap_array.h"
