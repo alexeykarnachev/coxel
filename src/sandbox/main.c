@@ -7,20 +7,20 @@ int main(void) {
     renderer_create(
         &renderer, POINT_SHADOW_SIZE, GBUFFER_WIDTH, GBUFFER_HEIGHT);
 
-    // size_t suzanne_0 = ecs_create_entity(-1);
-    // ecs_add_component(
-    //     suzanne_0, TRANSFORMATION_T, 
-    //     transformation_create(
-    //         vec3(10.0, 10.0, 10.0),
-    //         vec3(0.0, 0.0, 0.0),
-    //         vec3(0.0, 0.0, -10.0)
-    //     )
-    // );
-    // ecs_add_component(
-    //     suzanne_0, MESH_T, mesh_create_suzanne());
-    // ecs_add_component(
-    //     suzanne_0, MATERIAL_T, material_create_default());
-    // ecs_add_component(suzanne_0, HAS_POINT_SHADOW_T, NULL);
+    size_t suzanne_0 = ecs_create_entity(-1);
+    ecs_add_component(
+        suzanne_0, TRANSFORMATION_T, 
+        transformation_create(
+            vec3(10.0, 10.0, 10.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, 0.0, -10.0)
+        )
+    );
+    ecs_add_component(
+        suzanne_0, MESH_T, mesh_create_suzanne());
+    ecs_add_component(
+        suzanne_0, MATERIAL_T, material_create_default());
+    ecs_add_component(suzanne_0, HAS_POINT_SHADOW_T, NULL);
 
     size_t plane_0 = ecs_create_entity(-1);
     ecs_add_component(

@@ -99,8 +99,8 @@ int load_obj(
     line_length = 0;
     value_length = 0;
     n_values_parsed = 0;
-    size_t attrib_idx = 0;
-    size_t value_idx = 0;
+    size_t vertex_attrib_idx = 0;
+    size_t face_vertex_idx = 0;
     *faces_size = 3 * n_faces * sizeof(uint32_t);
     *faces = (uint32_t*)malloc(*faces_size);
     for (size_t i = 0; i < n_face_lines; ++i) {
@@ -117,29 +117,29 @@ int load_obj(
                 value[value_length++] = c;
             } else if (value_length > 0) {
                 value[value_length] = '\0';
-                if (attrib_idx == 0) {
-                    if (value_idx >= 3) {
+                if (vertex_attrib_idx == 0) {
+                    if (face_vertex_idx >= 3) {
                         (*faces)[n_values_parsed] =
-                            (*faces)[n_values_parsed - 2];
+                            (*faces)[n_values_parsed - face_vertex_idx];
                         (*faces)[n_values_parsed + 1]
                             = (*faces)[n_values_parsed - 1];
                         n_values_parsed += 2;
                     }
-                    (*faces)[n_values_parsed++] = atoi(value);
+                    (*faces)[n_values_parsed++] = atoi(value) - 1;
                 }
 
                 if (c != '/') {
-                    attrib_idx = 0;
-                    value_idx += 1;
+                    vertex_attrib_idx = 0;
+                    face_vertex_idx += 1;
                 } else {
-                    attrib_idx += 1;
+                    vertex_attrib_idx += 1;
                 }
 
                 value_length = 0;
             }
         }
 
-        value_idx = 0;
+        face_vertex_idx = 0;
         line_length = 0;
     }
 
