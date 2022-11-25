@@ -7,6 +7,7 @@ size_t _N_MESHES = 0;
 
 VAOBuffer _ICOSAHEDRON_VAO_BUFFER;
 VAOBuffer _PLANE_VAO_BUFFER;
+VAOBuffer _SUZANNE_VAO_BUFFER;
 
 
 Mesh* mesh_create(VAOBuffer vao_buffer) {
@@ -37,5 +38,30 @@ Mesh* mesh_create_plane() {
         );
     }
     return mesh_create(_PLANE_VAO_BUFFER);
+}
+
+Mesh* mesh_create_suzanne() {
+    // TODO: Implement mesh deleter, because now there is not way
+    // to free suzanne faces and vertices malloced buffers.
+    if (_SUZANNE_VAO_BUFFER.vao == 0) {
+        uint32_t* faces;
+        float* vertices;
+        size_t faces_size;
+        size_t vertices_size;
+        load_obj(
+            "./assets/meshes/suzanne.obj",
+            &faces,
+            &faces_size,
+            &vertices,
+            &vertices_size
+        );
+
+        vao_buffer_create(
+            &_SUZANNE_VAO_BUFFER, faces,
+            faces_size, vertices,
+            vertices_size, GL_STATIC_DRAW
+        );
+    }
+    return mesh_create(_SUZANNE_VAO_BUFFER);
 }
 
