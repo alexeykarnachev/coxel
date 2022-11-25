@@ -1,4 +1,4 @@
-int load_obj(char* file_path) {
+int load_obj(char* file_path, uint32_t** faces, float** vertices) {
     size_t n_bytes;
     char* content = read_cstr_file(file_path, "r", &n_bytes);
     if (content == NULL) {
@@ -12,6 +12,7 @@ int load_obj(char* file_path) {
     char* current_line = (char*)malloc(n_bytes);
     char* vertex_lines = (char*)malloc(n_bytes);
     char* face_lines = (char*)malloc(n_bytes);
+    size_t max_line_length = 0;
     size_t line_length = 0;
     size_t vertex_lines_length = 0;
     size_t face_lines_length = 0;
@@ -42,6 +43,7 @@ int load_obj(char* file_path) {
                 n_faces += 1;
             }
 
+            max_line_length = max(max_line_length, line_length);
             line_length = 0;
         } else {
             current_line[line_length++] = c;
@@ -51,9 +53,45 @@ int load_obj(char* file_path) {
     vertex_lines[vertex_lines_length++] = '\0';
     face_lines[face_lines_length++] = '\0';
 
-    printf("%s\n", face_lines);
-    printf("%ld\n", n_faces);
 
+    char c;
+    size_t c_idx = 0;
+    line_length = 0;
+    char line[max_line_length];
+    size_t value_length = 0;
+    char value[max_line_length];
+    size_t n_values_parsed = 0;
+    *vertices = (float*)malloc(3 * n_vertices * sizeof(float));
+    for (size_t i = 0; i < n_vertices; ++i) {
+        do {
+            c = vertex_lines[c_idx++];
+            line[line_length++] = c;
+        } while (c != '\n');
+
+        line[line_length] = '\0';
+
+        for (size_t j = 0; j < line_length; ++j) {
+            c = line[j];
+            if (
+                (c >= '0' && c <= '9')
+                || c == '-'
+                || c == '.'
+            ) {
+                value[value_length++] = c;
+            } else if (value_length > 0) {
+                value[value_length] = '\0';
+                (*vertices)[n_values_parsed++] = atof(value);
+                value_length = 0;
+            }
+        }
+        line_length = 0;
+    }
+
+    for (size_t i = 0; i < n_values_parsed; ++i) {
+        printf("%f\n", (*vertices)[i]);
+    }
+
+    *faces = (uint32_t*)malloc(n_faces * sizeof(uint32_t));
     free(content);
     free(current_line);
     free(vertex_lines);

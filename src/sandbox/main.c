@@ -1,7 +1,12 @@
 #include "../includes.h"
 
 int main(void) {
-    load_obj("./assets/meshes/suzanne.obj");
+    uint32_t* faces;
+    float* verts;
+    load_obj("./assets/meshes/suzanne.obj", &faces, &verts);
+
+    free(faces);
+    free(verts);
 }
 
 int _main(void) {
