@@ -9,9 +9,11 @@ uniform vec4 tex_pos; // x, y, w, h
 uniform mat4 world_mat;
 
 out VertexData {
+    vec4 model_pos;
+    vec4 world_pos;
     vec4 proj_pos;
     vec2 tex_pos;
-} vertex_data;
+} vs_out;
 
 
 void main() {
@@ -52,7 +54,7 @@ void main() {
 
     vec4 p = proj_mat * v;
 
-    vertex_data.proj_pos = p;
-    vertex_data.tex_pos = t;
+    vs_out.proj_pos = p;
+    vs_out.tex_pos = t;
     gl_Position = p;
 }

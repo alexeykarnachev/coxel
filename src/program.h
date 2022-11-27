@@ -31,12 +31,12 @@ bool program_set_uniform_4fv(GLuint program, const char* name, GLfloat* data, si
 bool program_set_uniform_matrix_4fv(
         GLuint program, const char* name, GLfloat* data, size_t n_matrices, GLboolean transpose);
 
+const char* VERT_SCREEN_RECT_SHADER = "./assets/shaders/screen_rect.vert";
 const char* VERT_PROJECTION_SHADER = "./assets/shaders/projection.vert";
 const char* VERT_GUI_RECT_SHADER = "./assets/shaders/gui_rect.vert";
 const char* VERT_GUI_TEXT_SHADER = "./assets/shaders/gui_text.vert";
 const char* VERT_SPRITE_SHADER = "./assets/shaders/sprite.vert";
-const char* GEOM_POINT_SHADOW_SHADER = "./assets/shaders/point_shadow.geom";
-const char* FRAG_MATERIAL_SHADER = "./assets/shaders/material.frag";
+const char* FRAG_COLOR_SHADER = "./assets/shaders/color.frag";
 const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
 const char* FRAG_GUI_RECT_SHADER = "./assets/shaders/gui_rect.frag";
 const char* FRAG_GUI_TEXT_SHADER = "./assets/shaders/gui_text.frag";
@@ -46,8 +46,7 @@ const char* GLSL_COMMON_SHADER = "./assets/shaders/common.glsl";
 const char* VERSION_SHADER = "./assets/shaders/version.glsl";
 const char* CONSTANTS_SHADER = "./src/constants.h";
 
-GLuint PROGRAM_MATERIAL;
-GLuint PROGRAM_POINT_SHADOW;
+GLuint PROGRAM_COLOR;
 GLuint PROGRAM_GUI_RECT;
 GLuint PROGRAM_GUI_TEXT;
 GLuint PROGRAM_MESH_GBUFFER;
@@ -59,23 +58,13 @@ bool program_create_all() {
     const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
     bool ok = true;
 
-    PROGRAM_MATERIAL = glCreateProgram();
+    PROGRAM_COLOR = glCreateProgram();
     ok &= program_create(
-        PROGRAM_MATERIAL,
-        VERT_PROJECTION_SHADER,
+        PROGRAM_COLOR,
+        VERT_SCREEN_RECT_SHADER,
         NULL, NULL, NULL,
-        FRAG_MATERIAL_SHADER,
+        FRAG_COLOR_SHADER,
         3, deps_file_paths
-    );
-
-    PROGRAM_POINT_SHADOW = glCreateProgram();
-    ok &= program_create(
-        PROGRAM_POINT_SHADOW,
-        VERT_PROJECTION_SHADER,
-        NULL, NULL,
-        GEOM_POINT_SHADOW_SHADER,
-        FRAG_DEPTH_SHADER,
-        2, deps_file_paths
     );
 
     PROGRAM_MESH_GBUFFER = glCreateProgram();

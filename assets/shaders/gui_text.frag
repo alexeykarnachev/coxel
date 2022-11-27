@@ -3,7 +3,7 @@ in VertexData {
     flat uint char_id;
 } fs_in;
 
-layout(location=GUI_FONT_TEXTURE_LOCATION_IDX) uniform sampler1D font_tex;
+uniform sampler1D font_tex;
 
 out vec4 frag_color;
 

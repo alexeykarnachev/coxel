@@ -12,8 +12,7 @@ static int MODE_ROTATE = 3;
 typedef struct EditorEntityControllerArgs {
     int entity;
 
-    Vec3 select_color;
-    TextureBuffer* gbuffer;
+    GBuffer* gbuffer;
 
     int mode;
     int axis;
@@ -25,15 +24,6 @@ typedef struct EditorEntityControllerArgs {
     Mat4 entity_start_world_mat;
     Mat4 entity_start_local_mat;
 } EditorEntityControllerArgs;
-
-
-static Material* get_material(int entity) {
-    if (entity == -1) {
-        return NULL;
-    }
-    Material* material = (Material*)COMPONENTS[MATERIAL_T][entity];
-    return material;
-}
 
 static int key_to_axis(int key) {
     if (key == 88) {
@@ -67,18 +57,6 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     }
     
     entity = INPUT.mouse_left_released ? entity : args->entity;
-    Material* material = get_material(entity);
-
-    int prev_entity = args->entity;
-    Material* prev_material = get_material(prev_entity);
-
-    if (prev_material) {
-        prev_material->constant_color = vec3_zeros;
-    }
-    if (material) {
-        material->constant_color = args->select_color;
-    }
-
     args->entity = entity;
     
     if (entity == -1) {
@@ -320,12 +298,11 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
 }
 
 EditorEntityControllerArgs editor_entity_controller_create_default_args(
-    TextureBuffer* gbuffer
+    GBuffer* gbuffer
 ) {
     EditorEntityControllerArgs args;
 
     args.entity = -1;
-    args.select_color = DEFAULT_SELECT_COLOR;
     args.gbuffer = gbuffer;
     args.mode = MODE_SELECT;
     args.axis = AXIS_W;

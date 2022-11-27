@@ -1,33 +1,39 @@
 typedef struct VAOBuffer {
     GLuint vao;
-    GLuint vbo;
     GLuint ebo;
-    size_t n_faces;
+    GLuint vp_vbo;
+    GLuint vn_vbo;
+    size_t n_f;
 } VAOBuffer;
 
 
 int vao_buffer_create(
     VAOBuffer* buffer,
-    const uint32_t* faces,
-    size_t faces_size,
-    const float* vertices,
-    size_t vertices_size,
+    const float* vp,
+    size_t vp_size,
+    const float* vn,
+    size_t vn_size,
+    const uint32_t* f,
+    size_t f_size,
     GLenum usage
 ) {
-    buffer->n_faces = faces_size / sizeof(faces[0]);
+    buffer->n_f = f_size / sizeof(f[0]);
 
     glCreateVertexArrays(1, &buffer->vao);
     glBindVertexArray(buffer->vao);
 
-    glCreateBuffers(1, &buffer->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices_size, vertices, usage);
+    glCreateBuffers(1, &buffer->vp_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer->vp_vbo);
+    glBufferData(GL_ARRAY_BUFFER, vp_size, vp, usage);
+
+    glCreateBuffers(1, &buffer->vn_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer->vn_vbo);
+    glBufferData(GL_ARRAY_BUFFER, vn_size, vn, usage);
 
     glCreateBuffers(1, &buffer->ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces_size, faces, usage);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, f_size, f, usage);
 
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -35,9 +41,42 @@ int vao_buffer_create(
     return 1;
 }
 
-void vao_buffer_bind(VAOBuffer* buffer) {
-    glBindVertexArray(buffer->vao);
-    glBindBuffer(GL_ARRAY_BUFFER, buffer->vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer->ebo);
+int vao_buffer_create_from_obj(VAOBuffer* buffer, char* file_path) {
+    float* vp;
+    size_t vp_size;
+    float* vn;
+    size_t vn_size;
+    uint32_t* vp_f;
+    size_t vp_f_size;
+    uint32_t* vn_f;
+    size_t vn_f_size;
+    load_obj(
+        file_path,
+        &vp, &vp_size,
+        &vn, &vn_size,
+        &vp_f, &vp_f_size,
+        &vn_f, &vn_f_size
+    );
+
+    float* vn_flat = malloc(vp_size);
+    for (size_t i = 0; i < vp_f_size / sizeof(size_t); ++i) {
+        vn_flat[vp_f[i]] = vn_f[i];
+    }
+
+    int res = vao_buffer_create(
+        buffer,
+        vp, vp_size,
+        vn_flat, vp_size,
+        vp_f, vp_f_size,
+        GL_STATIC_DRAW
+    );
+
+    free(vp);
+    free(vn);
+    free(vn_flat);
+    free(vp_f);
+    free(vn_f);
+
+    return res;
 }
 

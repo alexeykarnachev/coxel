@@ -8,6 +8,7 @@ out VertexData {
     vec4 model_pos;
     vec4 world_pos;
     vec4 proj_pos;
+    vec2 tex_pos;
 } vs_out;
 
 

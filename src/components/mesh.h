@@ -5,8 +5,8 @@ typedef struct Mesh {
 Mesh _MESHES_ARENA[1 << 14];
 size_t _N_MESHES = 0;
 
-VAOBuffer _ICOSAHEDRON_VAO_BUFFER;
 VAOBuffer _PLANE_VAO_BUFFER;
+VAOBuffer _SPHERE_VAO_BUFFER;
 VAOBuffer _SUZANNE_VAO_BUFFER;
 
 
@@ -18,50 +18,26 @@ Mesh* mesh_create(VAOBuffer vao_buffer) {
     return m;
 }
 
-Mesh* mesh_create_icosahedron() {
-    if (_ICOSAHEDRON_VAO_BUFFER.vao == 0) {
-        vao_buffer_create(
-            &_ICOSAHEDRON_VAO_BUFFER, ICOSAHEDRON_FACES,
-            sizeof(ICOSAHEDRON_FACES), ICOSAHEDRON_VERTS,
-            sizeof(ICOSAHEDRON_VERTS), GL_STATIC_DRAW
-        );
-    }
-    return mesh_create(_ICOSAHEDRON_VAO_BUFFER);
-}
-
 Mesh* mesh_create_plane() {
     if (_PLANE_VAO_BUFFER.vao == 0) {
-        vao_buffer_create(
-            &_PLANE_VAO_BUFFER, PLANE_FACES,
-            sizeof(PLANE_FACES), PLANE_VERTS,
-            sizeof(PLANE_VERTS), GL_STATIC_DRAW
-        );
+        vao_buffer_create_from_obj(
+            &_PLANE_VAO_BUFFER, "./assets/meshes/plane.obj");
     }
     return mesh_create(_PLANE_VAO_BUFFER);
 }
 
-Mesh* mesh_create_suzanne() {
-    // TODO: Implement mesh deleter, because now there is not way
-    // to free suzanne faces and vertices malloced buffers.
-    if (_SUZANNE_VAO_BUFFER.vao == 0) {
-        uint32_t* faces;
-        float* vertices;
-        size_t faces_size;
-        size_t vertices_size;
-        load_obj(
-            "./assets/meshes/suzanne.obj",
-            &faces,
-            &faces_size,
-            &vertices,
-            &vertices_size
-        );
+Mesh* mesh_create_sphere() {
+    if (_SPHERE_VAO_BUFFER.vao == 0) {
+        vao_buffer_create_from_obj(
+            &_SPHERE_VAO_BUFFER, "./assets/meshes/sphere.obj");
+    }
+    return mesh_create(_SPHERE_VAO_BUFFER);
+}
 
-        vao_buffer_create(
-            &_SUZANNE_VAO_BUFFER, faces,
-            faces_size, vertices,
-            vertices_size, GL_STATIC_DRAW
-        );
+Mesh* mesh_create_suzanne() {
+    if (_SUZANNE_VAO_BUFFER.vao == 0) {
+        vao_buffer_create_from_obj(
+            &_SUZANNE_VAO_BUFFER, "./assets/meshes/suzanne.obj");
     }
     return mesh_create(_SUZANNE_VAO_BUFFER);
 }
-

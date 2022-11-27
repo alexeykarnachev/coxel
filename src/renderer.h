@@ -2,16 +2,14 @@ typedef struct Renderer {
     size_t viewport_width;
     size_t viewport_height;
 
-    DepthCubemapArray point_shadow_buffer;
-    TextureBuffer gbuffer;
+    GBuffer gbuffer;
     Texture gui_font_texture;
 } Renderer;
 
 
 void _update_scripts();
-void _render_point_shadows();
+void _render_color(GBuffer* gbuffer);
 void _render_gbuffer(size_t viewport_width, size_t vieport_height);
-void _render_color(GLuint point_shadow_tex);
 void _render_gui_rects(
     GLuint program,
     size_t viewport_width,
@@ -26,16 +24,13 @@ void _render_sprites(
     int set_material,
     int set_intity_id
 );
-void _render_meshes(GLuint program, int set_material, int set_entity_id);
 
 void _set_uniform_camera(GLuint program);
 void _set_uniform_point_lights(GLuint program);
-void _set_uniform_point_shadow_casters(GLuint program, int set_view_proj_mats);
 void _set_uniform_material(GLuint program, Material* material);
 
 int renderer_create(
     Renderer* renderer,
-    size_t point_shadow_size,
     size_t gbuffer_width,
     size_t gbuffer_height
 ) {
@@ -43,23 +38,9 @@ int renderer_create(
 
     int ok = 1;
     ok &= program_create_all();
-    ok &= depth_cubemap_array_create(
-        &renderer->point_shadow_buffer,
-        point_shadow_size,
-        MAX_N_POINT_SHADOW_CASTERS_TO_RENDER
-    ); 
 
-    // TODO: 1 byte for element is not enough for sure!
-    // There could be more than 256 entities.
-    ok &= texture_buffer_create(
-        &renderer->gbuffer,
-        NULL,
-        gbuffer_width,
-        gbuffer_height,
-        GL_R8,
-        GL_RED,
-        GL_UNSIGNED_BYTE
-    ); 
+    ok &= gbuffer_create(
+        &renderer->gbuffer, gbuffer_width, gbuffer_height);
 
     ok &= texture_create_1d(
         &renderer->gui_font_texture,
@@ -96,32 +77,12 @@ int renderer_update(Renderer* renderer) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_gbuffer(renderer->viewport_width, renderer->viewport_height);
     
-    // Target: point shadow buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, renderer->point_shadow_buffer.fbo);
-    glViewport(
-        0, 0, renderer->point_shadow_buffer.size,
-        renderer->point_shadow_buffer.size);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _render_point_shadows();
-
     // Target: screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _render_color(renderer->point_shadow_buffer.tex);
+    _render_color(&renderer->gbuffer);
     
-    glDisable(GL_DEPTH_TEST);
-    _render_gui_rects(
-        PROGRAM_GUI_RECT,
-        renderer->viewport_width,
-        renderer->viewport_height, 0
-    );
-    _render_gui_texts(
-        renderer->gui_font_texture.tex,
-        renderer->viewport_width,
-        renderer->viewport_height
-    );
-
     return 1;
 }
 
@@ -133,11 +94,29 @@ void _update_scripts() {
     }
 }
 
-void _render_meshes(
-    GLuint program,
-    int set_material,
-    int set_entity_id
-) {
+void _render_color(GBuffer* gbuffer) {
+    GLuint program = PROGRAM_COLOR;
+    glUseProgram(program);
+
+    program_set_uniform_1i(program, "world_pos_tex", 0);
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glBindTexture(GL_TEXTURE_2D, gbuffer->world_pos_texture.tex);
+
+    program_set_uniform_1i(program, "diffuse_tex", 1);
+    glActiveTexture(GL_TEXTURE0 + 1);
+    glBindTexture(GL_TEXTURE_2D, gbuffer->diffuse_texture.tex);
+
+    program_set_uniform_1i(program, "specular_tex", 2);
+    glActiveTexture(GL_TEXTURE0 + 2);
+    glBindTexture(GL_TEXTURE_2D, gbuffer->specular_texture.tex);
+
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void _render_gbuffer(size_t viewport_width, size_t viewport_height) {
+    // ----------------------------------------------
+    // Meshes:
+    GLuint program = PROGRAM_MESH_GBUFFER;
     glUseProgram(program);
     _set_uniform_camera(program);
 
@@ -151,77 +130,25 @@ void _render_meshes(
             vao_buffer == NULL
             || mesh->vao_buffer.vao != vao_buffer->vao
         ) {
-            vao_buffer = &mesh->vao_buffer;
-            vao_buffer_bind(vao_buffer);
+            glBindVertexArray(mesh->vao_buffer.vao);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vao_buffer.ebo);
+
+            glBindBuffer(GL_ARRAY_BUFFER, mesh->vao_buffer.vp_vbo);
             program_set_attribute(program, "model_pos", 3, GL_FLOAT);
+
+            glBindBuffer(GL_ARRAY_BUFFER, mesh->vao_buffer.vn_vbo);
+            program_set_attribute(program, "model_norm", 3, GL_FLOAT);
         }
 
-        if (set_material) {
-            // TODO: Don't bind the material if already binded.
-            Material* material = (Material*)COMPONENTS[MATERIAL_T][entity];
-            _set_uniform_material(program, material);
-        }
+        // TODO: Don't bind the material if already binded.
+        Material* material = (Material*)COMPONENTS[MATERIAL_T][entity];
+        _set_uniform_material(program, material);
 
-        if (set_entity_id) {
-            program_set_uniform_1i(program, "entity_id", entity);
-        }
-
+        program_set_uniform_1i(program, "entity_id", entity);
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true);
         glDrawElements(
-            GL_TRIANGLES, vao_buffer->n_faces, GL_UNSIGNED_INT, 0);
-    }
-}
-
-void _render_color(GLuint point_shadow_tex) {
-    GLuint program = PROGRAM_MATERIAL;
-    glUseProgram(program);
-
-    _set_uniform_point_lights(program);
-    _set_uniform_point_shadow_casters(program, 0);
-
-    glUniform1i(POINT_SHADOW_TEXTURE_LOCATION_IDX, 0);
-    glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, point_shadow_tex);
-
-    _render_meshes(program, 1, 0);
-    _render_sprites(PROGRAM_SPRITE, 1, 1, 0);
-}
-
-void _render_gbuffer(size_t viewport_width, size_t viewport_height) {
-    _render_meshes(PROGRAM_MESH_GBUFFER, 0, 1);
-    _render_sprites(PROGRAM_SPRITE_GBUFFER, 0, 0, 1);
-    _render_gui_rects(
-        PROGRAM_GUI_GBUFFER, viewport_width, viewport_height, 1);
-}
-
-void _render_point_shadows() {
-    GLuint program = PROGRAM_POINT_SHADOW;
-    glUseProgram(program);
-
-    _set_uniform_point_shadow_casters(program, 1);
-
-    VAOBuffer* vao_buffer = NULL;
-    // TODO: This loop mostly repeat the _render_color function.
-    // Could be factored out.
-    for (size_t i = 0; i < N_HAS_POINT_SHADOW_ENTITIES; ++i) {
-        size_t entity = HAS_POINT_SHADOW_ENTITIES[i];
-        Mat4 world_mat = ecs_get_world_mat(entity);
-        Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
-
-        if (
-            vao_buffer == NULL
-            || mesh->vao_buffer.vao != vao_buffer->vao
-        ) {
-            vao_buffer = &mesh->vao_buffer;
-            vao_buffer_bind(vao_buffer);
-            program_set_attribute(program, "model_pos", 3, GL_FLOAT);
-        }
-        
-        program_set_uniform_matrix_4fv(
-            program, "world_mat", world_mat.data, 1, true);
-        glDrawElements(
-            GL_TRIANGLES, vao_buffer->n_faces, GL_UNSIGNED_INT, 0);
+            GL_TRIANGLES, mesh->vao_buffer.n_f, GL_UNSIGNED_INT, 0);
     }
 }
 
@@ -256,7 +183,6 @@ void _render_gui_rects(
 void _render_gui_texts(GLuint font_tex, size_t viewport_width, size_t viewport_height) {
     GLuint program = PROGRAM_GUI_TEXT;
     glUseProgram(program);
-    glUniform1i(GUI_FONT_TEXTURE_LOCATION_IDX, 0);
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_1D, font_tex);
 
@@ -282,7 +208,7 @@ void _render_sprites(
     int set_entity_id
 ) {
     glUseProgram(program);
-    glUniform1i(SPRITE_TEXTURE_LOCATION_IDX, 0);
+    // glUniform1i(SPRITE_TEXTURE_LOCATION_IDX, 0);
 
     _set_uniform_camera(program);
 
@@ -362,7 +288,7 @@ void _set_uniform_point_lights(GLuint program) {
             program, uniform_name_buffer,
             transformation->translation.data, 1);
         sprintf(uniform_name_buffer, "point_lights[%ld].color", i);
-        program_set_uniform_4fv(
+        program_set_uniform_3fv(
             program, uniform_name_buffer,
             point_light->color.data, 1);
         sprintf(uniform_name_buffer, "point_lights[%ld].energy", i);
@@ -373,84 +299,11 @@ void _set_uniform_point_lights(GLuint program) {
     program_set_uniform_1i(program, "n_point_lights", N_POINT_LIGHT_ENTITIES);
 }
 
-void _set_uniform_point_shadow_casters(GLuint program, int set_view_proj_mats) {
-    // TODO: Now I render only first N point shadow casters.
-    // It's to expensive to render all casters, but I need
-    // to render not the first N, but the N most important (and visible).
-    size_t n_point_shadow_casters = min(
-        N_POINT_SHADOW_CASTER_ENTITIES, MAX_N_POINT_SHADOW_CASTERS_TO_RENDER);
-
-    for (size_t i = 0; i < n_point_shadow_casters; ++i) {
-        size_t entity = POINT_SHADOW_CASTER_ENTITIES[i];
-        Transformation* transformation =
-            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
-        PointShadowCaster* point_shadow_caster =
-            (PointShadowCaster*)COMPONENTS[POINT_SHADOW_CASTER_T][entity];
-        CubemapViewProj cubemap_view_proj = get_cubemap_view_proj(
-            point_shadow_caster->near_plane,
-            point_shadow_caster->far_plane,
-            &transformation->translation);
-
-        // TODO: It's horrible. Send this to the shader as a single data chunk.
-        static char uniform_name_buffer[64];
-        sprintf(uniform_name_buffer, "point_shadow_casters[%ld].near_plane", i);
-        program_set_uniform_1f(
-            program, uniform_name_buffer,
-            point_shadow_caster->near_plane);
-        sprintf(uniform_name_buffer, "point_shadow_casters[%ld].far_plane", i);
-        program_set_uniform_1f(
-            program, uniform_name_buffer,
-            point_shadow_caster->far_plane);
-        sprintf(uniform_name_buffer, "point_shadow_casters[%ld].min_n_samples", i);
-        program_set_uniform_1f(
-            program, uniform_name_buffer,
-            point_shadow_caster->min_n_samples);
-        sprintf(uniform_name_buffer, "point_shadow_casters[%ld].max_n_samples", i);
-        program_set_uniform_1f(
-            program, uniform_name_buffer,
-            point_shadow_caster->max_n_samples);
-        sprintf(uniform_name_buffer, "point_shadow_casters[%ld].disk_radius", i);
-        program_set_uniform_1f(
-            program, uniform_name_buffer,
-            point_shadow_caster->disk_radius);
-        sprintf(uniform_name_buffer, "point_shadow_casters[%ld].bias_min", i);
-        program_set_uniform_1f(
-            program, uniform_name_buffer,
-            point_shadow_caster->bias_min);
-        sprintf(uniform_name_buffer, "point_shadow_casters[%ld].bias_max", i);
-        program_set_uniform_1f(
-            program, uniform_name_buffer,
-            point_shadow_caster->bias_max);
-        sprintf(uniform_name_buffer, "point_shadow_casters[%ld].world_pos", i);
-        program_set_uniform_4fv(
-            program, uniform_name_buffer,
-            transformation->translation.data, 1);
-
-        if (set_view_proj_mats) {
-            sprintf(uniform_name_buffer, "point_shadow_casters[%ld].view_proj_mats", i);
-            program_set_uniform_matrix_4fv(
-                program, uniform_name_buffer,
-                cubemap_view_proj.data, 6, 0);
-        }
-    }
-    program_set_uniform_1i(
-        program, "n_point_shadow_casters", n_point_shadow_casters);
-}
-
 void _set_uniform_material(GLuint program, Material* material) {
-    program_set_uniform_4fv(
+    program_set_uniform_3fv(
         program, "material.diffuse_color",
         material->diffuse_color.data, 1);
-    program_set_uniform_4fv(
-        program, "material.ambient_color",
-        material->ambient_color.data, 1);
-    program_set_uniform_4fv(
+    program_set_uniform_3fv(
         program, "material.specular_color",
         material->specular_color.data, 1);
-    program_set_uniform_4fv(
-        program, "material.constant_color",
-        material->constant_color.data, 1);
-    program_set_uniform_1f(
-        program, "material.shininess",
-        material->shininess);
 }

@@ -2,6 +2,7 @@ in VertexData {
     vec4 model_pos;
     vec4 world_pos;
     vec4 proj_pos;
+    vec2 tex_pos;
 } fs_in;
 
 out vec4 frag_color;

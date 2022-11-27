@@ -4,8 +4,6 @@ typedef enum COMPONENT_TYPE {
     MESH_T,
     CAMERA_T,
     POINT_LIGHT_T,
-    POINT_SHADOW_CASTER_T,
-    HAS_POINT_SHADOW_T,
     GUI_TEXT_T,
     GUI_RECT_T,
     SCRIPT_T,
@@ -31,8 +29,6 @@ size_t N_ENTITIES = 0;
 size_t RENDERABLE_ENTITIES[MAX_N_ENTITIES];
 size_t CAMERA_ENTITIES[MAX_N_ENTITIES];
 size_t POINT_LIGHT_ENTITIES[MAX_N_ENTITIES];
-size_t POINT_SHADOW_CASTER_ENTITIES[MAX_N_ENTITIES];
-size_t HAS_POINT_SHADOW_ENTITIES[MAX_N_ENTITIES];
 size_t SCRIPT_ENTITIES[MAX_N_ENTITIES];
 size_t GUI_RECT_ENTITIES[MAX_N_ENTITIES];
 size_t GUI_TEXT_ENTITIES[MAX_N_ENTITIES];
@@ -41,8 +37,6 @@ size_t SPRITE_ENTITIES[MAX_N_ENTITIES];
 size_t N_RENDERABLE_ENTITIES = 0;
 size_t N_CAMERA_ENTITIES = 0;
 size_t N_POINT_LIGHT_ENTITIES = 0;
-size_t N_POINT_SHADOW_CASTER_ENTITIES = 0;
-size_t N_HAS_POINT_SHADOW_ENTITIES = 0;
 size_t N_SCRIPT_ENTITIES = 0;
 size_t N_GUI_RECT_ENTITIES = 0;
 size_t N_GUI_TEXT_ENTITIES = 0;
@@ -61,8 +55,6 @@ void ecs_update();
 int ecs_check_if_camera(size_t entity);
 int ecs_check_if_renderable(size_t entity);
 int ecs_check_if_point_light(size_t entity);
-int ecs_check_if_point_shadow_caster(size_t entity);
-int ecs_check_if_has_point_shadow(size_t entity);
 int ecs_check_if_script(size_t entity);
 int ecs_check_if_gui_rect(size_t entity);
 int ecs_check_if_gui_text(size_t entity);
@@ -74,8 +66,6 @@ void ecs_update() {
     N_RENDERABLE_ENTITIES = 0;
     N_CAMERA_ENTITIES = 0;
     N_POINT_LIGHT_ENTITIES = 0;
-    N_POINT_SHADOW_CASTER_ENTITIES = 0;
-    N_HAS_POINT_SHADOW_ENTITIES = 0;
     N_SCRIPT_ENTITIES = 0;
     N_GUI_RECT_ENTITIES = 0;
     N_GUI_TEXT_ENTITIES = 0;
@@ -90,12 +80,6 @@ void ecs_update() {
         }
         if (ecs_check_if_point_light(entity)) {
             POINT_LIGHT_ENTITIES[N_POINT_LIGHT_ENTITIES++] = entity;
-        }
-        if (ecs_check_if_point_shadow_caster(entity)) {
-            POINT_SHADOW_CASTER_ENTITIES[N_POINT_SHADOW_CASTER_ENTITIES++] = entity;
-        }
-        if (ecs_check_if_has_point_shadow(entity)) {
-            HAS_POINT_SHADOW_ENTITIES[N_HAS_POINT_SHADOW_ENTITIES++] = entity;
         }
         if (ecs_check_if_script(entity)) {
             SCRIPT_ENTITIES[N_SCRIPT_ENTITIES++] = entity;
@@ -196,20 +180,6 @@ int ecs_check_if_point_light(size_t entity) {
     return
         bitset_get_bit(b, POINT_LIGHT_T)
         && bitset_get_bit(b, TRANSFORMATION_T);
-}
-
-int ecs_check_if_point_shadow_caster(size_t entity) {
-    Bitset* b = &ENTITIES[entity].components;
-    return
-        bitset_get_bit(b, POINT_SHADOW_CASTER_T)
-        && bitset_get_bit(b, TRANSFORMATION_T);
-}
-
-int ecs_check_if_has_point_shadow(size_t entity) {
-    Bitset* b = &ENTITIES[entity].components;
-    return
-        bitset_get_bit(b, HAS_POINT_SHADOW_T)
-        && ecs_check_if_renderable(entity);
 }
 
 int ecs_check_if_script(size_t entity) {
