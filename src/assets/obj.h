@@ -39,13 +39,12 @@ int load_obj(
         char c = content[i];
         if (c == '\n') {
             if (current_line[0] == 'v' && current_line[1] == ' ') {
-                vp_lines[vp_lines_length++] = '\n';
                 memcpy(
                     &vp_lines[vp_lines_length], current_line, line_length);
                 vp_lines_length += line_length;
+                vp_lines[vp_lines_length++] = '\n';
                 n_vp += 1;
             } else if (current_line[0] == 'f' && current_line[1] == ' ') {
-                f_lines[f_lines_length++] = '\n'; 
                 memcpy(
                     &f_lines[f_lines_length], current_line, line_length);
 
@@ -54,6 +53,7 @@ int load_obj(
                     n_spaces += current_line[i] == ' ';
                 }
                 f_lines_length += line_length;
+                f_lines[f_lines_length++] = '\n'; 
                 n_f += n_spaces - 2;
                 n_f_lines += 1;
             } else if (
@@ -61,11 +61,11 @@ int load_obj(
                 && current_line[1] == 'n'
                 && current_line[2] == ' '
             ) {
-                vn_lines[vn_lines_length++] = '\n';
                 memcpy(
                     &vn_lines[vn_lines_length], current_line, line_length);
 
                 vn_lines_length += line_length;
+                vn_lines[vn_lines_length++] = '\n';
                 n_vn += 1;
             }
 
@@ -141,7 +141,8 @@ int load_obj(
     c_idx = 0;
     line_length = 0;
     value_length = 0;
-    n_values_parsed = 0;
+    size_t n_vp_values_parsed = 0;
+    size_t n_vn_values_parsed = 0;
     size_t a_idx = 0;
     size_t v_idx = 0;
 
@@ -165,38 +166,69 @@ int load_obj(
                 value[value_length] = '\0';
                 if (a_idx == 0) {
                     if (v_idx >= 3) {
-                        (*vp_f)[n_values_parsed] =
-                            (*vp_f)[n_values_parsed - v_idx];
-                        (*vp_f)[n_values_parsed + 1]
-                            = (*vp_f)[n_values_parsed - 1];
-                        n_values_parsed += 2;
+                        (*vp_f)[n_vp_values_parsed] =
+                            (*vp_f)[n_vp_values_parsed - v_idx];
+                        (*vp_f)[n_vp_values_parsed + 1]
+                            = (*vp_f)[n_vp_values_parsed - 1];
+                        n_vp_values_parsed += 2;
                     }
-                    (*vp_f)[n_values_parsed++] = atoi(value) - 1;
+                    (*vp_f)[n_vp_values_parsed++] = atoi(value) - 1;
                 } else if (a_idx == 2) {
                     if (v_idx >= 3) {
-                        (*vn_f)[n_values_parsed] =
-                            (*vn_f)[n_values_parsed - v_idx];
-                        (*vn_f)[n_values_parsed + 1]
-                            = (*vn_f)[n_values_parsed - 1];
-                        n_values_parsed += 2;
+                        (*vn_f)[n_vn_values_parsed] =
+                            (*vn_f)[n_vn_values_parsed - v_idx];
+                        (*vn_f)[n_vn_values_parsed + 1]
+                            = (*vn_f)[n_vn_values_parsed - 1];
+                        n_vn_values_parsed += 2;
                     }
-                    (*vn_f)[n_values_parsed++] = atoi(value) - 1;
+                    (*vn_f)[n_vn_values_parsed++] = atoi(value) - 1;
                 }
 
-                if (c != '/') {
-                    a_idx = 0;
+                if (c == ' ') {
                     v_idx += 1;
-                } else {
+                    a_idx = 0;
+                } else if (c == '/') {
                     a_idx += 1;
+                } else if (c == '\n') {
+                    v_idx = 0;
+                    a_idx = 0;
                 }
 
                 value_length = 0;
+            } else if (c == '/') {
+                a_idx += 1;
             }
         }
 
         v_idx = 0;
         line_length = 0;
     }
+
+    // TODO: Factor these out
+    if (n_vp > n_vn) {
+        float* vn_flat = malloc(*vp_size);
+        for (size_t i = 0; i < (*vp_f_size) / sizeof(int32_t); ++i) {
+            memcpy(
+                &vn_flat[(*vp_f)[i] * 3],
+                &((*vn)[(*vn_f)[i] * 3]),
+                sizeof(float) * 3
+            );
+        }
+        (*vn) = vn_flat;
+        *vn_size = *vp_size;
+    } else if (n_vp < n_vn) {
+        float* vp_flat = malloc(*vn_size);
+        for (size_t i = 0; i < (*vn_f_size) / sizeof(int32_t); ++i) {
+            memcpy(
+                &vp_flat[(*vn_f)[i] * 3],
+                &((*vp)[(*vp_f)[i] * 3]),
+                sizeof(float) * 3
+            );
+        }
+        (*vp) = vp_flat;
+        *vp_size = *vn_size;
+    }
+
     res = 1;
     goto free;
 

@@ -58,25 +58,56 @@ int vao_buffer_create_from_obj(VAOBuffer* buffer, char* file_path) {
         &vn_f, &vn_f_size
     );
 
-    float* vn_flat = malloc(vp_size);
-    for (size_t i = 0; i < vp_f_size / sizeof(size_t); ++i) {
-        vn_flat[vp_f[i]] = vn_f[i];
+    printf("vp: ");
+    for (size_t i = 0; i < vp_size / sizeof(float); ++i) {
+        if (i % 3 == 0) {
+            printf("\n");
+        }
+        printf("%f ", vp[i]);
     }
+    printf("\n");
 
-    int res = vao_buffer_create(
-        buffer,
-        vp, vp_size,
-        vn_flat, vp_size,
-        vp_f, vp_f_size,
-        GL_STATIC_DRAW
-    );
+    printf("vn: ");
+    for (size_t i = 0; i < vn_size / sizeof(float); ++i) {
+        if (i % 3 == 0) {
+            printf("\n");
+        }
+        printf("%f ", vn[i]);
+    }
+    printf("\n");
 
-    free(vp);
-    free(vn);
-    free(vn_flat);
-    free(vp_f);
-    free(vn_f);
+    printf("vp_f: ");
+    for (size_t i = 0; i < vp_f_size / sizeof(int32_t); ++i) {
+        if (i % 3 == 0) {
+            printf("\n");
+        }
+        printf("%d ", vp_f[i]);
+    }
+    printf("\n");
 
-    return res;
+    printf("vn_f: ");
+    for (size_t i = 0; i < vn_f_size / sizeof(int32_t); ++i) {
+        if (i % 3 == 0) {
+            printf("\n");
+        }
+        printf("%d ", vn_f[i]);
+    }
+    printf("\n");
+
+    // int res = vao_buffer_create(
+    //     buffer,
+    //     vp, vp_size,
+    //     vn_flat, vp_size,
+    //     vp_f, vp_f_size,
+    //     GL_STATIC_DRAW
+    // );
+
+    // free(vp);
+    // free(vn);
+    // free(vn_flat);
+    // free(vp_f);
+    // free(vn_f);
+
+    // return res;
 }
 

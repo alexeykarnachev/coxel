@@ -1,7 +1,10 @@
 #include "../includes.h"
 
-
 int main(void) {
+    Mesh* m = mesh_create_sphere();
+}
+
+int _main(void) {
     window_create(SCREEN_WIDTH, SCREEN_HEIGHT);
     Renderer renderer;
     renderer_create(
