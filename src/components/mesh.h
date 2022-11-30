@@ -8,6 +8,7 @@ size_t _N_MESHES = 0;
 VAOBuffer _PLANE_VAO_BUFFER;
 VAOBuffer _SPHERE_VAO_BUFFER;
 VAOBuffer _SUZANNE_VAO_BUFFER;
+VAOBuffer _IRONMAN_VAO_BUFFER;
 
 
 Mesh* mesh_create(VAOBuffer vao_buffer) {
@@ -40,4 +41,12 @@ Mesh* mesh_create_suzanne() {
             &_SUZANNE_VAO_BUFFER, "./assets/meshes/suzanne.obj");
     }
     return mesh_create(_SUZANNE_VAO_BUFFER);
+}
+
+Mesh* mesh_create_ironman() {
+    if (_IRONMAN_VAO_BUFFER.vao == 0) {
+        vao_buffer_create_from_obj(
+            &_IRONMAN_VAO_BUFFER, "./assets/meshes/ironman.obj");
+    }
+    return mesh_create(_IRONMAN_VAO_BUFFER);
 }

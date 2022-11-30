@@ -20,6 +20,20 @@ int main(void) {
     ecs_add_component(
         suzanne_0, MATERIAL_T, material_create_default());
 
+    size_t ironman_0 = ecs_create_entity(-1);
+    ecs_add_component(
+        ironman_0, TRANSFORMATION_T, 
+        transformation_create(
+            vec3(0.02, 0.02, 0.02),
+            vec3(0.0, 0.0, 0.0),
+            vec3(8.0, -2.0, -10.0)
+        )
+    );
+    ecs_add_component(
+        ironman_0, MESH_T, mesh_create_ironman());
+    ecs_add_component(
+        ironman_0, MATERIAL_T, material_create_default());
+
     size_t plane_0 = ecs_create_entity(-1);
     ecs_add_component(
         plane_0, TRANSFORMATION_T, 

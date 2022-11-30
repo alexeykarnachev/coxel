@@ -23,7 +23,7 @@ layout(location=4) out float entity_id_tex;
 
 void main() {
     world_pos_tex = fs_in.world_pos.xyz;
-    world_norm_tex = vec3(0.8, 0.3, 0.2);
+    world_norm_tex = fs_in.world_norm.xyz;
     diffuse_tex = material.diffuse_color;
     specular_tex = material.specular_color;
     entity_id_tex = (entity_id + 1) / 255.0;
