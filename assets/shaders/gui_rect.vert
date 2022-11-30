@@ -7,6 +7,7 @@ uniform int viewport_height;
 out VertexData {
     vec4 model_pos;
     vec4 world_pos;
+    vec3 world_norm;
     vec4 proj_pos;
     vec2 tex_pos;
 } vs_out;

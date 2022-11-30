@@ -1,10 +1,6 @@
 #include "../includes.h"
 
 int main(void) {
-    Mesh* m = mesh_create_sphere();
-}
-
-int _main(void) {
     window_create(SCREEN_WIDTH, SCREEN_HEIGHT);
     Renderer renderer;
     renderer_create(
@@ -14,8 +10,7 @@ int _main(void) {
     ecs_add_component(
         suzanne_0, TRANSFORMATION_T, 
         transformation_create(
-            vec3(10.0, 10.0, 10.0),
-            // vec3(0.05, 0.05, 0.05),
+            vec3(2.0, 2.0, 2.0),
             vec3(0.0, 0.0, 0.0),
             vec3(0.0, 0.0, -10.0)
         )
@@ -29,8 +24,8 @@ int _main(void) {
     ecs_add_component(
         plane_0, TRANSFORMATION_T, 
         transformation_create(
-            vec3(100.0, 100.0, 1.0),
-            vec3(-deg2rad(90.0), 0.0, 0.0),
+            vec3(20.0, 1.0, 20.0),
+            vec3(0.0, 0.0, 0.0),
             vec3(0.0, -5.0, -20.0)
         )
     );
@@ -118,7 +113,7 @@ int _main(void) {
         sphere_4, MATERIAL_T, 
         material_create(vec3(0.1, 0.1, 0.95), vec3(1.0, 1.0, 1.0))
     );
-        
+     
     Texture sun_icon_texture;
     texture_create_2d(
         &sun_icon_texture, SUN_ICON_32.pixel_data, 0,
@@ -204,16 +199,16 @@ int _main(void) {
         camera_mouse_controller_create_script(
             &camera_mouse_controller_args));
 
-    entity_create_gui_pane(
-        20, 20, 800, 72, 24, "Hello, ZALOOPA 8==o");
+    // entity_create_gui_pane(
+    //     20, 20, 800, 72, 24, "Hello, ZALOOPA 8==o");
 
-    size_t editor_entity_controller_0 = ecs_create_entity(-1);
-    EditorEntityControllerArgs editor_entity_controller_args =
-        editor_entity_controller_create_default_args(&renderer.gbuffer);
-    ecs_add_component(
-        editor_entity_controller_0, SCRIPT_T,
-        editor_entity_controller_create_script(
-            &editor_entity_controller_args));
+    // size_t editor_entity_controller_0 = ecs_create_entity(-1);
+    // EditorEntityControllerArgs editor_entity_controller_args =
+    //     editor_entity_controller_create_default_args(&renderer.gbuffer);
+    // ecs_add_component(
+    //     editor_entity_controller_0, SCRIPT_T,
+    //     editor_entity_controller_create_script(
+    //         &editor_entity_controller_args));
 
     while (!INPUT.window_should_close) {
         window_update();

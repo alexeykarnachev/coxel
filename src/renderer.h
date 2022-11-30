@@ -102,12 +102,16 @@ void _render_color(GBuffer* gbuffer) {
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, gbuffer->world_pos_texture.tex);
 
-    program_set_uniform_1i(program, "diffuse_tex", 1);
+    program_set_uniform_1i(program, "world_norm_tex", 1);
     glActiveTexture(GL_TEXTURE0 + 1);
+    glBindTexture(GL_TEXTURE_2D, gbuffer->world_norm_texture.tex);
+
+    program_set_uniform_1i(program, "diffuse_tex", 2);
+    glActiveTexture(GL_TEXTURE0 + 2);
     glBindTexture(GL_TEXTURE_2D, gbuffer->diffuse_texture.tex);
 
-    program_set_uniform_1i(program, "specular_tex", 2);
-    glActiveTexture(GL_TEXTURE0 + 2);
+    program_set_uniform_1i(program, "specular_tex", 3);
+    glActiveTexture(GL_TEXTURE0 + 3);
     glBindTexture(GL_TEXTURE_2D, gbuffer->specular_texture.tex);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

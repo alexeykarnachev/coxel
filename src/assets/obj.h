@@ -5,11 +5,14 @@ int load_obj(
     size_t* vp_size,
     float** vn,
     size_t* vn_size,
-    uint32_t** vp_f,
-    size_t* vp_f_size,
-    uint32_t** vn_f,
-    size_t* vn_f_size
+    uint32_t** f,
+    size_t* f_size
 ) {
+    uint32_t* vp_f;
+    uint32_t* vn_f;
+    size_t vp_f_size;
+    size_t vn_f_size;
+
     int res = -1;
     size_t n_bytes;
     char* content = read_cstr_file(file_path, "r", &n_bytes);
@@ -146,10 +149,10 @@ int load_obj(
     size_t a_idx = 0;
     size_t v_idx = 0;
 
-    *vp_f_size = 3 * n_f * sizeof(uint32_t);
-    *vn_f_size = 3 * n_f * sizeof(uint32_t);
-    *vn_f = (uint32_t*)malloc(*vn_f_size);
-    *vp_f = (uint32_t*)malloc(*vp_f_size);
+    vp_f_size = 3 * n_f * sizeof(uint32_t);
+    vn_f_size = 3 * n_f * sizeof(uint32_t);
+    vn_f = (uint32_t*)malloc(vn_f_size);
+    vp_f = (uint32_t*)malloc(vp_f_size);
     for (size_t i = 0; i < n_f_lines; ++i) {
         do {
             c = f_lines[c_idx++];
@@ -166,22 +169,22 @@ int load_obj(
                 value[value_length] = '\0';
                 if (a_idx == 0) {
                     if (v_idx >= 3) {
-                        (*vp_f)[n_vp_values_parsed] =
-                            (*vp_f)[n_vp_values_parsed - v_idx];
-                        (*vp_f)[n_vp_values_parsed + 1]
-                            = (*vp_f)[n_vp_values_parsed - 1];
+                        vp_f[n_vp_values_parsed] =
+                            vp_f[n_vp_values_parsed - v_idx];
+                        vp_f[n_vp_values_parsed + 1]
+                            = vp_f[n_vp_values_parsed - 1];
                         n_vp_values_parsed += 2;
                     }
-                    (*vp_f)[n_vp_values_parsed++] = atoi(value) - 1;
+                    vp_f[n_vp_values_parsed++] = atoi(value) - 1;
                 } else if (a_idx == 2) {
                     if (v_idx >= 3) {
-                        (*vn_f)[n_vn_values_parsed] =
-                            (*vn_f)[n_vn_values_parsed - v_idx];
-                        (*vn_f)[n_vn_values_parsed + 1]
-                            = (*vn_f)[n_vn_values_parsed - 1];
+                        vn_f[n_vn_values_parsed] =
+                            vn_f[n_vn_values_parsed - v_idx];
+                        vn_f[n_vn_values_parsed + 1]
+                            = vn_f[n_vn_values_parsed - 1];
                         n_vn_values_parsed += 2;
                     }
-                    (*vn_f)[n_vn_values_parsed++] = atoi(value) - 1;
+                    vn_f[n_vn_values_parsed++] = atoi(value) - 1;
                 }
 
                 if (c == ' ') {
@@ -205,29 +208,35 @@ int load_obj(
     }
 
     // TODO: Factor these out
-    if (n_vp > n_vn) {
+    // if (n_vp > n_vn) {
         float* vn_flat = malloc(*vp_size);
-        for (size_t i = 0; i < (*vp_f_size) / sizeof(int32_t); ++i) {
+        for (size_t i = 0; i < vp_f_size / sizeof(int32_t); ++i) {
             memcpy(
-                &vn_flat[(*vp_f)[i] * 3],
-                &((*vn)[(*vn_f)[i] * 3]),
+                &vn_flat[vp_f[i] * 3],
+                &((*vn)[vn_f[i] * 3]),
                 sizeof(float) * 3
             );
         }
         (*vn) = vn_flat;
         *vn_size = *vp_size;
-    } else if (n_vp < n_vn) {
-        float* vp_flat = malloc(*vn_size);
-        for (size_t i = 0; i < (*vn_f_size) / sizeof(int32_t); ++i) {
-            memcpy(
-                &vp_flat[(*vn_f)[i] * 3],
-                &((*vp)[(*vp_f)[i] * 3]),
-                sizeof(float) * 3
-            );
-        }
-        (*vp) = vp_flat;
-        *vp_size = *vn_size;
-    }
+        *f = vp_f;
+        *f_size = vp_f_size;
+        free(vn_f);
+    // } else if (n_vp < n_vn) {
+    //     float* vp_flat = malloc(*vn_size);
+    //     for (size_t i = 0; i < vn_f_size / sizeof(int32_t); ++i) {
+    //         memcpy(
+    //             &vp_flat[vn_f[i] * 3],
+    //             &((*vp)[vp_f[i] * 3]),
+    //             sizeof(float) * 3
+    //         );
+    //     }
+    //     (*vp) = vp_flat;
+    //     *vp_size = *vn_size;
+    //     *f = vn_f;
+    //     *f_size = vn_f_size;
+    //     free(vp_f);
+    // }
 
     res = 1;
     goto free;

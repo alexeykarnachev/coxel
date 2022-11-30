@@ -28,7 +28,7 @@ void main() {
 
     // vec3 world_pos = texture(world_pos_tex, tex_pos);
     // vec3 view_dir = normalize(world_pos - camera_world_pos);
-    vec3 diffuse_color = texture(world_norm_tex, tex_pos).rgb;
+    vec3 diffuse_color = texture(diffuse_tex, tex_pos).rgb;
 
     frag_color = vec4(diffuse_color, 1.0);
 }

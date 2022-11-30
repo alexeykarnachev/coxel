@@ -30,7 +30,7 @@ void main() {
     vs_out.model_pos = m;
     vs_out.world_pos = w;
     vs_out.proj_pos = p;
-    vs_out.proj_norm = n;
+    vs_out.world_norm = n;
     gl_Position = p;
 }
 
