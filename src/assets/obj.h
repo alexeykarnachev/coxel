@@ -207,40 +207,30 @@ int load_obj(
         line_length = 0;
     }
 
-    // TODO: Factor these out
-    // if (n_vp > n_vn) {
-        float* vn_flat = malloc(*vp_size);
-        for (size_t i = 0; i < vp_f_size / sizeof(int32_t); ++i) {
-            memcpy(
-                &vn_flat[vp_f[i] * 3],
-                &((*vn)[vn_f[i] * 3]),
-                sizeof(float) * 3
-            );
-        }
-        (*vn) = vn_flat;
-        *vn_size = *vp_size;
-        *f = vp_f;
-        *f_size = vp_f_size;
-        free(vn_f);
-    // } else if (n_vp < n_vn) {
-    //     float* vp_flat = malloc(*vn_size);
-    //     for (size_t i = 0; i < vn_f_size / sizeof(int32_t); ++i) {
-    //         memcpy(
-    //             &vp_flat[vn_f[i] * 3],
-    //             &((*vp)[vp_f[i] * 3]),
-    //             sizeof(float) * 3
-    //         );
-    //     }
-    //     (*vp) = vp_flat;
-    //     *vp_size = *vn_size;
-    //     *f = vn_f;
-    //     *f_size = vn_f_size;
-    //     free(vp_f);
-    // }
+    float* vp_flat = malloc(sizeof(float) * 3 * 3 * n_f);
+    float* vn_flat = malloc(sizeof(float) * 3 * 3 * n_f);
+    *f = malloc(sizeof(size_t) * 3 * n_f);
+
+    for (size_t i = 0; i < n_f * 3; ++i) {
+        (*f)[i] = i;
+
+        memcpy(
+            &vp_flat[i * 3],
+            &(*vp)[vp_f[i] * 3], 3 * sizeof(float));
+        memcpy(
+            &vn_flat[i * 3],
+            &(*vn)[vn_f[i] * 3], 3 * sizeof(float));
+    }
+
+    free(*vp);
+    free(*vn);
+    *vp = vp_flat;
+    *vn = vn_flat;
+    *f_size = n_f * 3 * sizeof(uint32_t);
+    *vp_size = n_f * 3 * 3 * sizeof(float);
+    *vn_size = n_f * 3 * 3 * sizeof(float);
 
     res = 1;
-    goto free;
-
 free:
     free(content);
     free(current_line);

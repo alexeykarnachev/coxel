@@ -7,6 +7,7 @@ size_t _N_MESHES = 0;
 
 VAOBuffer _PLANE_VAO_BUFFER;
 VAOBuffer _SPHERE_VAO_BUFFER;
+VAOBuffer _SURF_SPHERE_VAO_BUFFER;
 VAOBuffer _SUZANNE_VAO_BUFFER;
 VAOBuffer _IRONMAN_VAO_BUFFER;
 
@@ -35,6 +36,14 @@ Mesh* mesh_create_sphere() {
     return mesh_create(_SPHERE_VAO_BUFFER);
 }
 
+Mesh* mesh_create_surf_sphere() {
+    if (_SURF_SPHERE_VAO_BUFFER.vao == 0) {
+        vao_buffer_create_from_obj(
+            &_SURF_SPHERE_VAO_BUFFER, "./assets/meshes/surf_sphere.obj");
+    }
+    return mesh_create(_SURF_SPHERE_VAO_BUFFER);
+}
+
 Mesh* mesh_create_suzanne() {
     if (_SUZANNE_VAO_BUFFER.vao == 0) {
         vao_buffer_create_from_obj(
@@ -50,3 +59,4 @@ Mesh* mesh_create_ironman() {
     }
     return mesh_create(_IRONMAN_VAO_BUFFER);
 }
+

@@ -48,6 +48,22 @@ int main(void) {
     ecs_add_component(
         plane_0, MATERIAL_T, material_create_default());
 
+    size_t surf_sphere_0 = ecs_create_entity(-1);
+    ecs_add_component(
+        surf_sphere_0, TRANSFORMATION_T, 
+        transformation_create(
+            vec3(1.0, 1.0, 1.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(5.0, 2.0, -2.0)
+        )
+    );
+    ecs_add_component(
+        surf_sphere_0, MESH_T, mesh_create_surf_sphere());
+    ecs_add_component(
+        surf_sphere_0, MATERIAL_T, 
+        material_create(vec3(0.9, 0.2, 0.2), vec3(1.0, 1.0, 1.0))
+    );
+
     size_t sphere_0 = ecs_create_entity(-1);
     ecs_add_component(
         sphere_0, TRANSFORMATION_T, 
