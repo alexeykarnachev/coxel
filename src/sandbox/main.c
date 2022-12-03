@@ -61,7 +61,7 @@ int main(void) {
         surf_sphere_0, MESH_T, mesh_create_surf_sphere());
     ecs_add_component(
         surf_sphere_0, MATERIAL_T, 
-        material_create(vec3(0.9, 0.2, 0.2), vec3(1.0, 1.0, 1.0))
+        material_create(vec3(0.9, 0.2, 0.2), 0.0)
     );
 
     size_t sphere_0 = ecs_create_entity(-1);
@@ -77,7 +77,7 @@ int main(void) {
         sphere_0, MESH_T, mesh_create_sphere());
     ecs_add_component(
         sphere_0, MATERIAL_T, 
-        material_create(vec3(0.9, 0.2, 0.2), vec3(1.0, 1.0, 1.0))
+        material_create(vec3(0.9, 0.2, 0.2), 0.0)
     );
 
     size_t sphere_1 = ecs_create_entity(-1);
@@ -93,7 +93,7 @@ int main(void) {
         sphere_1, MESH_T, mesh_create_sphere());
     ecs_add_component(
         sphere_1, MATERIAL_T, 
-        material_create(vec3(0.2, 0.9, 0.2), vec3(1.0, 1.0, 1.0))
+        material_create(vec3(0.2, 0.9, 0.2), 0.0)
     );
 
     size_t sphere_2 = ecs_create_entity(-1);
@@ -109,7 +109,7 @@ int main(void) {
         sphere_2, MESH_T, mesh_create_sphere());
     ecs_add_component(
         sphere_2, MATERIAL_T, 
-        material_create(vec3(0.2, 0.2, 0.9), vec3(1.0, 1.0, 1.0))
+        material_create(vec3(0.2, 0.2, 0.9), 0.0)
     );
 
     size_t sphere_3 = ecs_create_entity(sphere_2);
@@ -125,7 +125,7 @@ int main(void) {
         sphere_3, MESH_T, mesh_create_sphere());
     ecs_add_component(
         sphere_3, MATERIAL_T, 
-        material_create(vec3(0.1, 0.1, 0.95), vec3(1.0, 1.0, 1.0))
+        material_create(vec3(0.1, 0.1, 0.95), 0.0)
     );
 
     size_t sphere_4 = ecs_create_entity(sphere_2);
@@ -141,7 +141,7 @@ int main(void) {
         sphere_4, MESH_T, mesh_create_sphere());
     ecs_add_component(
         sphere_4, MATERIAL_T, 
-        material_create(vec3(0.1, 0.1, 0.95), vec3(1.0, 1.0, 1.0))
+        material_create(vec3(0.1, 0.1, 0.95), 0.0)
     );
      
     Texture sun_icon_texture;
@@ -179,8 +179,6 @@ int main(void) {
         point_light_1, POINT_LIGHT_T, point_light_create_default());
     ecs_add_component(
         point_light_1, SPRITE_T, sprite_create(0.0, 0.0, 1.0, 1.0, &sun_icon_texture));
-    ecs_add_component(
-        point_light_1, MATERIAL_T, material_create_default());
 
     size_t point_light_2 = ecs_create_entity(-1);
     ecs_add_component(
@@ -195,8 +193,6 @@ int main(void) {
         point_light_2, POINT_LIGHT_T, point_light_create_default());
     ecs_add_component(
         point_light_2, SPRITE_T, sprite_create(0.0, 0.0, 1.0, 1.0, &sun_icon_texture));
-    ecs_add_component(
-        point_light_2, MATERIAL_T, material_create_default());
 
     size_t point_light_3 = ecs_create_entity(-1);
     ecs_add_component(
@@ -211,8 +207,6 @@ int main(void) {
         point_light_3, POINT_LIGHT_T, point_light_create_default());
     ecs_add_component(
         point_light_3, SPRITE_T, sprite_create(0.0, 0.0, 1.0, 1.0, &sun_icon_texture));
-    ecs_add_component(
-        point_light_3, MATERIAL_T, material_create_default());
 
     size_t camera_0 = ecs_create_entity(-1);
     ecs_add_component(

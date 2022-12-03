@@ -52,7 +52,6 @@ GLuint PROGRAM_GUI_TEXT;
 GLuint PROGRAM_MESH_GBUFFER;
 GLuint PROGRAM_GUI_GBUFFER;
 GLuint PROGRAM_SPRITE_GBUFFER;
-GLuint PROGRAM_SPRITE;
 
 bool program_create_all() {
     const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
@@ -90,7 +89,7 @@ bool program_create_all() {
         PROGRAM_SPRITE_GBUFFER,
         VERT_SPRITE_SHADER,
         NULL, NULL, NULL,
-        FRAG_GBUFFER_SHADER,
+        FRAG_SPRITE_SHADER,
         2, deps_file_paths
     );
 
@@ -109,15 +108,6 @@ bool program_create_all() {
         VERT_GUI_TEXT_SHADER,
         NULL, NULL, NULL,
         FRAG_GUI_TEXT_SHADER,
-        2, deps_file_paths
-    );
-
-    PROGRAM_SPRITE = glCreateProgram();
-    ok &= program_create(
-        PROGRAM_SPRITE,
-        VERT_SPRITE_SHADER,
-        NULL, NULL, NULL,
-        FRAG_SPRITE_SHADER,
         2, deps_file_paths
     );
 

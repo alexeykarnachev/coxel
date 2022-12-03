@@ -6,18 +6,13 @@ in VertexData {
     vec2 tex_pos;
 } fs_in;
 
-struct Material {
-    vec4 diffuse_color;
-    vec4 ambient_color;
-    vec4 specular_color;
-    vec4 constant_color;
-    float shininess;
-};
-
-uniform Material material;
+uniform int entity_id;
 uniform sampler2D sprite_texture;
 
-out vec4 frag_color;
+layout(location=0) out vec3 world_pos_tex;
+layout(location=1) out vec3 world_norm_tex;
+layout(location=2) out vec3 diffuse_tex;
+layout(location=4) out float entity_id_tex;
 
 
 void main() {
@@ -26,5 +21,8 @@ void main() {
     if (color.a < 0.01) {
         discard;
     }
-    frag_color = color + material.constant_color;
+    world_pos_tex = fs_in.world_pos.xyz;
+    world_norm_tex = vec3(0.0);
+    diffuse_tex = color.rgb;
+    entity_id_tex = (entity_id + 1) / 255.0;
 }

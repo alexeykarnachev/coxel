@@ -29,12 +29,12 @@ int gbuffer_create(GBuffer* buffer, size_t width, size_t height) {
     texture_create_2d(
         &buffer->diffuse_texture, NULL, 0,
         width, height,
-        GL_RGB32F, GL_RGB, GL_FLOAT, GL_NEAREST);
+        GL_RGBA32F, GL_RGBA, GL_FLOAT, GL_NEAREST);
 
     texture_create_2d(
         &buffer->specular_texture, NULL, 0,
         width, height,
-        GL_RGB32F, GL_RGB, GL_FLOAT, GL_NEAREST);
+        GL_R32F, GL_RED, GL_FLOAT, GL_NEAREST);
 
     // TODO: 1 byte for element is not enough for sure!
     // There could be more than 256 entities.

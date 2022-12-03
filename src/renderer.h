@@ -18,12 +18,6 @@ void _render_gui_rects(
 );
 void _render_gui_texts(
     GLuint font_tex, size_t viewport_width, size_t viewport_height);
-void _render_sprites(
-    GLuint program,
-    int set_texture,
-    int set_material,
-    int set_intity_id
-);
 
 void _set_uniform_camera(GLuint program);
 void _set_uniform_point_lights(GLuint program);
@@ -157,6 +151,39 @@ void _render_gbuffer(size_t viewport_width, size_t viewport_height) {
         glDrawElements(
             GL_TRIANGLES, mesh->vao_buffer.n_f, GL_UNSIGNED_INT, 0);
     }
+
+    // ----------------------------------------------
+    // Sprites:
+    // TODO: Can I use the sampe program for sprites rendering and for
+    // meshes? I can try to treat sprite like a square mesh with a texture.
+    program = PROGRAM_SPRITE_GBUFFER;
+    glUseProgram(program);
+    _set_uniform_camera(program);
+
+    for (size_t i = 0; i < N_SPRITE_ENTITIES; ++i) {
+        size_t entity = SPRITE_ENTITIES[i];
+        Mat4 world_mat = ecs_get_world_mat(entity);
+
+        // TODO: Dont't bind the same texture and the same sprite if
+        // already binded.
+        Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_T][entity];
+        GLuint tex = sprite->texture->tex;
+        glActiveTexture(GL_TEXTURE0 + 0);
+        glBindTexture(GL_TEXTURE_2D, tex);
+
+        program_set_uniform_matrix_4fv(
+            program, "world_mat", world_mat.data, 1, true);
+
+        float tex_pos[4] = {
+            sprite->tex_x,
+            sprite->tex_y,
+            sprite->tex_width,
+            sprite->tex_height};
+        program_set_uniform_4fv(program, "tex_pos", tex_pos, 1);
+        program_set_uniform_1i(program, "entity_id", entity);
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
 }
 
 void _render_gui_rects(
@@ -208,58 +235,6 @@ void _render_gui_texts(GLuint font_tex, size_t viewport_width, size_t viewport_h
     }
 }
 
-void _render_sprites(
-    GLuint program,
-    int set_texture,
-    int set_material,
-    int set_entity_id
-) {
-    glUseProgram(program);
-    // glUniform1i(SPRITE_TEXTURE_LOCATION_IDX, 0);
-
-    _set_uniform_camera(program);
-
-    for (size_t i = 0; i < N_SPRITE_ENTITIES; ++i) {
-        size_t entity = SPRITE_ENTITIES[i];
-        Mat4 world_mat = ecs_get_world_mat(entity);
-
-        // TODO: Dont't bind the same texture and the same sprite if
-        // already binded.
-        Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_T][entity];
-        GLuint tex = sprite->texture->tex;
-        glActiveTexture(GL_TEXTURE0 + 0);
-        glBindTexture(GL_TEXTURE_2D, tex);
-
-        program_set_uniform_matrix_4fv(
-            program, "world_mat", world_mat.data, 1, true);
-
-        if (set_texture) {
-            float tex_pos[4] = {
-                sprite->tex_x,
-                sprite->tex_y,
-                sprite->tex_width,
-                sprite->tex_height};
-            program_set_uniform_4fv(program, "tex_pos", tex_pos, 1);
-        }
-
-        if (set_material) {
-            // TODO: Don't bind the material if already binded.
-            Material* material = (Material*)COMPONENTS[MATERIAL_T][entity];
-            // TODO: Maybe it's possible to replace this logic with the
-            // notion of a default material.
-            if (material) {
-                _set_uniform_material(program, material);
-            }
-        }
-
-        if (set_entity_id) {
-            program_set_uniform_1i(program, "entity_id", entity);
-        }
-
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    }
-}
-
 void _set_uniform_camera(GLuint program) {
     int entity = ecs_get_active_camera_entity();
     if (entity == -1) {
@@ -298,10 +273,14 @@ void _set_uniform_point_lights(GLuint program) {
         program_set_uniform_3fv(
             program, uniform_name_buffer,
             point_light->color.data, 1);
-        sprintf(uniform_name_buffer, "point_lights[%ld].energy", i);
+        sprintf(uniform_name_buffer, "point_lights[%ld].linear", i);
         program_set_uniform_1f(
             program, uniform_name_buffer,
-            point_light->energy);
+            point_light->linear);
+        sprintf(uniform_name_buffer, "point_lights[%ld].quadratic", i);
+        program_set_uniform_1f(
+            program, uniform_name_buffer,
+            point_light->quadratic);
     }
     program_set_uniform_1i(program, "n_point_lights", N_POINT_LIGHT_ENTITIES);
 }
@@ -310,7 +289,7 @@ void _set_uniform_material(GLuint program, Material* material) {
     program_set_uniform_3fv(
         program, "material.diffuse_color",
         material->diffuse_color.data, 1);
-    program_set_uniform_3fv(
-        program, "material.specular_color",
-        material->specular_color.data, 1);
+    program_set_uniform_1f(
+        program, "material.specular",
+        material->specular);
 }

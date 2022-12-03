@@ -55,6 +55,7 @@ void main() {
 
     vec4 p = proj_mat * v;
 
+    vs_out.world_pos = w;
     vs_out.proj_pos = p;
     vs_out.tex_pos = t;
     gl_Position = p;
