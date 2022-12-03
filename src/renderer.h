@@ -76,6 +76,18 @@ int renderer_update(Renderer* renderer) {
     glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_color(&renderer->gbuffer);
+
+    glDisable(GL_DEPTH_TEST);
+    _render_gui_rects(
+        PROGRAM_GUI_RECT,
+        renderer->viewport_width,
+        renderer->viewport_height, 0
+    );
+    _render_gui_texts(
+        renderer->gui_font_texture.tex,
+        renderer->viewport_width,
+        renderer->viewport_height
+    );
     
     return 1;
 }
@@ -189,8 +201,7 @@ void _render_gbuffer(size_t viewport_width, size_t viewport_height) {
 void _render_gui_rects(
     GLuint program,
     size_t viewport_width,
-    size_t viewport_height,
-    int set_entity_id
+    size_t viewport_height
 ) {
     glUseProgram(program);
 
@@ -205,10 +216,7 @@ void _render_gui_rects(
         program_set_uniform_1i(program, "height", rect->height);
         program_set_uniform_1i(program, "viewport_width", viewport_width);
         program_set_uniform_1i(program, "viewport_height", viewport_height);
-
-        if (set_entity_id) {
-            program_set_uniform_1i(program, "entity_id", entity);
-        }
+        program_set_uniform_1i(program, "entity_id", entity);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
