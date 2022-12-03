@@ -41,7 +41,7 @@ int gbuffer_create(GBuffer* buffer, size_t width, size_t height) {
     texture_create_2d(
         &buffer->entity_id_texture, NULL, 0,
         width, height,
-        GL_R8, GL_RED, GL_UNSIGNED_BYTE, GL_NEAREST);
+        GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, GL_NEAREST);
 
     glBindRenderbuffer(GL_RENDERBUFFER, buffer->rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);

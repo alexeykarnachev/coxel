@@ -46,7 +46,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     int x = (int)(INPUT.cursor_x * args->gbuffer->width);
     int y = (int)(INPUT.cursor_y * args->gbuffer->height);
     glBindFramebuffer(GL_FRAMEBUFFER, args->gbuffer->fbo);
-    glReadPixels(x, y, 1, 1, GL_RED, GL_UNSIGNED_BYTE, &id);
+    glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &id);
 
     int entity = (int)id - 1;
 

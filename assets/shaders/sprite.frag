@@ -12,9 +12,11 @@ uniform sampler2D sprite_texture;
 layout(location=0) out vec3 world_pos_tex;
 layout(location=1) out vec3 world_norm_tex;
 layout(location=2) out vec3 diffuse_tex;
-layout(location=4) out float entity_id_tex;
+layout(location=4) out uint entity_id_tex;
 
 
+// TODO: This shader could be combined with gbuffer.frag, e.g
+// use the same render logic for meshes and for sprites
 void main() {
     vec4 color = texture(sprite_texture, fs_in.tex_pos);
     // TODO: Do a proper alpha-blending for sprites.
@@ -24,5 +26,5 @@ void main() {
     world_pos_tex = fs_in.world_pos.xyz;
     world_norm_tex = vec3(0.0);
     diffuse_tex = color.rgb;
-    entity_id_tex = (entity_id + 1) / 255.0;
+    entity_id_tex = uint(entity_id + 1);
 }

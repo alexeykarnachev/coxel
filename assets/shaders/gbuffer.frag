@@ -18,7 +18,7 @@ layout(location=0) out vec3 world_pos_tex;
 layout(location=1) out vec3 world_norm_tex;
 layout(location=2) out vec3 diffuse_tex;
 layout(location=3) out float specular_tex;
-layout(location=4) out float entity_id_tex;
+layout(location=4) out uint entity_id_tex;
 
 
 void main() {
@@ -26,5 +26,5 @@ void main() {
     world_norm_tex = fs_in.world_norm.xyz;
     diffuse_tex = material.diffuse_color;
     specular_tex = material.specular;
-    entity_id_tex = (entity_id + 1) / 255.0;
+    entity_id_tex = uint(entity_id + 1);
 }
