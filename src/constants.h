@@ -1,5 +1,5 @@
-#define SCREEN_WIDTH 2560 / 1
-#define SCREEN_HEIGHT 1440 / 1
+#define SCREEN_WIDTH 2560 / 2
+#define SCREEN_HEIGHT 1440 / 2
 
 #define MAX_N_ENTITIES 1024
 

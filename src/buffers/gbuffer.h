@@ -80,6 +80,7 @@ int gbuffer_create(GBuffer* buffer, size_t width, size_t height) {
         GL_COLOR_ATTACHMENT4
     };
     glDrawBuffers(5, buffers);
+    glReadBuffer(GL_COLOR_ATTACHMENT4);
 
     check_framebuffer(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

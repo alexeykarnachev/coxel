@@ -98,6 +98,9 @@ void _render_color(GBuffer* gbuffer) {
     GLuint program = PROGRAM_COLOR;
     glUseProgram(program);
 
+    _set_uniform_camera(program);
+    _set_uniform_point_lights(program);
+
     program_set_uniform_1i(program, "world_pos_tex", 0);
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, gbuffer->world_pos_texture.tex);
