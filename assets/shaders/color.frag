@@ -25,6 +25,12 @@ uniform int n_point_lights;
 
 out vec4 frag_color;
 
+const ivec2 OUTLINE_OFFSETS[4] = ivec2[4](
+    ivec2(0, 2),
+    ivec2(2, 0),
+    ivec2(0, -2),
+    ivec2(-2, 0)
+);
 
 void main() {
     vec3 camera_world_pos = camera.world_pos.xyz;
@@ -34,7 +40,23 @@ void main() {
     vec3 diffuse_color = texture(diffuse_tex, tex_pos).rgb;
     float specular_color = texture(specular_tex, tex_pos).r;
 
-    if (length(world_norm) == 0) {
+    float outline = texture(outline_tex, tex_pos).r;
+    uvec4 outline_neighbors = textureGatherOffsets(
+        outline_tex, tex_pos, OUTLINE_OFFSETS
+    );
+    uint outline_neighbors_sum = \
+        outline_neighbors.x + \
+        outline_neighbors.y + \
+        outline_neighbors.z + \
+        outline_neighbors.w;
+
+    if (
+        outline_neighbors_sum != 0
+        && outline_neighbors_sum != 4
+        && outline == 0
+    ) {
+        frag_color = vec4(1.0, 1.0, 0.0, 1.0);
+    } else if (length(world_norm) == 0) {
         frag_color = vec4(diffuse_color, 1.0);
     } else {
         vec3 combined = vec3(0.0);
@@ -63,6 +85,4 @@ void main() {
 
         frag_color = vec4(combined, 1.0);
     }
-
-    frag_color.xy += texture(outline_tex, tex_pos).r;
 }
