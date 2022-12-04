@@ -3,13 +3,18 @@ typedef struct Renderer {
     size_t viewport_height;
 
     GBuffer gbuffer;
+    OutlineBuffer outline_buffer;
     Texture gui_font_texture;
 } Renderer;
 
 
 void _update_scripts();
-void _render_color(GBuffer* gbuffer);
-void _render_gbuffer(size_t viewport_width, size_t vieport_height);
+void _render_color(
+    GBuffer* gbuffer,
+    OutlineBuffer* outline_buffer
+);
+void _render_gbuffer();
+void _render_outline_buffer();
 void _render_gui_rects(
     GLuint program,
     size_t viewport_width,
@@ -25,7 +30,9 @@ void _set_uniform_material(GLuint program, Material* material);
 int renderer_create(
     Renderer* renderer,
     size_t gbuffer_width,
-    size_t gbuffer_height
+    size_t gbuffer_height,
+    size_t outline_buffer_width,
+    size_t outline_buffer_height
 ) {
     clear_struct(renderer);
 
@@ -34,6 +41,11 @@ int renderer_create(
 
     ok &= gbuffer_create(
         &renderer->gbuffer, gbuffer_width, gbuffer_height);
+    ok &= outline_buffer_create(
+        &renderer->outline_buffer,
+        outline_buffer_width,
+        outline_buffer_height
+    );
 
     ok &= texture_create_1d(
         &renderer->gui_font_texture,
@@ -68,13 +80,23 @@ int renderer_update(Renderer* renderer) {
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->gbuffer.fbo);
     glViewport(0, 0, renderer->gbuffer.width, renderer->gbuffer.height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _render_gbuffer(renderer->viewport_width, renderer->viewport_height);
+    _render_gbuffer();
+
+    // Terget: outline buffer
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer->outline_buffer.fbo);
+    glViewport(
+        0, 0,
+        renderer->outline_buffer.width,
+        renderer->outline_buffer.height
+    );
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    _render_outline_buffer();
     
     // Target: screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _render_color(&renderer->gbuffer);
+    _render_color(&renderer->gbuffer, &renderer->outline_buffer);
 
     glDisable(GL_DEPTH_TEST);
     _render_gui_rects(
@@ -99,7 +121,7 @@ void _update_scripts() {
     }
 }
 
-void _render_color(GBuffer* gbuffer) {
+void _render_color(GBuffer* gbuffer, OutlineBuffer* outline_buffer) {
     GLuint program = PROGRAM_COLOR;
     glUseProgram(program);
 
@@ -122,10 +144,14 @@ void _render_color(GBuffer* gbuffer) {
     glActiveTexture(GL_TEXTURE0 + 3);
     glBindTexture(GL_TEXTURE_2D, gbuffer->specular_texture.tex);
 
+    program_set_uniform_1i(program, "outline_tex", 4);
+    glActiveTexture(GL_TEXTURE0 + 4);
+    glBindTexture(GL_TEXTURE_2D, outline_buffer->outline_texture.tex);
+
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void _render_gbuffer(size_t viewport_width, size_t viewport_height) {
+void _render_gbuffer() {
     // ----------------------------------------------
     // Meshes:
     GLuint program = PROGRAM_MESH_GBUFFER;
@@ -175,7 +201,7 @@ void _render_gbuffer(size_t viewport_width, size_t viewport_height) {
         size_t entity = SPRITE_ENTITIES[i];
         Mat4 world_mat = ecs_get_world_mat(entity);
 
-        // TODO: Dont't bind the same texture and the same sprite if
+        // TODO: Don't bind the same texture and the same sprite if
         // already binded.
         Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_T][entity];
         GLuint tex = sprite->texture->tex;
@@ -194,6 +220,38 @@ void _render_gbuffer(size_t viewport_width, size_t viewport_height) {
         program_set_uniform_1i(program, "entity_id", entity);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    }
+}
+
+// TODO: Factor out repetitive code here and in render gbuffer meshes
+void _render_outline_buffer() {
+    // ----------------------------------------------
+    // Meshes:
+    GLuint program = PROGRAM_MESH_OUTLINE_BUFFER;
+    glUseProgram(program);
+    _set_uniform_camera(program);
+
+    VAOBuffer* vao_buffer = NULL;
+    for (size_t i = 0; i < N_HAS_OUTLINE_ENTITIES; ++i) {
+        size_t entity = HAS_OUTLINE_ENTITIES[i];
+        Mat4 world_mat = ecs_get_world_mat(entity);
+        Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
+
+        if (
+            vao_buffer == NULL
+            || mesh->vao_buffer.vao != vao_buffer->vao
+        ) {
+            glBindVertexArray(mesh->vao_buffer.vao);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vao_buffer.ebo);
+
+            glBindBuffer(GL_ARRAY_BUFFER, mesh->vao_buffer.vp_vbo);
+            program_set_attribute(program, "model_pos", 3, GL_FLOAT);
+        }
+
+        program_set_uniform_matrix_4fv(
+            program, "world_mat", world_mat.data, 1, true);
+        glDrawElements(
+            GL_TRIANGLES, mesh->vao_buffer.n_f, GL_UNSIGNED_INT, 0);
     }
 }
 

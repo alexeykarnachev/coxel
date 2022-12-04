@@ -4,7 +4,10 @@ int main(void) {
     window_create(SCREEN_WIDTH, SCREEN_HEIGHT);
     Renderer renderer;
     renderer_create(
-        &renderer, GBUFFER_WIDTH, GBUFFER_HEIGHT);
+        &renderer,
+        GBUFFER_WIDTH, GBUFFER_HEIGHT,
+        OUTLINE_BUFFER_WIDTH, OUTLINE_BUFFER_HEIGHT
+    );
 
     size_t suzanne_0 = ecs_create_entity(-1);
     ecs_add_component(

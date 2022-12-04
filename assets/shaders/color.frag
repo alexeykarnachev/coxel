@@ -18,6 +18,7 @@ uniform sampler2D world_pos_tex;
 uniform sampler2D world_norm_tex;
 uniform sampler2D diffuse_tex;
 uniform sampler2D specular_tex;
+uniform usampler2D outline_tex;
 
 uniform PointLight point_lights[MAX_N_POINT_LIGHTS_TO_RENDER];
 uniform int n_point_lights;
@@ -62,4 +63,6 @@ void main() {
 
         frag_color = vec4(combined, 1.0);
     }
+
+    frag_color.xy += texture(outline_tex, tex_pos).r;
 }

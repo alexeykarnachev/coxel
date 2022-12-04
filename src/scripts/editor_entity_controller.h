@@ -57,6 +57,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     }
     
     entity = INPUT.mouse_left_released ? entity : args->entity;
+    ecs_disable_component(args->entity, HAS_OUTLINE_T);
+    ecs_enable_component(entity, HAS_OUTLINE_T);
     args->entity = entity;
     
     if (entity == -1) {

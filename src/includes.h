@@ -37,6 +37,7 @@
 #include "assets/obj.h"
 #include "buffers/vao_buffer.h"
 #include "buffers/gbuffer.h"
+#include "buffers/outline_buffer.h"
 #include "buffers/texture_buffer.h"
 #include "buffers/depth_cubemap_array.h"
 #include "components/transformation.h"
