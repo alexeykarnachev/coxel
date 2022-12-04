@@ -290,7 +290,7 @@ void _render_gui_rects(
         program_set_uniform_1i(program, "height", rect->height);
         program_set_uniform_1i(program, "viewport_width", viewport_width);
         program_set_uniform_1i(program, "viewport_height", viewport_height);
-        program_set_uniform_1i(program, "entity_id", entity);
+        // program_set_uniform_1i(program, "entity_id", entity);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
