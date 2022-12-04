@@ -232,8 +232,8 @@ void _render_outline_buffer() {
     _set_uniform_camera(program);
 
     VAOBuffer* vao_buffer = NULL;
-    for (size_t i = 0; i < N_HAS_OUTLINE_ENTITIES; ++i) {
-        size_t entity = HAS_OUTLINE_ENTITIES[i];
+    for (size_t i = 0; i < N_MESH_WITH_OUTLINE_ENTITIES; ++i) {
+        size_t entity = MESH_WITH_OUTLINE_ENTITIES[i];
         Mat4 world_mat = ecs_get_world_mat(entity);
         Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
 
@@ -252,6 +252,23 @@ void _render_outline_buffer() {
             program, "world_mat", world_mat.data, 1, true);
         glDrawElements(
             GL_TRIANGLES, mesh->vao_buffer.n_f, GL_UNSIGNED_INT, 0);
+    }
+
+    // ----------------------------------------------
+    // Sprites:
+    program = PROGRAM_SPRITE_OUTLINE_BUFFER;
+    glUseProgram(program);
+    _set_uniform_camera(program);
+
+    for (size_t i = 0; i < N_SPRITE_WITH_OUTLINE_ENTITIES; ++i) {
+        size_t entity = SPRITE_WITH_OUTLINE_ENTITIES[i];
+        Mat4 world_mat = ecs_get_world_mat(entity);
+        Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_T][entity];
+
+        program_set_uniform_matrix_4fv(
+            program, "world_mat", world_mat.data, 1, true);
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 }
 

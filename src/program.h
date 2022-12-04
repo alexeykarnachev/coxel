@@ -54,6 +54,7 @@ GLuint PROGRAM_MESH_GBUFFER;
 GLuint PROGRAM_GUI_GBUFFER;
 GLuint PROGRAM_SPRITE_GBUFFER;
 GLuint PROGRAM_MESH_OUTLINE_BUFFER;
+GLuint PROGRAM_SPRITE_OUTLINE_BUFFER;
 
 bool program_create_all() {
     const char* deps_file_paths[] = {VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
@@ -99,6 +100,15 @@ bool program_create_all() {
     ok &= program_create(
         PROGRAM_MESH_OUTLINE_BUFFER,
         VERT_PROJECTION_SHADER,
+        NULL, NULL, NULL,
+        FRAG_OUTLINE_BUFFER_SHADER,
+        2, deps_file_paths
+    );
+
+    PROGRAM_SPRITE_OUTLINE_BUFFER = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_SPRITE_OUTLINE_BUFFER,
+        VERT_SPRITE_SHADER,
         NULL, NULL, NULL,
         FRAG_OUTLINE_BUFFER_SHADER,
         2, deps_file_paths

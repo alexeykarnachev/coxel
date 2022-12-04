@@ -34,7 +34,8 @@ size_t SCRIPT_ENTITIES[MAX_N_ENTITIES];
 size_t GUI_RECT_ENTITIES[MAX_N_ENTITIES];
 size_t GUI_TEXT_ENTITIES[MAX_N_ENTITIES];
 size_t SPRITE_ENTITIES[MAX_N_ENTITIES];
-size_t HAS_OUTLINE_ENTITIES[MAX_N_ENTITIES];
+size_t MESH_WITH_OUTLINE_ENTITIES[MAX_N_ENTITIES];
+size_t SPRITE_WITH_OUTLINE_ENTITIES[MAX_N_ENTITIES];
 
 size_t N_RENDERABLE_ENTITIES = 0;
 size_t N_CAMERA_ENTITIES = 0;
@@ -43,7 +44,8 @@ size_t N_SCRIPT_ENTITIES = 0;
 size_t N_GUI_RECT_ENTITIES = 0;
 size_t N_GUI_TEXT_ENTITIES = 0;
 size_t N_SPRITE_ENTITIES = 0;
-size_t N_HAS_OUTLINE_ENTITIES = 0;
+size_t N_MESH_WITH_OUTLINE_ENTITIES = 0;
+size_t N_SPRITE_WITH_OUTLINE_ENTITIES = 0;
 
 size_t ecs_create_entity(size_t parent);
 void ecs_add_component(size_t entity, COMPONENT_TYPE type, void* ptr);
@@ -65,7 +67,8 @@ int ecs_check_if_script(size_t entity);
 int ecs_check_if_gui_rect(size_t entity);
 int ecs_check_if_gui_text(size_t entity);
 int ecs_check_if_sprite(size_t entity);
-int ecs_check_if_has_outline(size_t entity);
+int ecs_check_if_mesh_with_outline(size_t entity);
+int ecs_check_if_sprite_with_outline(size_t entity);
 
 
 void ecs_update() {
@@ -77,7 +80,8 @@ void ecs_update() {
     N_GUI_RECT_ENTITIES = 0;
     N_GUI_TEXT_ENTITIES = 0;
     N_SPRITE_ENTITIES = 0;
-    N_HAS_OUTLINE_ENTITIES = 0;
+    N_MESH_WITH_OUTLINE_ENTITIES = 0;
+    N_SPRITE_WITH_OUTLINE_ENTITIES = 0;
 
     for (size_t entity = 0; entity < N_ENTITIES; ++entity) {
         if (ecs_check_if_renderable(entity)) {
@@ -101,8 +105,13 @@ void ecs_update() {
         if (ecs_check_if_sprite(entity)) {
             SPRITE_ENTITIES[N_SPRITE_ENTITIES++] = entity;
         }
-        if (ecs_check_if_has_outline(entity)) {
-            HAS_OUTLINE_ENTITIES[N_HAS_OUTLINE_ENTITIES++] = entity;
+        if (ecs_check_if_mesh_with_outline(entity)) {
+            MESH_WITH_OUTLINE_ENTITIES[
+                N_MESH_WITH_OUTLINE_ENTITIES++] = entity;
+        }
+        if (ecs_check_if_sprite_with_outline(entity)) {
+            SPRITE_WITH_OUTLINE_ENTITIES[
+                N_SPRITE_WITH_OUTLINE_ENTITIES++] = entity;
         }
     }
 }
@@ -238,7 +247,7 @@ int ecs_check_if_sprite(size_t entity) {
         && bitset_get_bit(b, TRANSFORMATION_T);
 }
 
-int ecs_check_if_has_outline(size_t entity) {
+int ecs_check_if_mesh_with_outline(size_t entity) {
     if (entity == -1) return 0;
     Bitset* b = &ENTITIES[entity].components;
     return
@@ -247,3 +256,11 @@ int ecs_check_if_has_outline(size_t entity) {
         && bitset_get_bit(b, TRANSFORMATION_T);
 }
 
+int ecs_check_if_sprite_with_outline(size_t entity) {
+    if (entity == -1) return 0;
+    Bitset* b = &ENTITIES[entity].components;
+    return
+        bitset_get_bit(b, HAS_OUTLINE_T)
+        && bitset_get_bit(b, SPRITE_T)
+        && bitset_get_bit(b, TRANSFORMATION_T);
+}
