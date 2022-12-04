@@ -13,8 +13,7 @@ void _render_gbuffer(size_t viewport_width, size_t vieport_height);
 void _render_gui_rects(
     GLuint program,
     size_t viewport_width,
-    size_t viewport_height,
-    int set_entity_id
+    size_t viewport_height
 );
 void _render_gui_texts(
     GLuint font_tex, size_t viewport_width, size_t viewport_height);
@@ -81,7 +80,7 @@ int renderer_update(Renderer* renderer) {
     _render_gui_rects(
         PROGRAM_GUI_RECT,
         renderer->viewport_width,
-        renderer->viewport_height, 0
+        renderer->viewport_height
     );
     _render_gui_texts(
         renderer->gui_font_texture.tex,
