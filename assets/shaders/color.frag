@@ -19,6 +19,7 @@ uniform sampler2D world_norm_tex;
 uniform sampler2D diffuse_tex;
 uniform sampler2D specular_tex;
 uniform usampler2D outline_tex;
+uniform usampler2D gui_tex;
 
 uniform PointLight point_lights[MAX_N_POINT_LIGHTS_TO_RENDER];
 uniform int n_point_lights;
@@ -33,12 +34,11 @@ const ivec2 OUTLINE_OFFSETS[4] = ivec2[4](
 );
 
 void main() {
-    vec3 camera_world_pos = camera.world_pos.xyz;
-    vec3 world_pos = texture(world_pos_tex, tex_pos).xyz;
-    vec3 world_norm = texture(world_norm_tex, tex_pos).xyz;
-    vec3 view_dir = normalize(world_pos - camera_world_pos);
-    vec3 diffuse_color = texture(diffuse_tex, tex_pos).rgb;
-    float specular_color = texture(specular_tex, tex_pos).r;
+    float gui = texture(gui_tex, tex_pos).r;
+    if (gui != 0) {
+        frag_color = vec4(0.8);
+        return;
+    }
 
     float outline = texture(outline_tex, tex_pos).r;
     uvec4 outline_neighbors = textureGatherOffsets(
@@ -56,9 +56,20 @@ void main() {
         && outline == 0
     ) {
         frag_color = vec4(1.0, 1.0, 0.0, 1.0);
-    } else if (length(world_norm) == 0) {
-        frag_color = vec4(diffuse_color, 1.0);
+        return;
+    }
+
+    vec3 world_norm = texture(world_norm_tex, tex_pos).xyz;
+    if (length(world_norm) == 0) {
+        frag_color = vec4(texture(diffuse_tex, tex_pos).rgb, 1.0);
+        return;
     } else {
+        vec3 camera_world_pos = camera.world_pos.xyz;
+        vec3 world_pos = texture(world_pos_tex, tex_pos).xyz;
+        vec3 view_dir = normalize(world_pos - camera_world_pos);
+        vec3 diffuse_color = texture(diffuse_tex, tex_pos).rgb;
+        float specular_color = texture(specular_tex, tex_pos).r;
+
         vec3 combined = vec3(0.0);
         for (int i = 0; i < n_point_lights; ++i) {
             PointLight light = point_lights[i];
@@ -84,5 +95,6 @@ void main() {
         }
 
         frag_color = vec4(combined, 1.0);
+        return;
     }
 }

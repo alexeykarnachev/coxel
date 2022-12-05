@@ -3,7 +3,7 @@ typedef struct Renderer {
     size_t viewport_height;
 
     GBuffer gbuffer;
-    OutlineBuffer outline_buffer;
+    OverlayBuffer overlay_buffer;
     Texture gui_font_texture;
 } Renderer;
 
@@ -11,10 +11,13 @@ typedef struct Renderer {
 void _update_scripts();
 void _render_color(
     GBuffer* gbuffer,
-    OutlineBuffer* outline_buffer
+    OverlayBuffer* overlay_buffer
 );
 void _render_gbuffer();
-void _render_outline_buffer();
+void _render_overlay_buffer(
+    size_t viewport_width,
+    size_t viewport_height
+);
 void _render_gui_rects(
     GLuint program,
     size_t viewport_width,
@@ -31,8 +34,8 @@ int renderer_create(
     Renderer* renderer,
     size_t gbuffer_width,
     size_t gbuffer_height,
-    size_t outline_buffer_width,
-    size_t outline_buffer_height
+    size_t overlay_buffer_width,
+    size_t overlay_buffer_height
 ) {
     clear_struct(renderer);
 
@@ -41,10 +44,10 @@ int renderer_create(
 
     ok &= gbuffer_create(
         &renderer->gbuffer, gbuffer_width, gbuffer_height);
-    ok &= outline_buffer_create(
-        &renderer->outline_buffer,
-        outline_buffer_width,
-        outline_buffer_height
+    ok &= overlay_buffer_create(
+        &renderer->overlay_buffer,
+        overlay_buffer_width,
+        overlay_buffer_height
     );
 
     ok &= texture_create_1d(
@@ -82,33 +85,25 @@ int renderer_update(Renderer* renderer) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_gbuffer();
 
-    // Terget: outline buffer
-    glBindFramebuffer(GL_FRAMEBUFFER, renderer->outline_buffer.fbo);
+    // Terget: overlay buffer
+    glDisable(GL_DEPTH_TEST);
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer->overlay_buffer.fbo);
     glViewport(
         0, 0,
-        renderer->outline_buffer.width,
-        renderer->outline_buffer.height
+        renderer->overlay_buffer.width,
+        renderer->overlay_buffer.height
     );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _render_outline_buffer();
+    _render_overlay_buffer(
+        renderer->viewport_width,
+        renderer->viewport_height
+    );
     
     // Target: screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    _render_color(&renderer->gbuffer, &renderer->outline_buffer);
-
-    glDisable(GL_DEPTH_TEST);
-    _render_gui_rects(
-        PROGRAM_GUI_RECT,
-        renderer->viewport_width,
-        renderer->viewport_height
-    );
-    _render_gui_texts(
-        renderer->gui_font_texture.tex,
-        renderer->viewport_width,
-        renderer->viewport_height
-    );
+    _render_color(&renderer->gbuffer, &renderer->overlay_buffer);
     
     return 1;
 }
@@ -121,13 +116,14 @@ void _update_scripts() {
     }
 }
 
-void _render_color(GBuffer* gbuffer, OutlineBuffer* outline_buffer) {
+void _render_color(GBuffer* gbuffer, OverlayBuffer* overlay_buffer) {
     GLuint program = PROGRAM_COLOR;
     glUseProgram(program);
 
     _set_uniform_camera(program);
     _set_uniform_point_lights(program);
 
+    // TODO: Factor these out into a cycle or so
     program_set_uniform_1i(program, "world_pos_tex", 0);
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_2D, gbuffer->world_pos_texture.tex);
@@ -146,7 +142,11 @@ void _render_color(GBuffer* gbuffer, OutlineBuffer* outline_buffer) {
 
     program_set_uniform_1i(program, "outline_tex", 4);
     glActiveTexture(GL_TEXTURE0 + 4);
-    glBindTexture(GL_TEXTURE_2D, outline_buffer->outline_texture.tex);
+    glBindTexture(GL_TEXTURE_2D, overlay_buffer->outline_texture.tex);
+
+    program_set_uniform_1i(program, "gui_tex", 5);
+    glActiveTexture(GL_TEXTURE0 + 5);
+    glBindTexture(GL_TEXTURE_2D, overlay_buffer->gui_texture.tex);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
@@ -224,10 +224,13 @@ void _render_gbuffer() {
 }
 
 // TODO: Factor out repetitive code here and in render gbuffer meshes
-void _render_outline_buffer() {
+void _render_overlay_buffer(
+    size_t viewport_width,
+    size_t viewport_height
+) {
     // ----------------------------------------------
-    // Meshes:
-    GLuint program = PROGRAM_MESH_OUTLINE_BUFFER;
+    // Mesh outlines:
+    GLuint program = PROGRAM_MESH_OUTLINE;
     glUseProgram(program);
     _set_uniform_camera(program);
 
@@ -255,8 +258,8 @@ void _render_outline_buffer() {
     }
 
     // ----------------------------------------------
-    // Sprites:
-    program = PROGRAM_SPRITE_OUTLINE_BUFFER;
+    // Sprite outlines:
+    program = PROGRAM_SPRITE_OUTLINE;
     glUseProgram(program);
     _set_uniform_camera(program);
 
@@ -270,13 +273,10 @@ void _render_outline_buffer() {
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
-}
 
-void _render_gui_rects(
-    GLuint program,
-    size_t viewport_width,
-    size_t viewport_height
-) {
+    // ----------------------------------------------
+    // GUI rects:
+    program = PROGRAM_GUI_RECT;
     glUseProgram(program);
 
     for (size_t i = 0; i < N_GUI_RECT_ENTITIES; ++i) {
@@ -290,10 +290,16 @@ void _render_gui_rects(
         program_set_uniform_1i(program, "height", rect->height);
         program_set_uniform_1i(program, "viewport_width", viewport_width);
         program_set_uniform_1i(program, "viewport_height", viewport_height);
-        // program_set_uniform_1i(program, "entity_id", entity);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
+}
+
+void _render_gui_rects(
+    GLuint program,
+    size_t viewport_width,
+    size_t viewport_height
+) {
 }
 
 void _render_gui_texts(GLuint font_tex, size_t viewport_width, size_t viewport_height) {
