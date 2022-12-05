@@ -11,7 +11,7 @@ void entity_create_gui_pane(
     ecs_add_component(
         pane, TRANSFORMATION_T,
         transformation_create(
-            vec3_zeros,
+            vec3_ones,
             vec3_zeros,
             vec3(x, y, 0.0)
         ) 
@@ -23,9 +23,9 @@ void entity_create_gui_pane(
     ecs_add_component(
         title, TRANSFORMATION_T,
         transformation_create(
+            vec3_ones,
             vec3_zeros,
-            vec3_zeros,
-            vec3(0.0, 0.0, 0.0)
+            vec3(10.0, 0.0, 0.0)
         ) 
     );
 }

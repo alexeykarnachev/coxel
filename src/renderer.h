@@ -16,15 +16,14 @@ void _render_color(
 void _render_gbuffer();
 void _render_overlay_buffer(
     size_t viewport_width,
-    size_t viewport_height
+    size_t viewport_height,
+    GLuint font_tex
 );
 void _render_gui_rects(
     GLuint program,
     size_t viewport_width,
     size_t viewport_height
 );
-void _render_gui_texts(
-    GLuint font_tex, size_t viewport_width, size_t viewport_height);
 
 void _set_uniform_camera(GLuint program);
 void _set_uniform_point_lights(GLuint program);
@@ -96,7 +95,8 @@ int renderer_update(Renderer* renderer) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_overlay_buffer(
         renderer->viewport_width,
-        renderer->viewport_height
+        renderer->viewport_height,
+        renderer->gui_font_texture.tex
     );
     
     // Target: screen
@@ -226,7 +226,8 @@ void _render_gbuffer() {
 // TODO: Factor out repetitive code here and in render gbuffer meshes
 void _render_overlay_buffer(
     size_t viewport_width,
-    size_t viewport_height
+    size_t viewport_height,
+    GLuint font_tex
 ) {
     // ----------------------------------------------
     // Mesh outlines:
@@ -293,17 +294,10 @@ void _render_overlay_buffer(
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
-}
 
-void _render_gui_rects(
-    GLuint program,
-    size_t viewport_width,
-    size_t viewport_height
-) {
-}
-
-void _render_gui_texts(GLuint font_tex, size_t viewport_width, size_t viewport_height) {
-    GLuint program = PROGRAM_GUI_TEXT;
+    // ----------------------------------------------
+    // GUI texts:
+    program = PROGRAM_GUI_TEXT;
     glUseProgram(program);
     glActiveTexture(GL_TEXTURE0 + 0);
     glBindTexture(GL_TEXTURE_1D, font_tex);
@@ -321,6 +315,16 @@ void _render_gui_texts(GLuint font_tex, size_t viewport_width, size_t viewport_h
         program_set_uniform_1uiv(program, "char_inds", text->char_inds, text->n_chars);
         glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
     }
+}
+
+void _render_gui_rects(
+    GLuint program,
+    size_t viewport_width,
+    size_t viewport_height
+) {
+}
+
+void _render_gui_texts(GLuint font_tex, size_t viewport_width, size_t viewport_height) {
 }
 
 void _set_uniform_camera(GLuint program) {

@@ -35,8 +35,13 @@ const ivec2 OUTLINE_OFFSETS[4] = ivec2[4](
 
 void main() {
     float gui = texture(gui_tex, tex_pos).r;
-    if (gui != 0) {
+    if (gui == 1) {
         frag_color = vec4(0.8);
+        return;
+    }
+
+    if (gui == 2) {
+        frag_color = vec4(0.2);
         return;
     }
 

@@ -6,7 +6,7 @@ int main(void) {
     renderer_create(
         &renderer,
         GBUFFER_WIDTH, GBUFFER_HEIGHT,
-        OUTLINE_BUFFER_WIDTH, OUTLINE_BUFFER_HEIGHT
+        OVERLAY_BUFFER_WIDTH, OVERLAY_BUFFER_HEIGHT
     );
 
     size_t suzanne_0 = ecs_create_entity(-1);
@@ -227,7 +227,7 @@ int main(void) {
             &camera_mouse_controller_args));
 
     entity_create_gui_pane(
-        20, 20, 800, 72, 24, "Hello, ZALOOPA 8==o");
+        20, 20, 800, 72, 32, "COXEL-v0.0.0");
 
     size_t editor_entity_controller_0 = ecs_create_entity(-1);
     EditorEntityControllerArgs editor_entity_controller_args =
