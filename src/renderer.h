@@ -49,14 +49,17 @@ int renderer_create(
         overlay_buffer_height
     );
 
-    ok &= texture_create_1d(
+    char* font_raster = font_load_raster();
+    ok &= texture_create_2d(
         &renderer->gui_font_texture,
-        (void*)GUI_FONT_RASTER,
+        (void*)font_raster,
         0,
         GUI_FONT_TEXTURE_WIDTH,
+        GUI_FONT_TEXTURE_HEIGHT,
         GL_R8,
         GL_RED,
-        GL_UNSIGNED_BYTE
+        GL_UNSIGNED_BYTE,
+        GL_NEAREST
     );
 
     return ok;
@@ -300,7 +303,7 @@ void _render_overlay_buffer(
     program = PROGRAM_GUI_TEXT;
     glUseProgram(program);
     glActiveTexture(GL_TEXTURE0 + 0);
-    glBindTexture(GL_TEXTURE_1D, font_tex);
+    glBindTexture(GL_TEXTURE_2D, font_tex);
 
     for (size_t i = 0; i < N_GUI_TEXT_ENTITIES; ++i) {
         size_t entity = GUI_TEXT_ENTITIES[i];
