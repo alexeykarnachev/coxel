@@ -100,6 +100,7 @@ int renderer_update(Renderer* renderer) {
     // Target: screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
+    // TODO: Don't need this glClear call? I'll redraw the full screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     _render_color(&renderer->gbuffer, &renderer->overlay_buffer);
     
@@ -190,6 +191,15 @@ void _render_gbuffer() {
         glDrawElements(
             GL_TRIANGLES, mesh->vao_buffer.n_f, GL_UNSIGNED_INT, 0);
     }
+
+    // ----------------------------------------------
+    // Skybox:
+    glDisable(GL_CULL_FACE);
+    glDepthFunc(GL_LEQUAL);
+    program = PROGRAM_SKYBOX_GBUFFER;
+    glUseProgram(program);
+    _set_uniform_camera(program);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 14);
 
     // ----------------------------------------------
     // Sprites:

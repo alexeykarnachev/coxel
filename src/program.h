@@ -36,6 +36,7 @@ const char* VERT_PROJECTION_SHADER = "./assets/shaders/projection.vert";
 const char* VERT_GUI_RECT_SHADER = "./assets/shaders/gui_rect.vert";
 const char* VERT_GUI_TEXT_SHADER = "./assets/shaders/gui_text.vert";
 const char* VERT_SPRITE_SHADER = "./assets/shaders/sprite.vert";
+const char* VERT_SKYBOX_SHADER = "./assets/shaders/skybox.vert";
 const char* FRAG_COLOR_SHADER = "./assets/shaders/color.frag";
 const char* FRAG_DEPTH_SHADER = "./assets/shaders/depth.frag";
 const char* FRAG_GUI_RECT_SHADER = "./assets/shaders/gui_rect.frag";
@@ -43,6 +44,7 @@ const char* FRAG_GUI_TEXT_SHADER = "./assets/shaders/gui_text.frag";
 const char* FRAG_GBUFFER_SHADER = "./assets/shaders/gbuffer.frag";
 const char* FRAG_OUTLINE_SHADER = "./assets/shaders/outline.frag";
 const char* FRAG_SPRITE_SHADER = "./assets/shaders/sprite.frag";
+const char* FRAG_SKYBOX_SHADER = "./assets/shaders/skybox.frag";
 const char* GLSL_COMMON_SHADER = "./assets/shaders/common.glsl";
 const char* VERSION_SHADER = "./assets/shaders/version.glsl";
 const char* CONSTANTS_SHADER = "./src/constants.h";
@@ -53,6 +55,7 @@ GLuint PROGRAM_GUI_TEXT;
 GLuint PROGRAM_MESH_GBUFFER;
 GLuint PROGRAM_GUI_GBUFFER;
 GLuint PROGRAM_SPRITE_GBUFFER;
+GLuint PROGRAM_SKYBOX_GBUFFER;
 GLuint PROGRAM_MESH_OUTLINE;
 GLuint PROGRAM_SPRITE_OUTLINE;
 
@@ -93,6 +96,15 @@ bool program_create_all() {
         VERT_SPRITE_SHADER,
         NULL, NULL, NULL,
         FRAG_SPRITE_SHADER,
+        2, deps_file_paths
+    );
+
+    PROGRAM_SKYBOX_GBUFFER = glCreateProgram();
+    ok &= program_create(
+        PROGRAM_SKYBOX_GBUFFER,
+        VERT_SKYBOX_SHADER,
+        NULL, NULL, NULL,
+        FRAG_SKYBOX_SHADER,
         2, deps_file_paths
     );
 
