@@ -19,11 +19,6 @@ void _render_overlay_buffer(
     size_t viewport_height,
     GLuint font_tex
 );
-void _render_gui_rects(
-    GLuint program,
-    size_t viewport_width,
-    size_t viewport_height
-);
 
 void _set_uniform_camera(GLuint program);
 void _set_uniform_point_lights(GLuint program);
@@ -49,17 +44,17 @@ int renderer_create(
         overlay_buffer_height
     );
 
-    char* font_raster = font_load_raster();
+    void* font_data = read_bin_file("./assets/fonts/font.bin", NULL);
     ok &= texture_create_2d(
         &renderer->gui_font_texture,
-        (void*)font_raster,
+        font_data,
         0,
         GUI_FONT_TEXTURE_WIDTH,
         GUI_FONT_TEXTURE_HEIGHT,
         GL_R8,
         GL_RED,
         GL_UNSIGNED_BYTE,
-        GL_NEAREST
+        GL_LINEAR
     );
 
     return ok;
@@ -147,9 +142,13 @@ void _render_color(GBuffer* gbuffer, OverlayBuffer* overlay_buffer) {
     glActiveTexture(GL_TEXTURE0 + 4);
     glBindTexture(GL_TEXTURE_2D, overlay_buffer->outline_texture.tex);
 
-    program_set_uniform_1i(program, "gui_tex", 5);
+    program_set_uniform_1i(program, "gui_rect_tex", 5);
     glActiveTexture(GL_TEXTURE0 + 5);
-    glBindTexture(GL_TEXTURE_2D, overlay_buffer->gui_texture.tex);
+    glBindTexture(GL_TEXTURE_2D, overlay_buffer->gui_rect_texture.tex);
+
+    program_set_uniform_1i(program, "gui_text_tex", 6);
+    glActiveTexture(GL_TEXTURE0 + 6);
+    glBindTexture(GL_TEXTURE_2D, overlay_buffer->gui_text_texture.tex);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
@@ -318,16 +317,6 @@ void _render_overlay_buffer(
         program_set_uniform_1uiv(program, "char_inds", text->char_inds, text->n_chars);
         glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
     }
-}
-
-void _render_gui_rects(
-    GLuint program,
-    size_t viewport_width,
-    size_t viewport_height
-) {
-}
-
-void _render_gui_texts(GLuint font_tex, size_t viewport_width, size_t viewport_height) {
 }
 
 void _set_uniform_camera(GLuint program) {

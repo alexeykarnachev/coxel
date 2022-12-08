@@ -25,7 +25,7 @@ void entity_create_gui_pane(
         transformation_create(
             vec3_ones,
             vec3_zeros,
-            vec3(10.0, 0.0, 0.0)
+            vec3(10.0, 2.0, 0.0)
         ) 
     );
 }

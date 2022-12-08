@@ -3,7 +3,8 @@ typedef struct OverlayBuffer {
     size_t height;
     GLuint fbo;
     Texture outline_texture;
-    Texture gui_texture;
+    Texture gui_text_texture;
+    Texture gui_rect_texture;
 } OverlayBuffer;
 
 
@@ -20,9 +21,14 @@ int overlay_buffer_create(
         GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, GL_NEAREST);
 
     texture_create_2d(
-        &buffer->gui_texture, NULL, 0,
+        &buffer->gui_rect_texture, NULL, 0,
         width, height,
         GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, GL_NEAREST);
+
+    texture_create_2d(
+        &buffer->gui_text_texture, NULL, 0,
+        width, height,
+        GL_R16F, GL_RED, GL_UNSIGNED_BYTE, GL_LINEAR);
 
     glBindFramebuffer(GL_FRAMEBUFFER, buffer->fbo);
 
@@ -32,14 +38,19 @@ int overlay_buffer_create(
     );
     glFramebufferTexture2D(
         GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 1, GL_TEXTURE_2D,
-        buffer->gui_texture.tex, 0
+        buffer->gui_rect_texture.tex, 0
+    );
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 2, GL_TEXTURE_2D,
+        buffer->gui_text_texture.tex, 0
     );
 
-    GLuint buffers[2] = {
+    GLuint buffers[3] = {
         GL_COLOR_ATTACHMENT0,
-        GL_COLOR_ATTACHMENT1
+        GL_COLOR_ATTACHMENT1,
+        GL_COLOR_ATTACHMENT2
     };
-    glDrawBuffers(2, buffers);
+    glDrawBuffers(3, buffers);
 
     check_framebuffer(0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

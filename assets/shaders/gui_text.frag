@@ -1,20 +1,12 @@
-in VertexData {
-    vec2 tex_pos;
-    flat uint char_id;
-} fs_in;
+in vec2 tex_pos;
 
 uniform sampler2D font_tex;
 
-layout(location=1) out uint gui_tex;
+layout(location=2) out float gui_text_tex;
 
 void main() {
-    int byte = int(texture(font_tex, vec2(100, 100)).r * 255);
-    int bit = ((byte >> int(fs_in.tex_pos.x * 8)) & 1);
-    if (bit == 1) {
-        gui_tex = 2;
-    } else {
-        discard;
-    }
+    float alpha = texture(font_tex, tex_pos).r;
+    gui_text_tex = alpha;
 }
 
 
