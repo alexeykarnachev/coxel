@@ -17,14 +17,14 @@ void main() {
     int id = gl_VertexID;
 
     float x = world_mat[3][0] / float(viewport_width);
-    float y = world_mat[3][1] / float(viewport_height);
+    float y = (float(viewport_height) - world_mat[3][1]) / float(viewport_height);
     float w = float(width) / float(viewport_width);
     float h = float(height) / float(viewport_height);
 
     float x0 = (x * 2.0) - 1.0;
     float y0 = (y * 2.0) - 1.0;
     float x1 = x0 + w * 2.0;
-    float y1 = y0 + h * 2.0;
+    float y1 = y0 - h * 2.0;
 
     if (id == 0) {
         vs_out.proj_pos = vec4(x0, y0, 0, 1);
