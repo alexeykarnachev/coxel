@@ -226,8 +226,7 @@ int main(void) {
         camera_mouse_controller_create_script(
             &camera_mouse_controller_args));
 
-    entity_create_gui_pane(
-        20, 20, 800, 72, 28, "COXEL-v0.0.1 abcd 123");
+    editor_gui_create();
 
     size_t editor_entity_controller_0 = ecs_create_entity(-1);
     EditorEntityControllerArgs editor_entity_controller_args =

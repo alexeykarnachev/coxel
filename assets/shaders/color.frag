@@ -19,7 +19,7 @@ uniform sampler2D world_norm_tex;
 uniform sampler2D diffuse_tex;
 uniform sampler2D specular_tex;
 uniform usampler2D outline_tex;
-uniform usampler2D gui_rect_tex;
+uniform sampler2D gui_rect_tex;
 uniform sampler2D gui_text_tex;
 
 uniform PointLight point_lights[MAX_N_POINT_LIGHTS_TO_RENDER];
@@ -88,8 +88,8 @@ void main() {
         frag_color = vec4(combined, 1.0);
     }
 
-    float gui_rect = texture(gui_rect_tex, tex_pos).r / 255.0;
+    vec4 gui_rect = texture(gui_rect_tex, tex_pos);
     float gui_text = texture(gui_text_tex, tex_pos).r;
-    frag_color = gui_rect * vec4(0.0) + (1.0 - gui_rect) * frag_color;
+    frag_color = gui_rect.a * gui_rect + (1.0 - gui_rect.a) * frag_color;
     frag_color = gui_text * vec4(1.0) + (1.0 - gui_text) * frag_color;
 }

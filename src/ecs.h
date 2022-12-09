@@ -4,11 +4,13 @@ typedef enum COMPONENT_TYPE {
     MESH_T,
     CAMERA_T,
     POINT_LIGHT_T,
-    GUI_TEXT_T,
-    GUI_RECT_T,
     SCRIPT_T,
     SPRITE_T,
     HAS_OUTLINE_T,
+
+    GUI_TEXT_T,
+    GUI_RECT_T,
+    GUI_BUTTON_T,
 
     N_COMPONENT_TYPES
 } COMPONENT_TYPE;
@@ -31,11 +33,12 @@ size_t RENDERABLE_ENTITIES[MAX_N_ENTITIES];
 size_t CAMERA_ENTITIES[MAX_N_ENTITIES];
 size_t POINT_LIGHT_ENTITIES[MAX_N_ENTITIES];
 size_t SCRIPT_ENTITIES[MAX_N_ENTITIES];
-size_t GUI_RECT_ENTITIES[MAX_N_ENTITIES];
-size_t GUI_TEXT_ENTITIES[MAX_N_ENTITIES];
 size_t SPRITE_ENTITIES[MAX_N_ENTITIES];
 size_t MESH_WITH_OUTLINE_ENTITIES[MAX_N_ENTITIES];
 size_t SPRITE_WITH_OUTLINE_ENTITIES[MAX_N_ENTITIES];
+size_t GUI_RECT_ENTITIES[MAX_N_ENTITIES];
+size_t GUI_TEXT_ENTITIES[MAX_N_ENTITIES];
+size_t GUI_BUTTON_ENTITIES[MAX_N_ENTITIES];
 
 size_t N_RENDERABLE_ENTITIES = 0;
 size_t N_CAMERA_ENTITIES = 0;
@@ -43,6 +46,7 @@ size_t N_POINT_LIGHT_ENTITIES = 0;
 size_t N_SCRIPT_ENTITIES = 0;
 size_t N_GUI_RECT_ENTITIES = 0;
 size_t N_GUI_TEXT_ENTITIES = 0;
+size_t N_GUI_BUTTON_ENTITIES = 0;
 size_t N_SPRITE_ENTITIES = 0;
 size_t N_MESH_WITH_OUTLINE_ENTITIES = 0;
 size_t N_SPRITE_WITH_OUTLINE_ENTITIES = 0;
@@ -64,11 +68,12 @@ int ecs_check_if_camera(size_t entity);
 int ecs_check_if_renderable(size_t entity);
 int ecs_check_if_point_light(size_t entity);
 int ecs_check_if_script(size_t entity);
-int ecs_check_if_gui_rect(size_t entity);
-int ecs_check_if_gui_text(size_t entity);
 int ecs_check_if_sprite(size_t entity);
 int ecs_check_if_mesh_with_outline(size_t entity);
 int ecs_check_if_sprite_with_outline(size_t entity);
+int ecs_check_if_gui_rect(size_t entity);
+int ecs_check_if_gui_text(size_t entity);
+int ecs_check_if_gui_button(size_t entity);
 
 
 void ecs_update() {
@@ -77,11 +82,12 @@ void ecs_update() {
     N_CAMERA_ENTITIES = 0;
     N_POINT_LIGHT_ENTITIES = 0;
     N_SCRIPT_ENTITIES = 0;
-    N_GUI_RECT_ENTITIES = 0;
-    N_GUI_TEXT_ENTITIES = 0;
     N_SPRITE_ENTITIES = 0;
     N_MESH_WITH_OUTLINE_ENTITIES = 0;
     N_SPRITE_WITH_OUTLINE_ENTITIES = 0;
+    N_GUI_RECT_ENTITIES = 0;
+    N_GUI_TEXT_ENTITIES = 0;
+    N_GUI_BUTTON_ENTITIES = 0;
 
     for (size_t entity = 0; entity < N_ENTITIES; ++entity) {
         if (ecs_check_if_renderable(entity)) {
@@ -101,6 +107,9 @@ void ecs_update() {
         }
         if (ecs_check_if_gui_text(entity)) {
             GUI_TEXT_ENTITIES[N_GUI_TEXT_ENTITIES++] = entity;
+        }
+        if (ecs_check_if_gui_button(entity)) {
+            GUI_BUTTON_ENTITIES[N_GUI_BUTTON_ENTITIES++] = entity;
         }
         if (ecs_check_if_sprite(entity)) {
             SPRITE_ENTITIES[N_SPRITE_ENTITIES++] = entity;
@@ -236,6 +245,15 @@ int ecs_check_if_gui_text(size_t entity) {
     Bitset* b = &ENTITIES[entity].components;
     return
         bitset_get_bit(b, GUI_TEXT_T)
+        && bitset_get_bit(b, TRANSFORMATION_T);
+}
+
+int ecs_check_if_gui_button(size_t entity) {
+    if (entity == -1) return 0;
+    Bitset* b = &ENTITIES[entity].components;
+    return
+        bitset_get_bit(b, GUI_BUTTON_T)
+        && bitset_get_bit(b, GUI_RECT_T)
         && bitset_get_bit(b, TRANSFORMATION_T);
 }
 

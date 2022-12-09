@@ -301,6 +301,7 @@ void _render_overlay_buffer(
             program, "world_mat", world_mat.data, 1, true);
         program_set_uniform_1i(program, "width", rect->width);
         program_set_uniform_1i(program, "height", rect->height);
+        program_set_uniform_4fv(program, "color", rect->color.data, 1);
         program_set_uniform_1i(program, "viewport_width", viewport_width);
         program_set_uniform_1i(program, "viewport_height", viewport_height);
 

@@ -1,5 +1,7 @@
-layout(location=1) out uint gui_rect_tex;
+uniform vec4 color;
+
+layout(location=1) out vec4 gui_rect_tex;
 
 void main() {
-    gui_rect_tex = 230;
+    gui_rect_tex = color;
 }

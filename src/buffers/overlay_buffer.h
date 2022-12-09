@@ -23,7 +23,7 @@ int overlay_buffer_create(
     texture_create_2d(
         &buffer->gui_rect_texture, NULL, 0,
         width, height,
-        GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, GL_NEAREST);
+        GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST);
 
     texture_create_2d(
         &buffer->gui_text_texture, NULL, 0,

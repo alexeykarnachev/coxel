@@ -21,4 +21,3 @@ GUIText* gui_text_create(unsigned char* text, size_t font_height) {
 
     return gui_text;
 }
-
