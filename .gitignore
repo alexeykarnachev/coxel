@@ -1,5 +1,3 @@
-/.vscode
 demo
-shadertoy
 *.swp
-tags
+*.o

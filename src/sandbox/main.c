@@ -1,4 +1,23 @@
+#include <stdbool.h>
+#include <stddef.h>
+
 #include "../includes.h"
+#include "../constants.h"
+#include "../window.h"
+#include "../renderer.h"
+#include "../ecs.h"
+#include "../editor_gui.h"
+#include "../components/transformation.h"
+#include "../components/mesh.h"
+#include "../components/material.h"
+#include "../components/point_light.h"
+#include "../components/sprite.h"
+#include "../components/camera.h"
+#include "../scripts/camera_mouse_controller.h"
+#include "../scripts/editor_entity_controller.h"
+#include "../assets/sun_icon_32.h"
+
+#include <GLFW/glfw3.h>
 
 int main(void) {
     window_create(SCREEN_WIDTH, SCREEN_HEIGHT);

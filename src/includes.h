@@ -1,3 +1,9 @@
+#pragma once
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
+
 #define PI 3.14159265358979323846264338327950288
 #define EPS 0.0000001
 
@@ -13,45 +19,25 @@
         return fail_return_value;\
     }\
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <errno.h>
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-
-#include "constants.h"
-#include "defaults.h"
-#include "utils.h"
-#include "la.h"
-#include "program.h"
-#include "texture.h"
-#include "bitset.h"
-#include "assets/sun_icon_32.h"
-#include "assets/obj.h"
-#include "buffers/vao_buffer.h"
-#include "buffers/gbuffer.h"
-#include "buffers/overlay_buffer.h"
-#include "buffers/texture_buffer.h"
-#include "buffers/depth_cubemap_array.h"
-#include "components/transformation.h"
-#include "components/camera.h"
-#include "components/material.h"
-#include "components/mesh.h"
-#include "components/sprite.h"
-#include "components/point_light.h"
-#include "components/script.h"
-#include "components/gui_text.h"
-#include "components/gui_rect.h"
-#include "ecs.h"
-#include "window.h"
-#include "scripts/camera_mouse_controller.h"
-#include "scripts/editor_entity_controller.h"
-#include "renderer.h"
-#include "editor_gui.h"
+// #include <glad/glad.h>
+// #include <GLFW/glfw3.h>
+// 
+// #include <errno.h>
+// #include <math.h>
+// #include <stdio.h>
+// #include <string.h>
+// #include <stdbool.h>
+// #include <stdlib.h>
+// #include <sys/stat.h>
+// #include <sys/time.h>
+// 
+// #include "constants.h"
+// #include "defaults.h"
+// #include "utils.h"
+// #include "program.h"
+// #include "texture.h"
+// #include "bitset.h"
+// #include "assets/sun_icon_32.h"
+// #include "assets/obj.h"
+// #include "window.h"
 

@@ -1,3 +1,7 @@
+#pragma once
+#include "includes.h"
+#include "la.h"
+
 #define DEFAULT_TRANSFORMATION_SCALE vec3_ones
 #define DEFAULT_TRANSFORMATION_ROTATION vec3_zeros
 #define DEFAULT_TRANSFORMATION_TRANSLATION vec3_zeros
