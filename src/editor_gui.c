@@ -133,23 +133,29 @@ void editor_gui_update() {
         int is_button_hot = is_point_inside_rect(
             button_x, button_y, button_w, button_h, cursor_x, cursor_y
         );
+        int was_button_active = (int)(ENTITY_ACTIVE == button.rect);
+        int button_push_direction = 0;
+        if (is_button_hot && INPUT.mouse_left_released) {
+            button_push_direction = was_button_active ? -1 : 1;
+            INPUT.mouse_left_released = 0;
+        }
 
-        if (is_button_hot) {
+        if (is_button_hot && !was_button_active) {
             rect->color = BUTTON_HOT_COLOR;
             text->color = BUTTON_TEXT_HOT_COLOR;
-            if (INPUT.mouse_left_released) {
-                ENTITY_ACTIVE = ENTITY_ACTIVE == button.rect ? -1
-                                                             : button.rect;
-                INPUT.mouse_left_released = false;
-            }
-        } else {
+        } else if (!was_button_active) {
             rect->color = BUTTON_COLD_COLOR;
             text->color = BUTTON_TEXT_COLD_COLOR;
         }
 
-        if (button.rect == ENTITY_ACTIVE) {
+        if (button_push_direction == 1) {
             rect->color = BUTTON_ACTIVE_COLOR;
             text->color = BUTTON_TEXT_ACTIVE_COLOR;
+            ENTITY_ACTIVE = button.rect;
+        } else if (button_push_direction == -1) {
+            rect->color = BUTTON_HOT_COLOR;
+            text->color = BUTTON_TEXT_HOT_COLOR;
+            ENTITY_ACTIVE = -1;
         }
     }
 }
