@@ -1,7 +1,7 @@
 #pragma once
-#include "../texture.h"
-
 #include <glad/glad.h>
+
+#include "../texture.h"
 
 typedef struct TextureBuffer {
     GLuint fbo;

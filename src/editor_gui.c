@@ -5,7 +5,6 @@
 #include "components/transformation.h"
 #include "ecs.h"
 #include "la.h"
-
 #include <string.h>
 
 static Vec4 PANE_COLOR = {{0.1, 0.1, 0.1, 0.9}};

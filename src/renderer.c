@@ -17,7 +17,6 @@
 #include "program.h"
 #include "utils.h"
 #include "window.h"
-
 #include <stdio.h>
 
 static void update_scripts();

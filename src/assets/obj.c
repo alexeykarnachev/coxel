@@ -2,7 +2,6 @@
 
 #include "../includes.h"
 #include "../utils.h"
-
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>

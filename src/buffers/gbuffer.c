@@ -1,5 +1,4 @@
 #include "gbuffer.h"
-
 #include <glad/glad.h>
 
 int gbuffer_create(GBuffer* buffer, size_t width, size_t height) {

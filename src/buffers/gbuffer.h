@@ -1,8 +1,8 @@
 #pragma once
+#include <glad/glad.h>
+
 #include "../includes.h"
 #include "../texture.h"
-
-#include <glad/glad.h>
 
 typedef struct GBuffer {
     size_t width;

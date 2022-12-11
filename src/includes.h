@@ -18,25 +18,3 @@
         fprintf(stderr, "ERROR: framebuffer not complete\n"); \
         return fail_return_value; \
     }
-
-// #include <glad/glad.h>
-// #include <GLFW/glfw3.h>
-//
-// #include <errno.h>
-// #include <math.h>
-// #include <stdio.h>
-// #include <string.h>
-// #include <stdbool.h>
-// #include <stdlib.h>
-// #include <sys/stat.h>
-// #include <sys/time.h>
-//
-// #include "constants.h"
-// #include "defaults.h"
-// #include "utils.h"
-// #include "program.h"
-// #include "texture.h"
-// #include "bitset.h"
-// #include "assets/sun_icon_32.h"
-// #include "assets/obj.h"
-// #include "window.h"

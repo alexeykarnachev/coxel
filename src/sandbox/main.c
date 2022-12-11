@@ -13,7 +13,6 @@
 #include "../scripts/camera_mouse_controller.h"
 #include "../scripts/editor_entity_controller.h"
 #include "../window.h"
-
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
 #include <stddef.h>
