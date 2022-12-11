@@ -2,7 +2,9 @@
 
 #include "../includes.h"
 
-int overlay_buffer_create(OverlayBuffer* buffer, size_t width, size_t height) {
+int overlay_buffer_create(
+    OverlayBuffer* buffer, size_t width, size_t height
+) {
     glGenFramebuffers(1, &buffer->fbo);
 
     texture_create_2d(
@@ -65,8 +67,8 @@ int overlay_buffer_create(OverlayBuffer* buffer, size_t width, size_t height) {
         0
     );
 
-    GLuint buffers[3]
-        = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+    GLuint buffers[3] = {
+        GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
     glDrawBuffers(3, buffers);
 
     check_framebuffer(0);

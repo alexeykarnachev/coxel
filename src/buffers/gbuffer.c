@@ -70,7 +70,9 @@ int gbuffer_create(GBuffer* buffer, size_t width, size_t height) {
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER, buffer->rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    glRenderbufferStorage(
+        GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height
+    );
 
     // TODO: Factor these out:
     glBindFramebuffer(GL_FRAMEBUFFER, buffer->fbo);

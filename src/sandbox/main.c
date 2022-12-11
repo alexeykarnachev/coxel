@@ -45,7 +45,9 @@ int main(void) {
         ironman_0,
         TRANSFORMATION_T,
         transformation_create(
-            vec3(0.02, 0.02, 0.02), vec3(0.0, 0.0, 0.0), vec3(8.0, -2.0, -10.0)
+            vec3(0.02, 0.02, 0.02),
+            vec3(0.0, 0.0, 0.0),
+            vec3(8.0, -2.0, -10.0)
         )
     );
     ecs_add_component(ironman_0, MESH_T, mesh_create_ironman());
@@ -56,7 +58,9 @@ int main(void) {
         plane_0,
         TRANSFORMATION_T,
         transformation_create(
-            vec3(20.0, 1.0, 20.0), vec3(0.0, 0.0, 0.0), vec3(0.0, -5.0, -20.0)
+            vec3(20.0, 1.0, 20.0),
+            vec3(0.0, 0.0, 0.0),
+            vec3(0.0, -5.0, -20.0)
         )
     );
     ecs_add_component(plane_0, MESH_T, mesh_create_plane());
@@ -72,7 +76,9 @@ int main(void) {
     );
     ecs_add_component(surf_sphere_0, MESH_T, mesh_create_surf_sphere());
     ecs_add_component(
-        surf_sphere_0, MATERIAL_T, material_create(vec3(0.9, 0.2, 0.2), 0.0)
+        surf_sphere_0,
+        MATERIAL_T,
+        material_create(vec3(0.9, 0.2, 0.2), 0.0)
     );
 
     size_t sphere_0 = ecs_create_entity(-1);
@@ -173,7 +179,9 @@ int main(void) {
         SPRITE_T,
         sprite_create(0.0, 0.0, 1.0, 1.0, &sun_icon_texture)
     );
-    ecs_add_component(point_light_0, MATERIAL_T, material_create_default());
+    ecs_add_component(
+        point_light_0, MATERIAL_T, material_create_default()
+    );
 
     size_t point_light_1 = ecs_create_entity(-1);
     ecs_add_component(
@@ -241,7 +249,8 @@ int main(void) {
     ecs_add_component(
         camera_0,
         SCRIPT_T,
-        camera_mouse_controller_create_script(&camera_mouse_controller_args)
+        camera_mouse_controller_create_script(&camera_mouse_controller_args
+        )
     );
 
     editor_gui_create();
@@ -252,7 +261,9 @@ int main(void) {
     ecs_add_component(
         editor_entity_controller_0,
         SCRIPT_T,
-        editor_entity_controller_create_script(&editor_entity_controller_args)
+        editor_entity_controller_create_script(
+            &editor_entity_controller_args
+        )
     );
 
     while (!INPUT.window_should_close) {

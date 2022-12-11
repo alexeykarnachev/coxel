@@ -22,5 +22,5 @@ typedef struct EditorEntityControllerArgs {
 EditorEntityControllerArgs
 editor_entity_controller_create_default_args(GBuffer* gbuffer);
 
-Script* editor_entity_controller_create_script(EditorEntityControllerArgs* args
-);
+Script*
+editor_entity_controller_create_script(EditorEntityControllerArgs* args);

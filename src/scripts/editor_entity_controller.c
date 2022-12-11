@@ -28,7 +28,8 @@ static int key_to_axis(int key) {
 
 // TODO: Refactor this. Alot of repeated stuff could be factored out.
 void _editor_entity_controller_update(size_t _, void* args_p) {
-    EditorEntityControllerArgs* args = (EditorEntityControllerArgs*)(args_p);
+    EditorEntityControllerArgs* args
+        = (EditorEntityControllerArgs*)(args_p);
 
     // ----------------------------------------------
     // Entity selection:
@@ -78,7 +79,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     Mat4 vp_inv = mat4_mat4_mul(&view_inv, &proj_inv);
 
     Vec3 entity_world_position = ecs_get_world_position(entity);
-    Vec3 entity_proj_position = vec3_project(&entity_world_position, &vp_mat);
+    Vec3 entity_proj_position
+        = vec3_project(&entity_world_position, &vp_mat);
 
     if (args->mode != MODE_SELECT
         && (INPUT.x_released || INPUT.y_released || INPUT.z_released)) {
@@ -89,7 +91,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         );
 
         entity_world_position = ecs_get_world_position(entity);
-        entity_proj_position = vec3_project(&entity_world_position, &vp_mat);
+        entity_proj_position
+            = vec3_project(&entity_world_position, &vp_mat);
     }
 
     Mat4 entity_world_mat = ecs_get_world_mat(entity);
@@ -138,7 +141,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
                 = vec3_project(&cursor_near_proj_position, &vp_inv);
 
             Vec3 cursor_far_proj = {{cursor_proj_x, cursor_proj_y, 1.0}};
-            Vec3 cursor_far_world = vec3_project(&cursor_far_proj, &vp_inv);
+            Vec3 cursor_far_world
+                = vec3_project(&cursor_far_proj, &vp_inv);
 
             Vec3 p0 = model_mat_extract_translation_vec(
                 &args->entity_start_world_mat
@@ -185,13 +189,15 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         args->cursor_y += INPUT.cursor_dy;
 
         Vec2 cursor_start_xy = vec2(
-            args->cursor_start_x * 2.0 - 1.0, args->cursor_start_y * 2.0 - 1.0
+            args->cursor_start_x * 2.0 - 1.0,
+            args->cursor_start_y * 2.0 - 1.0
         );
         Vec2 cursor_xy
             = vec2(args->cursor_x * 2.0 - 1.0, args->cursor_y * 2.0 - 1.0);
         Vec2 entity_xy = vec3_to_vec2(&entity_proj_position);
 
-        Vec2 entity_to_cursor_start = vec2_diff(&cursor_start_xy, &entity_xy);
+        Vec2 entity_to_cursor_start
+            = vec2_diff(&cursor_start_xy, &entity_xy);
         Vec2 entity_to_cursor = vec2_diff(&cursor_xy, &entity_xy);
         float len_start = vec2_length(&entity_to_cursor_start);
         float len_curr = vec2_length(&entity_to_cursor);
@@ -238,10 +244,12 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
             = vec2(args->cursor_x * 2.0 - 1.0, args->cursor_y * 2.0 - 1.0);
         Vec2 entity_xy = vec3_to_vec2(&entity_proj_position);
 
-        Vec2 entity_to_cursor_prev = vec2_diff(&cursor_prev_xy, &entity_xy);
+        Vec2 entity_to_cursor_prev
+            = vec2_diff(&cursor_prev_xy, &entity_xy);
         Vec2 entity_to_cursor = vec2_diff(&cursor_xy, &entity_xy);
 
-        float angle = vec2_angle(&entity_to_cursor, &entity_to_cursor_prev);
+        float angle
+            = vec2_angle(&entity_to_cursor, &entity_to_cursor_prev);
 
         Mat3 rotation_mat = mat3_identity;
         if (args->axis == AXIS_W) {
@@ -251,7 +259,8 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
             wv_t.rotation_mat
                 = mat3_mat3_mul(&rotation_mat, &wv_t.rotation_mat);
             Mat4 wv_mat_rot = transformation_get_model_mat(&wv_t);
-            Mat4 entity_new_world_mat = mat4_mat4_mul(&view_inv, &wv_mat_rot);
+            Mat4 entity_new_world_mat
+                = mat4_mat4_mul(&view_inv, &wv_mat_rot);
 
             Mat4 origin_world_mat = ecs_get_origin_world_mat(entity);
             Mat4 origin_world_inv = mat4_inverse(&origin_world_mat);
@@ -305,7 +314,7 @@ editor_entity_controller_create_default_args(GBuffer* gbuffer) {
     return args;
 }
 
-Script* editor_entity_controller_create_script(EditorEntityControllerArgs* args
-) {
+Script*
+editor_entity_controller_create_script(EditorEntityControllerArgs* args) {
     return script_create(_editor_entity_controller_update, args);
 }

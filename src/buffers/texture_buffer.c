@@ -26,7 +26,9 @@ int texture_buffer_create(
     );
 
     glBindRenderbuffer(GL_RENDERBUFFER, buffer->rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    glRenderbufferStorage(
+        GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height
+    );
 
     glBindFramebuffer(GL_FRAMEBUFFER, buffer->fbo);
     glFramebufferTexture2D(

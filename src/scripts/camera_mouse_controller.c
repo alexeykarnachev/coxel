@@ -40,7 +40,8 @@ static void camera_mouse_controller_update(size_t entity, void* args_p) {
     static float eps = 0.00001;
     CameraMouseControllerArgs* args = (CameraMouseControllerArgs*)(args_p);
     Camera* cam = (Camera*)COMPONENTS[CAMERA_T][entity];
-    Transformation* t = (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+    Transformation* t
+        = (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
 
     if (INPUT.shift_pressed && INPUT.mouse_middle_pressed) {
         translate(
@@ -57,7 +58,9 @@ static void camera_mouse_controller_update(size_t entity, void* args_p) {
             INPUT.cursor_dx * args->rotation_sens
         );
     } else if (fabs(INPUT.scroll_dy) > eps) {
-        translate(cam, t, 0.0f, 0.0f, INPUT.scroll_dy * args->straight_sens);
+        translate(
+            cam, t, 0.0f, 0.0f, INPUT.scroll_dy * args->straight_sens
+        );
     }
 
     float aspect = INPUT.window_width / INPUT.window_height;
@@ -70,10 +73,12 @@ CameraMouseControllerArgs camera_mouse_controller_create_default_args() {
     float side_sens = 30.0;
     float straight_sens = 3.0;
     float rotation_sens = 2.0;
-    CameraMouseControllerArgs args = {side_sens, straight_sens, rotation_sens};
+    CameraMouseControllerArgs args
+        = {side_sens, straight_sens, rotation_sens};
     return args;
 }
 
-Script* camera_mouse_controller_create_script(CameraMouseControllerArgs* args) {
+Script*
+camera_mouse_controller_create_script(CameraMouseControllerArgs* args) {
     return script_create(camera_mouse_controller_update, args);
 }

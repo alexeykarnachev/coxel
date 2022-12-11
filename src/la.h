@@ -104,7 +104,11 @@ void vec3_pack(float dst[], Vec3 vecs[], size_t n_vecs);
 CubemapViewProj
 get_cubemap_view_proj(float near_plane, float far_plane, Vec3* world_pos);
 int isect_line_plane(
-    Vec3* out_p, Vec3* line_p0, Vec3* line_p1, Vec3* plane_p, Vec3* plane_normal
+    Vec3* out_p,
+    Vec3* line_p0,
+    Vec3* line_p1,
+    Vec3* plane_p,
+    Vec3* plane_normal
 );
 int get_two_vecs_nearest_point(
     Vec3* vec0_out_nearest_point,

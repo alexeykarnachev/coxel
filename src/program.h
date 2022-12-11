@@ -4,7 +4,9 @@
 #include <stddef.h>
 
 bool program_create_all();
-bool program_get_attrib_location(GLuint program, GLuint* loc, const char* name);
+bool program_get_attrib_location(
+    GLuint program, GLuint* loc, const char* name
+);
 bool program_get_uniform_location(
     GLuint program, GLuint* loc, const char* name
 );

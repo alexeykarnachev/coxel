@@ -12,10 +12,13 @@ static Vec4 PANE_COLOR = {{0.1, 0.1, 0.1, 0.9}};
 static Vec4 COLD_BUTTON_COLOR = {{0.2, 0.2, 0.2, 1.0}};
 static size_t BUTTON_FONT_SIZE = 24;
 
-static size_t
-create_rect(int parent, int x, int y, size_t width, size_t height, Vec4 color) {
+static size_t create_rect(
+    int parent, int x, int y, size_t width, size_t height, Vec4 color
+) {
     size_t pane = ecs_create_entity(parent);
-    ecs_add_component(pane, GUI_RECT_T, gui_rect_create(width, height, color));
+    ecs_add_component(
+        pane, GUI_RECT_T, gui_rect_create(width, height, color)
+    );
     ecs_add_component(
         pane,
         TRANSFORMATION_T,
@@ -38,18 +41,26 @@ create_text(int parent, char* label, int x, int y, size_t font_size) {
     return text;
 }
 
-static size_t create_pane(size_t x, size_t y, size_t width, size_t height) {
+static size_t
+create_pane(size_t x, size_t y, size_t width, size_t height) {
     size_t pane = create_rect(-1, x, y, width, height, PANE_COLOR);
 
     return pane;
 }
 
 static size_t create_button(
-    int parent, char* label, size_t x, size_t y, size_t width, size_t height
+    int parent,
+    char* label,
+    size_t x,
+    size_t y,
+    size_t width,
+    size_t height
 ) {
-    size_t button = create_rect(parent, x, y, width, height, COLD_BUTTON_COLOR);
+    size_t button
+        = create_rect(parent, x, y, width, height, COLD_BUTTON_COLOR);
 
-    size_t text_width = strlen(label) * (GUI_FONT_ASPECT * BUTTON_FONT_SIZE);
+    size_t text_width
+        = strlen(label) * (GUI_FONT_ASPECT * BUTTON_FONT_SIZE);
     size_t text = create_text(
         button,
         label,
@@ -63,7 +74,8 @@ static size_t create_button(
 
 static size_t create_graphics_debug_pane(size_t x, size_t y) {
     size_t pane = create_pane(x, y, 200, 600);
-    size_t test_button = create_button(pane, "test_button", 10, 10, 180, 50);
+    size_t test_button
+        = create_button(pane, "test_button", 10, 10, 180, 50);
 
     return pane;
 }

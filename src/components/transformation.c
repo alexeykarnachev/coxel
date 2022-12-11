@@ -15,7 +15,9 @@ transformation_create(Vec3 scale, Vec3 rotation, Vec3 translation) {
     return t;
 }
 
-void transformation_create_from_model_mat(Transformation* t, Mat4* model_mat) {
+void transformation_create_from_model_mat(
+    Transformation* t, Mat4* model_mat
+) {
     t->scale = model_mat_extract_scale_vec(model_mat);
     t->rotation_mat = model_mat_extract_rotation_mat(model_mat);
     t->translation = model_mat_extract_translation_vec(model_mat);

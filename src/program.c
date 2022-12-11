@@ -9,7 +9,8 @@
 
 static const char* VERT_SCREEN_RECT_SHADER
     = "./assets/shaders/screen_rect.vert";
-static const char* VERT_PROJECTION_SHADER = "./assets/shaders/projection.vert";
+static const char* VERT_PROJECTION_SHADER
+    = "./assets/shaders/projection.vert";
 static const char* VERT_GUI_RECT_SHADER = "./assets/shaders/gui_rect.vert";
 static const char* VERT_GUI_TEXT_SHADER = "./assets/shaders/gui_text.vert";
 static const char* VERT_SPRITE_SHADER = "./assets/shaders/sprite.vert";
@@ -51,9 +52,13 @@ static bool program_compile_source(
     if (is_compiled != GL_TRUE) {
         GLchar message[1024];
         GLsizei message_size = 0;
-        glGetShaderInfoLog(*shader, sizeof(message), &message_size, message);
+        glGetShaderInfoLog(
+            *shader, sizeof(message), &message_size, message
+        );
         fprintf(
-            stderr, "ERROR: failed to compile the shader source %s\n", message
+            stderr,
+            "ERROR: failed to compile the shader source %s\n",
+            message
         );
         return false;
     }
@@ -85,7 +90,8 @@ static bool program_compile_file(
         if (sources[i] == NULL) {
             fprintf(
                 stderr,
-                "ERROR: failed to read the shader deps source file `%s`: %s\n",
+                "ERROR: failed to read the shader deps source file `%s`: "
+                "%s\n",
                 deps_file_paths[i],
                 strerror(errno)
             );
@@ -104,7 +110,8 @@ static bool program_compile_file(
     if (!is_compiled) {
         fprintf(
             stderr,
-            "ERROR: failed to compile the shader source file (or deps files) "
+            "ERROR: failed to compile the shader source file (or deps "
+            "files) "
             "`%s`\n",
             file_path
         );
@@ -133,7 +140,11 @@ static bool program_create(
     bool is_compiled = true;
 
     is_compiled &= program_compile_file(
-        vert_file_path, deps_file_paths, n_deps, GL_VERTEX_SHADER, &vert_shader
+        vert_file_path,
+        deps_file_paths,
+        n_deps,
+        GL_VERTEX_SHADER,
+        &vert_shader
     );
     glAttachShader(program, vert_shader);
 
@@ -197,7 +208,9 @@ static bool program_create(
     if (is_linked != GL_TRUE) {
         GLchar message[1024];
         GLsizei message_size = 0;
-        glGetProgramInfoLog(program, sizeof(message), &message_size, message);
+        glGetProgramInfoLog(
+            program, sizeof(message), &message_size, message
+        );
         fprintf(stderr, "ERROR: failed to link the program %s\n", message);
         return false;
     }
@@ -390,7 +403,9 @@ bool program_set_uniform_1i(GLuint program, const char* name, GLint val) {
     return true;
 }
 
-bool program_set_uniform_1f(GLuint program, const char* name, GLfloat val) {
+bool program_set_uniform_1f(
+    GLuint program, const char* name, GLfloat val
+) {
     _GET_UNIFORM_LOC
     glUniform1f(loc, val);
     return true;

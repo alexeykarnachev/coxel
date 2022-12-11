@@ -65,7 +65,8 @@ void ecs_update() {
             SPRITE_ENTITIES[N_SPRITE_ENTITIES++] = entity;
         }
         if (ecs_check_if_mesh_with_outline(entity)) {
-            MESH_WITH_OUTLINE_ENTITIES[N_MESH_WITH_OUTLINE_ENTITIES++] = entity;
+            MESH_WITH_OUTLINE_ENTITIES[N_MESH_WITH_OUTLINE_ENTITIES++]
+                = entity;
         }
         if (ecs_check_if_sprite_with_outline(entity)) {
             SPRITE_WITH_OUTLINE_ENTITIES[N_SPRITE_WITH_OUTLINE_ENTITIES++]
@@ -117,7 +118,8 @@ Mat4 ecs_get_origin_world_mat(size_t entity) {
 
 Vec3 ecs_get_world_position(size_t entity) {
     Mat4 world_mat = ecs_get_world_mat(entity);
-    Vec3 pos = vec3(world_mat.data[3], world_mat.data[7], world_mat.data[11]);
+    Vec3 pos
+        = vec3(world_mat.data[3], world_mat.data[7], world_mat.data[11]);
     return pos;
 }
 
@@ -160,7 +162,8 @@ int ecs_check_if_camera(size_t entity) {
     if (entity == -1)
         return 0;
     Bitset* b = &ENTITIES[entity].components;
-    return bitset_get_bit(b, CAMERA_T) && bitset_get_bit(b, TRANSFORMATION_T);
+    return bitset_get_bit(b, CAMERA_T)
+           && bitset_get_bit(b, TRANSFORMATION_T);
 }
 
 int ecs_check_if_point_light(size_t entity) {
@@ -182,21 +185,24 @@ int ecs_check_if_gui_rect(size_t entity) {
     if (entity == -1)
         return 0;
     Bitset* b = &ENTITIES[entity].components;
-    return bitset_get_bit(b, GUI_RECT_T) && bitset_get_bit(b, TRANSFORMATION_T);
+    return bitset_get_bit(b, GUI_RECT_T)
+           && bitset_get_bit(b, TRANSFORMATION_T);
 }
 
 int ecs_check_if_gui_text(size_t entity) {
     if (entity == -1)
         return 0;
     Bitset* b = &ENTITIES[entity].components;
-    return bitset_get_bit(b, GUI_TEXT_T) && bitset_get_bit(b, TRANSFORMATION_T);
+    return bitset_get_bit(b, GUI_TEXT_T)
+           && bitset_get_bit(b, TRANSFORMATION_T);
 }
 
 int ecs_check_if_sprite(size_t entity) {
     if (entity == -1)
         return 0;
     Bitset* b = &ENTITIES[entity].components;
-    return bitset_get_bit(b, SPRITE_T) && bitset_get_bit(b, TRANSFORMATION_T);
+    return bitset_get_bit(b, SPRITE_T)
+           && bitset_get_bit(b, TRANSFORMATION_T);
 }
 
 int ecs_check_if_mesh_with_outline(size_t entity) {

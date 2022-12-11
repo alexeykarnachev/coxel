@@ -57,12 +57,16 @@ int load_obj(
         char c = content[i];
         if (c == '\n') {
             if (current_line[0] == 'v' && current_line[1] == ' ') {
-                memcpy(&vp_lines[vp_lines_length], current_line, line_length);
+                memcpy(
+                    &vp_lines[vp_lines_length], current_line, line_length
+                );
                 vp_lines_length += line_length;
                 vp_lines[vp_lines_length++] = '\n';
                 n_vp += 1;
             } else if (current_line[0] == 'f' && current_line[1] == ' ') {
-                memcpy(&f_lines[f_lines_length], current_line, line_length);
+                memcpy(
+                    &f_lines[f_lines_length], current_line, line_length
+                );
 
                 size_t n_spaces = 0;
                 for (size_t i = 0; i < line_length; ++i) {
@@ -73,7 +77,9 @@ int load_obj(
                 n_f += n_spaces - 2;
                 n_f_lines += 1;
             } else if (current_line[0] == 'v' && current_line[1] == 'n' && current_line[2] == ' ') {
-                memcpy(&vn_lines[vn_lines_length], current_line, line_length);
+                memcpy(
+                    &vn_lines[vn_lines_length], current_line, line_length
+                );
 
                 vn_lines_length += line_length;
                 vn_lines[vn_lines_length++] = '\n';

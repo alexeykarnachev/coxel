@@ -605,7 +605,8 @@ Mat3 model_mat_extract_rotation_mat(Mat4* mat) {
     Mat3 rotation_mat = mat3_identity;
     for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 3; ++j) {
-            rotation_mat.data[j * 3 + i] = mat->data[j * 4 + i] / scale.data[i];
+            rotation_mat.data[j * 3 + i]
+                = mat->data[j * 4 + i] / scale.data[i];
         }
     }
 
@@ -716,7 +717,11 @@ get_cubemap_view_proj(float near_plane, float far_plane, Vec3* world_pos) {
 }
 
 int isect_line_plane(
-    Vec3* out_p, Vec3* line_p0, Vec3* line_p1, Vec3* plane_p, Vec3* plane_normal
+    Vec3* out_p,
+    Vec3* line_p0,
+    Vec3* line_p1,
+    Vec3* plane_p,
+    Vec3* plane_normal
 ) {
     static float eps = 0.00001;
     Vec3 u = vec3_diff(line_p1, line_p0);
@@ -756,6 +761,7 @@ int get_two_vecs_nearest_point(
 Vec3 vec3_project(Vec3* position, Mat4* proj_mat) {
     Vec4 proj_position_4 = mat4_vec3_mul(proj_mat, position);
     Vec3 proj_position = vec4_to_vec3(&proj_position_4);
-    proj_position = vec3_scale(&proj_position, 1.0 / proj_position_4.data[3]);
+    proj_position
+        = vec3_scale(&proj_position, 1.0 / proj_position_4.data[3]);
     return proj_position;
 }

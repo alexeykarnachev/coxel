@@ -10,7 +10,8 @@ static GLFWwindow* WINDOW;
 static GLFWcursor* CURSOR_DRAG;
 static GLFWcursor* CURSOR_DEFAULT;
 
-static void cursor_position_callback(GLFWwindow* window, double x, double y) {
+static void
+cursor_position_callback(GLFWwindow* window, double x, double y) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     x /= INPUT.window_width;
     y /= INPUT.window_height;
@@ -22,8 +23,9 @@ static void cursor_position_callback(GLFWwindow* window, double x, double y) {
     inp->cursor_y = y;
 }
 
-static void
-mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+static void mouse_button_callback(
+    GLFWwindow* window, int button, int action, int mods
+) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
         inp->mouse_middle_pressed = action == GLFW_PRESS;
@@ -39,8 +41,9 @@ static void scroll_callback(GLFWwindow* window, double x, double y) {
     inp->scroll_dy += y;
 }
 
-static void
-key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+static void key_callback(
+    GLFWwindow* window, int key, int scancode, int action, int mods
+) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     if (key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose(window, GL_TRUE);
