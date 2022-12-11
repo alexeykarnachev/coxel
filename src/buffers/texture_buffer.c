@@ -1,6 +1,6 @@
 #include "texture_buffer.h"
-#include "../includes.h"
 
+#include "../includes.h"
 
 int texture_buffer_create(
     TextureBuffer* buffer,
@@ -14,16 +14,31 @@ int texture_buffer_create(
     glGenFramebuffers(1, &buffer->fbo);
     glGenRenderbuffers(1, &buffer->rbo);
     texture_create_2d(
-        &buffer->texture, data, 0,
-        width, height,
-        internal_format, format, type, GL_NEAREST);
+        &buffer->texture,
+        data,
+        0,
+        width,
+        height,
+        internal_format,
+        format,
+        type,
+        GL_NEAREST
+    );
 
     glBindRenderbuffer(GL_RENDERBUFFER, buffer->rbo);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-    
+
     glBindFramebuffer(GL_FRAMEBUFFER, buffer->fbo);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffer->texture.tex, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, buffer->rbo);
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D,
+        buffer->texture.tex,
+        0
+    );
+    glFramebufferRenderbuffer(
+        GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, buffer->rbo
+    );
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     glReadBuffer(GL_COLOR_ATTACHMENT0);
@@ -36,4 +51,3 @@ int texture_buffer_create(
 
     return 1;
 }
-

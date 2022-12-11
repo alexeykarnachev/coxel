@@ -1,8 +1,7 @@
 #pragma once
-#include "texture.h"
 #include "buffers/gbuffer.h"
 #include "buffers/overlay_buffer.h"
-
+#include "texture.h"
 
 typedef struct Renderer {
     size_t viewport_width;

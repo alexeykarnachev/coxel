@@ -3,7 +3,6 @@
 static PointLight POINT_LIGHTS_ARENA[1 << 14];
 static size_t N_POINT_LIGHTS = 0;
 
-
 PointLight* point_light_create(Vec3 color, float linear, float quadratic) {
     PointLight* p = &POINT_LIGHTS_ARENA[N_POINT_LIGHTS++];
 

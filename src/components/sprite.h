@@ -1,7 +1,6 @@
 #pragma once
 #include "../texture.h"
 
-
 typedef struct Sprite {
     float tex_x;
     float tex_y;

@@ -1,15 +1,10 @@
 #include "transformation.h"
 
-
 static Transformation TRANSFORMATIONS_ARENA[1 << 14];
 static size_t N_TRANSFORMATIONS = 0;
 
-
-Transformation* transformation_create(
-    Vec3 scale,
-    Vec3 rotation,
-    Vec3 translation
-) {
+Transformation*
+transformation_create(Vec3 scale, Vec3 rotation, Vec3 translation) {
     Transformation* t = &TRANSFORMATIONS_ARENA[N_TRANSFORMATIONS++];
 
     Mat3 rotation_mat = mat3_rotation(&rotation);
@@ -20,9 +15,7 @@ Transformation* transformation_create(
     return t;
 }
 
-void transformation_create_from_model_mat(
-    Transformation* t, Mat4* model_mat
-) {
+void transformation_create_from_model_mat(Transformation* t, Mat4* model_mat) {
     t->scale = model_mat_extract_scale_vec(model_mat);
     t->rotation_mat = model_mat_extract_rotation_mat(model_mat);
     t->translation = model_mat_extract_translation_vec(model_mat);

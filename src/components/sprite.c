@@ -1,9 +1,7 @@
 #include "sprite.h"
 
-
 Sprite SPRITES_ARENA[1 << 14];
 size_t N_SPRITES = 0;
-
 
 Sprite* sprite_create(
     float tex_x,

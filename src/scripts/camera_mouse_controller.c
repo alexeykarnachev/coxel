@@ -1,19 +1,14 @@
 #include "camera_mouse_controller.h"
-#include "../components/script.h"
+
 #include "../components/camera.h"
+#include "../components/script.h"
 #include "../components/transformation.h"
-#include "../window.h"
 #include "../ecs.h"
 #include "../la.h"
+#include "../window.h"
 
-
-static void translate(
-    Camera* cam,
-    Transformation* t,
-    float dx,
-    float dy,
-    float dz
-) {
+static void
+translate(Camera* cam, Transformation* t, float dx, float dy, float dz) {
     static float eps = 0.00001;
     if (fabs(dx) + fabs(dy) + fabs(dz) < eps) {
         return;
@@ -29,7 +24,7 @@ static void translate(
     x = vec3_scale(&x, -dx);
     y = vec3_scale(&y, -dy);
     z = vec3_scale(&z, dz);
-    
+
     t->translation.data[0] += x.data[0] + y.data[0] + z.data[0];
     t->translation.data[1] += x.data[1] + y.data[1] + z.data[1];
     t->translation.data[2] += x.data[2] + y.data[2] + z.data[2];
@@ -62,13 +57,7 @@ static void camera_mouse_controller_update(size_t entity, void* args_p) {
             INPUT.cursor_dx * args->rotation_sens
         );
     } else if (fabs(INPUT.scroll_dy) > eps) {
-        translate(
-            cam,
-            t,
-            0.0f,
-            0.0f,
-            INPUT.scroll_dy * args->straight_sens
-        );
+        translate(cam, t, 0.0f, 0.0f, INPUT.scroll_dy * args->straight_sens);
     }
 
     float aspect = INPUT.window_width / INPUT.window_height;
@@ -81,14 +70,10 @@ CameraMouseControllerArgs camera_mouse_controller_create_default_args() {
     float side_sens = 30.0;
     float straight_sens = 3.0;
     float rotation_sens = 2.0;
-    CameraMouseControllerArgs args = {
-        side_sens, straight_sens, rotation_sens};
+    CameraMouseControllerArgs args = {side_sens, straight_sens, rotation_sens};
     return args;
 }
 
-Script* camera_mouse_controller_create_script(
-    CameraMouseControllerArgs* args
-) {
+Script* camera_mouse_controller_create_script(CameraMouseControllerArgs* args) {
     return script_create(camera_mouse_controller_update, args);
 }
-

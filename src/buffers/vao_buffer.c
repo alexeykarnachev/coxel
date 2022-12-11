@@ -1,6 +1,6 @@
 #include "vao_buffer.h"
-#include "../assets/obj.h"
 
+#include "../assets/obj.h"
 
 int vao_buffer_create(
     VAOBuffer* buffer,
@@ -43,16 +43,10 @@ int vao_buffer_create_from_obj(VAOBuffer* buffer, char* file_path) {
     size_t vn_size;
     uint32_t* f;
     size_t f_size;
-    load_obj(
-        file_path,
-        &vp, &vp_size,
-        &vn, &vn_size,
-        &f, &f_size
-    );
+    load_obj(file_path, &vp, &vp_size, &vn, &vn_size, &f, &f_size);
     int res = vao_buffer_create(
-        buffer, vp, vp_size, vn, vn_size, f, f_size, GL_STATIC_DRAW);
+        buffer, vp, vp_size, vn, vn_size, f, f_size, GL_STATIC_DRAW
+    );
 
     return res;
 }
-
-

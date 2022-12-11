@@ -1,7 +1,6 @@
 #pragma once
 #include "../components/script.h"
 
-
 typedef struct CameraMouseControllerArgs {
     float side_sens;
     float straight_sens;

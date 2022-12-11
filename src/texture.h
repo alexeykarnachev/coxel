@@ -2,11 +2,9 @@
 #include <glad/glad.h>
 #include <stddef.h>
 
-
 typedef struct Texture {
     GLuint tex;
 } Texture;
-
 
 int texture_create_2d(
     Texture* texture,
@@ -19,4 +17,3 @@ int texture_create_2d(
     size_t type,
     int filter
 );
-

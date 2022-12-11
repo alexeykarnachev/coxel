@@ -1,8 +1,8 @@
-#include <stdio.h>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include "window.h"
 
+#include <GLFW/glfw3.h>
+#include <glad/glad.h>
+#include <stdio.h>
 
 Input INPUT;
 
@@ -10,28 +10,20 @@ static GLFWwindow* WINDOW;
 static GLFWcursor* CURSOR_DRAG;
 static GLFWcursor* CURSOR_DEFAULT;
 
-static void cursor_position_callback(
-    GLFWwindow* window,
-    double x,
-    double y
-) {
+static void cursor_position_callback(GLFWwindow* window, double x, double y) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     x /= INPUT.window_width;
     y /= INPUT.window_height;
     y = 1.0 - y;
 
-    inp->cursor_dx += x - inp->cursor_x; 
+    inp->cursor_dx += x - inp->cursor_x;
     inp->cursor_dy += y - inp->cursor_y;
     inp->cursor_x = x;
     inp->cursor_y = y;
 }
 
-static void mouse_button_callback(
-    GLFWwindow* window,
-    int button,
-    int action,
-    int mods
-) {
+static void
+mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
         inp->mouse_middle_pressed = action == GLFW_PRESS;
@@ -47,13 +39,8 @@ static void scroll_callback(GLFWwindow* window, double x, double y) {
     inp->scroll_dy += y;
 }
 
-static void key_callback(
-    GLFWwindow* window,
-    int key,
-    int scancode,
-    int action,
-    int mods
-) {
+static void
+key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     if (key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose(window, GL_TRUE);
@@ -88,11 +75,8 @@ static void key_callback(
     }
 }
 
-static void framebuffer_size_callback(
-    GLFWwindow* window,
-    int width,
-    int height
-) {
+static void
+framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     inp->window_width = width;
     inp->window_height = height;
@@ -104,7 +88,8 @@ bool window_create(size_t width, size_t height) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    // WINDOW = glfwCreateWindow(width, height, "Coxel", glfwGetPrimaryMonitor(), NULL);
+    // WINDOW = glfwCreateWindow(width, height, "Coxel",
+    // glfwGetPrimaryMonitor(), NULL);
     WINDOW = glfwCreateWindow(width, height, "Coxel", NULL, NULL);
     if (WINDOW == NULL) {
         printf("ERROR: failed to create GLFW window");
@@ -129,7 +114,7 @@ bool window_create(size_t width, size_t height) {
     }
 
     CURSOR_DRAG = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
-    CURSOR_DEFAULT = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
+    CURSOR_DEFAULT = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
 
     return true;
 }
@@ -160,4 +145,3 @@ void window_update() {
     glfwSwapBuffers(WINDOW);
     glfwPollEvents();
 }
-

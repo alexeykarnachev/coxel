@@ -1,11 +1,12 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
 #include "obj.h"
-#include "../utils.h"
-#include "../includes.h"
 
+#include "../includes.h"
+#include "../utils.h"
+
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // TODO: Factor out these arguments into a return structure
 int load_obj(
@@ -26,7 +27,12 @@ int load_obj(
     size_t n_bytes;
     char* content = read_cstr_file(file_path, "r", &n_bytes);
     if (content == NULL) {
-        fprintf(stderr, "ERROR: failed to read the .obj source file `%s`: %s\n", file_path, strerror(errno));
+        fprintf(
+            stderr,
+            "ERROR: failed to read the .obj source file `%s`: %s\n",
+            file_path,
+            strerror(errno)
+        );
         errno = 0;
         return res;
     }
@@ -36,7 +42,7 @@ int load_obj(
     char* current_line = (char*)malloc(n_bytes);
     char* vp_lines = (char*)malloc(n_bytes);
     char* vn_lines = (char*)malloc(n_bytes);
-    char* f_lines = (char*)malloc(n_bytes); 
+    char* f_lines = (char*)malloc(n_bytes);
 
     size_t max_line_length = 0;
     size_t line_length = 0;
@@ -51,30 +57,23 @@ int load_obj(
         char c = content[i];
         if (c == '\n') {
             if (current_line[0] == 'v' && current_line[1] == ' ') {
-                memcpy(
-                    &vp_lines[vp_lines_length], current_line, line_length);
+                memcpy(&vp_lines[vp_lines_length], current_line, line_length);
                 vp_lines_length += line_length;
                 vp_lines[vp_lines_length++] = '\n';
                 n_vp += 1;
             } else if (current_line[0] == 'f' && current_line[1] == ' ') {
-                memcpy(
-                    &f_lines[f_lines_length], current_line, line_length);
+                memcpy(&f_lines[f_lines_length], current_line, line_length);
 
                 size_t n_spaces = 0;
                 for (size_t i = 0; i < line_length; ++i) {
                     n_spaces += current_line[i] == ' ';
                 }
                 f_lines_length += line_length;
-                f_lines[f_lines_length++] = '\n'; 
+                f_lines[f_lines_length++] = '\n';
                 n_f += n_spaces - 2;
                 n_f_lines += 1;
-            } else if (
-                current_line[0] == 'v'
-                && current_line[1] == 'n'
-                && current_line[2] == ' '
-            ) {
-                memcpy(
-                    &vn_lines[vn_lines_length], current_line, line_length);
+            } else if (current_line[0] == 'v' && current_line[1] == 'n' && current_line[2] == ' ') {
+                memcpy(&vn_lines[vn_lines_length], current_line, line_length);
 
                 vn_lines_length += line_length;
                 vn_lines[vn_lines_length++] = '\n';
@@ -169,7 +168,7 @@ int load_obj(
         } while (c != '\n');
 
         line[line_length] = '\0';
-        
+
         for (size_t j = 0; j < line_length; ++j) {
             c = line[j];
             if (c >= '0' && c <= '9') {
@@ -178,8 +177,8 @@ int load_obj(
                 value[value_length] = '\0';
                 if (a_idx == 0) {
                     if (v_idx >= 3) {
-                        vp_f[n_vp_values_parsed] =
-                            vp_f[n_vp_values_parsed - v_idx];
+                        vp_f[n_vp_values_parsed]
+                            = vp_f[n_vp_values_parsed - v_idx];
                         vp_f[n_vp_values_parsed + 1]
                             = vp_f[n_vp_values_parsed - 1];
                         n_vp_values_parsed += 2;
@@ -187,8 +186,8 @@ int load_obj(
                     vp_f[n_vp_values_parsed++] = atoi(value) - 1;
                 } else if (a_idx == 2) {
                     if (v_idx >= 3) {
-                        vn_f[n_vn_values_parsed] =
-                            vn_f[n_vn_values_parsed - v_idx];
+                        vn_f[n_vn_values_parsed]
+                            = vn_f[n_vn_values_parsed - v_idx];
                         vn_f[n_vn_values_parsed + 1]
                             = vn_f[n_vn_values_parsed - 1];
                         n_vn_values_parsed += 2;
@@ -223,12 +222,8 @@ int load_obj(
     for (size_t i = 0; i < n_f * 3; ++i) {
         (*f)[i] = i;
 
-        memcpy(
-            &vp_flat[i * 3],
-            &(*vp)[vp_f[i] * 3], 3 * sizeof(float));
-        memcpy(
-            &vn_flat[i * 3],
-            &(*vn)[vn_f[i] * 3], 3 * sizeof(float));
+        memcpy(&vp_flat[i * 3], &(*vp)[vp_f[i] * 3], 3 * sizeof(float));
+        memcpy(&vn_flat[i * 3], &(*vn)[vn_f[i] * 3], 3 * sizeof(float));
     }
 
     free(*vp);
@@ -249,4 +244,3 @@ free:
 
     return res;
 }
-

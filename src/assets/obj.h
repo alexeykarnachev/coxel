@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-
 // TODO: Factor out these arguments into a return structure
 int load_obj(
     char* file_path,

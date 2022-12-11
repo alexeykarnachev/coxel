@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-
 typedef struct Input {
     float t;
     float dt;
@@ -49,4 +48,3 @@ void window_set_drag_cursor();
 void window_set_default_cursor();
 void window_clear_input();
 void window_update();
-

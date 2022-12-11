@@ -1,7 +1,6 @@
 #pragma once
 #include "../la.h"
 
-
 typedef struct Material {
     Vec3 diffuse_color;
     float specular;

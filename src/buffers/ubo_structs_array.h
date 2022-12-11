@@ -1,9 +1,8 @@
 #pragma once
-#include <stdio.h>
-#include <stddef.h>
-#include <stdbool.h>
 #include <glad/glad.h>
-
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 
 typedef struct UBOStructsArray {
     GLuint ubo;
@@ -21,7 +20,5 @@ bool ubo_structs_array_create(
 );
 bool ubo_structs_array_add(UBOStructsArray* ubo, float packed_struct[]);
 bool ubo_structs_array_update(
-    UBOStructsArray* ubo,
-    float packed_struct[],
-    size_t struct_idx
+    UBOStructsArray* ubo, float packed_struct[], size_t struct_idx
 );

@@ -1,7 +1,6 @@
 #pragma once
-#include <stddef.h>
 #include <glad/glad.h>
-
+#include <stddef.h>
 
 typedef struct VAOBuffer {
     GLuint vao;

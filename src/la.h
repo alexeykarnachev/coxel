@@ -1,7 +1,6 @@
 #pragma once
 #include <stddef.h>
 
-
 typedef struct Vec2 {
     float data[2];
 } Vec2;
@@ -85,7 +84,9 @@ Mat3 mat3_transpose(Mat3* m);
 Mat4 mat4_transpose(Mat4* m);
 Mat4 mat4_inverse(Mat4* m);
 Mat4 get_world_mat(Vec3* scale, Mat3* rotation_mat, Vec3* translation);
-Mat4 get_perspective_projection_mat(float fov, float near, float far, float aspect);
+Mat4 get_perspective_projection_mat(
+    float fov, float near, float far, float aspect
+);
 Mat3 get_basis_mat(Vec3* z, Vec3* up);
 Mat4 get_view_mat(Vec3* view_dir, Vec3* up, Vec3* pos);
 Vec3 model_mat_extract_scale_vec(Mat4* mat);
@@ -100,20 +101,18 @@ void vec4_print(Vec4* v);
 void mat4_pack(float dst[], Mat4 mats[], size_t n_mats);
 void mat4_transpose_pack(float dst[], Mat4 mats[], size_t n_mats);
 void vec3_pack(float dst[], Vec3 vecs[], size_t n_vecs);
-CubemapViewProj get_cubemap_view_proj(
-    float near_plane, float far_plane, Vec3* world_pos);
+CubemapViewProj
+get_cubemap_view_proj(float near_plane, float far_plane, Vec3* world_pos);
 int isect_line_plane(
-    Vec3* out_p,
-    Vec3* line_p0,
-    Vec3* line_p1,
-    Vec3* plane_p,
-    Vec3* plane_normal);
+    Vec3* out_p, Vec3* line_p0, Vec3* line_p1, Vec3* plane_p, Vec3* plane_normal
+);
 int get_two_vecs_nearest_point(
     Vec3* vec0_out_nearest_point,
     Vec3* vec0_p0,
     Vec3* vec0_p1,
     Vec3* vec1_p0,
-    Vec3* vec1_p1);
+    Vec3* vec1_p1
+);
 Vec3 vec3_project(Vec3* position, Mat4* proj_mat);
 
 void mat4_print(Mat4* m);

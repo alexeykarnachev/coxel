@@ -3,7 +3,6 @@
 static Camera CAMERAS_ARENA[128];
 static size_t N_CAMERAS = 0;
 
-
 Camera* camera_create(float fov, float near, float far, float aspect) {
     Camera* c = &CAMERAS_ARENA[N_CAMERAS++];
 
@@ -12,7 +11,8 @@ Camera* camera_create(float fov, float near, float far, float aspect) {
     c->far = far;
     c->aspect = aspect;
 
-    // TODO: These should be not a part of a camera, but a part of tranformation.
+    // TODO: These should be not a part of a camera, but a part of
+    // tranformation.
     c->up = vec3(0.0, 1.0, 0.0);
     c->view_dir = vec3(0.0, 0.0, -1.0);
 
@@ -42,7 +42,8 @@ Mat4 camera_get_view_mat(Camera* cam, Transformation* t) {
 
 Mat4 camera_get_perspective_projection_mat(Camera* cam) {
     return get_perspective_projection_mat(
-        cam->fov, cam->near, cam->far, cam->aspect);
+        cam->fov, cam->near, cam->far, cam->aspect
+    );
 }
 
 float camera_is_codirected(Camera* cam, Transformation* t, Vec3* v) {
@@ -53,4 +54,3 @@ float camera_is_codirected(Camera* cam, Transformation* t, Vec3* v) {
     }
     return sign;
 }
-

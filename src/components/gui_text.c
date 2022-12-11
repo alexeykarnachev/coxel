@@ -1,9 +1,7 @@
 #include "gui_text.h"
 
-
 static GUIText GUI_TEXTS_ARENA[1 << 14];
 static size_t N_GUI_TEXTS = 0;
-
 
 GUIText* gui_text_create(unsigned char* text, size_t font_height) {
     GUIText* gui_text = &GUI_TEXTS_ARENA[N_GUI_TEXTS++];

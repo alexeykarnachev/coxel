@@ -1,34 +1,30 @@
-#include <stdio.h>
 #include "renderer.h"
-#include "includes.h"
-#include "constants.h"
-#include "window.h"
-#include "utils.h"
-#include "program.h"
-#include "ecs.h"
-#include "la.h"
+
 #include "buffers/vao_buffer.h"
-#include "components/material.h"
-#include "components/script.h"
-#include "components/mesh.h"
-#include "components/sprite.h"
+#include "components/camera.h"
 #include "components/gui_rect.h"
 #include "components/gui_text.h"
-#include "components/camera.h"
-#include "components/transformation.h"
+#include "components/material.h"
+#include "components/mesh.h"
 #include "components/point_light.h"
+#include "components/script.h"
+#include "components/sprite.h"
+#include "components/transformation.h"
+#include "constants.h"
+#include "ecs.h"
+#include "includes.h"
+#include "la.h"
+#include "program.h"
+#include "utils.h"
+#include "window.h"
 
+#include <stdio.h>
 
 static void update_scripts();
-static void render_color(
-    GBuffer* gbuffer,
-    OverlayBuffer* overlay_buffer
-);
+static void render_color(GBuffer* gbuffer, OverlayBuffer* overlay_buffer);
 static void render_gbuffer();
 static void render_overlay_buffer(
-    size_t viewport_width,
-    size_t viewport_height,
-    GLuint font_tex
+    size_t viewport_width, size_t viewport_height, GLuint font_tex
 );
 
 static void set_uniform_camera(GLuint program);
@@ -47,12 +43,9 @@ int renderer_create(
     int ok = 1;
     ok &= program_create_all();
 
-    ok &= gbuffer_create(
-        &renderer->gbuffer, gbuffer_width, gbuffer_height);
+    ok &= gbuffer_create(&renderer->gbuffer, gbuffer_width, gbuffer_height);
     ok &= overlay_buffer_create(
-        &renderer->overlay_buffer,
-        overlay_buffer_width,
-        overlay_buffer_height
+        &renderer->overlay_buffer, overlay_buffer_width, overlay_buffer_height
     );
 
     void* font_data = read_bin_file("./assets/fonts/font.bin", NULL);
@@ -72,10 +65,8 @@ int renderer_create(
 }
 
 int renderer_update(Renderer* renderer) {
-    if (
-        renderer->viewport_width != INPUT.window_width
-        || renderer->viewport_height != INPUT.window_height
-    ) {
+    if (renderer->viewport_width != INPUT.window_width
+        || renderer->viewport_height != INPUT.window_height) {
         renderer->viewport_width = INPUT.window_width;
         renderer->viewport_height = INPUT.window_height;
         glViewport(0, 0, INPUT.window_width, INPUT.window_height);
@@ -97,9 +88,7 @@ int renderer_update(Renderer* renderer) {
     glDisable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->overlay_buffer.fbo);
     glViewport(
-        0, 0,
-        renderer->overlay_buffer.width,
-        renderer->overlay_buffer.height
+        0, 0, renderer->overlay_buffer.width, renderer->overlay_buffer.height
     );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     render_overlay_buffer(
@@ -107,14 +96,14 @@ int renderer_update(Renderer* renderer) {
         renderer->viewport_height,
         renderer->gui_font_texture.tex
     );
-    
+
     // Target: screen
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, renderer->viewport_width, renderer->viewport_height);
     // TODO: Don't need this glClear call? I'll redraw the full screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     render_color(&renderer->gbuffer, &renderer->overlay_buffer);
-    
+
     return 1;
 }
 
@@ -178,10 +167,7 @@ static void render_gbuffer() {
         Mat4 world_mat = ecs_get_world_mat(entity);
         Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
 
-        if (
-            vao_buffer == NULL
-            || mesh->vao_buffer.vao != vao_buffer->vao
-        ) {
+        if (vao_buffer == NULL || mesh->vao_buffer.vao != vao_buffer->vao) {
             glBindVertexArray(mesh->vao_buffer.vao);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vao_buffer.ebo);
 
@@ -198,9 +184,9 @@ static void render_gbuffer() {
 
         program_set_uniform_1i(program, "entity_id", entity);
         program_set_uniform_matrix_4fv(
-            program, "world_mat", world_mat.data, 1, true);
-        glDrawElements(
-            GL_TRIANGLES, mesh->vao_buffer.n_f, GL_UNSIGNED_INT, 0);
+            program, "world_mat", world_mat.data, 1, true
+        );
+        glDrawElements(GL_TRIANGLES, mesh->vao_buffer.n_f, GL_UNSIGNED_INT, 0);
     }
 
     // ----------------------------------------------
@@ -232,13 +218,14 @@ static void render_gbuffer() {
         glBindTexture(GL_TEXTURE_2D, tex);
 
         program_set_uniform_matrix_4fv(
-            program, "world_mat", world_mat.data, 1, true);
+            program, "world_mat", world_mat.data, 1, true
+        );
 
-        float tex_pos[4] = {
-            sprite->tex_x,
-            sprite->tex_y,
-            sprite->tex_width,
-            sprite->tex_height};
+        float tex_pos[4]
+            = {sprite->tex_x,
+               sprite->tex_y,
+               sprite->tex_width,
+               sprite->tex_height};
         program_set_uniform_4fv(program, "tex_pos", tex_pos, 1);
         program_set_uniform_1i(program, "entity_id", entity);
 
@@ -248,9 +235,7 @@ static void render_gbuffer() {
 
 // TODO: Factor out repetitive code here and in render gbuffer meshes
 static void render_overlay_buffer(
-    size_t viewport_width,
-    size_t viewport_height,
-    GLuint font_tex
+    size_t viewport_width, size_t viewport_height, GLuint font_tex
 ) {
     // ----------------------------------------------
     // Mesh outlines:
@@ -264,10 +249,7 @@ static void render_overlay_buffer(
         Mat4 world_mat = ecs_get_world_mat(entity);
         Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
 
-        if (
-            vao_buffer == NULL
-            || mesh->vao_buffer.vao != vao_buffer->vao
-        ) {
+        if (vao_buffer == NULL || mesh->vao_buffer.vao != vao_buffer->vao) {
             glBindVertexArray(mesh->vao_buffer.vao);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->vao_buffer.ebo);
 
@@ -276,9 +258,9 @@ static void render_overlay_buffer(
         }
 
         program_set_uniform_matrix_4fv(
-            program, "world_mat", world_mat.data, 1, true);
-        glDrawElements(
-            GL_TRIANGLES, mesh->vao_buffer.n_f, GL_UNSIGNED_INT, 0);
+            program, "world_mat", world_mat.data, 1, true
+        );
+        glDrawElements(GL_TRIANGLES, mesh->vao_buffer.n_f, GL_UNSIGNED_INT, 0);
     }
 
     // ----------------------------------------------
@@ -293,7 +275,8 @@ static void render_overlay_buffer(
         Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_T][entity];
 
         program_set_uniform_matrix_4fv(
-            program, "world_mat", world_mat.data, 1, true);
+            program, "world_mat", world_mat.data, 1, true
+        );
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
@@ -309,7 +292,8 @@ static void render_overlay_buffer(
 
         Mat4 world_mat = ecs_get_world_mat(entity);
         program_set_uniform_matrix_4fv(
-            program, "world_mat", world_mat.data, 1, true);
+            program, "world_mat", world_mat.data, 1, true
+        );
         program_set_uniform_1i(program, "width", rect->width);
         program_set_uniform_1i(program, "height", rect->height);
         program_set_uniform_4fv(program, "color", rect->color.data, 1);
@@ -332,11 +316,14 @@ static void render_overlay_buffer(
         GUIText* text = (GUIText*)COMPONENTS[GUI_TEXT_T][entity];
 
         program_set_uniform_matrix_4fv(
-            program, "world_mat", world_mat.data, 1, true);
+            program, "world_mat", world_mat.data, 1, true
+        );
         program_set_uniform_1i(program, "font_height", text->font_height);
         program_set_uniform_1i(program, "viewport_width", viewport_width);
         program_set_uniform_1i(program, "viewport_height", viewport_height);
-        program_set_uniform_1uiv(program, "char_inds", text->char_inds, text->n_chars);
+        program_set_uniform_1uiv(
+            program, "char_inds", text->char_inds, text->n_chars
+        );
         glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
     }
 }
@@ -348,54 +335,60 @@ static void set_uniform_camera(GLuint program) {
     }
 
     Camera* camera = (Camera*)COMPONENTS[CAMERA_T][entity];
-    Transformation* transformation =
-        (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+    Transformation* transformation
+        = (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
 
     program_set_uniform_4fv(
-        program, "camera.world_pos",
-        transformation->translation.data, 1);
+        program, "camera.world_pos", transformation->translation.data, 1
+    );
     program_set_uniform_matrix_4fv(
-        program, "camera.view_mat",
-        camera_get_view_mat(camera, transformation).data, 1, 1);
+        program,
+        "camera.view_mat",
+        camera_get_view_mat(camera, transformation).data,
+        1,
+        1
+    );
     program_set_uniform_matrix_4fv(
-        program, "camera.proj_mat",
-        camera_get_perspective_projection_mat(camera).data, 1, 1);
+        program,
+        "camera.proj_mat",
+        camera_get_perspective_projection_mat(camera).data,
+        1,
+        1
+    );
 }
 
 static void set_uniform_point_lights(GLuint program) {
     for (size_t i = 0; i < N_POINT_LIGHT_ENTITIES; ++i) {
         size_t entity = POINT_LIGHT_ENTITIES[i];
-        Transformation* transformation =
-            (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
-        PointLight* point_light =
-            (PointLight*)COMPONENTS[POINT_LIGHT_T][entity];
+        Transformation* transformation
+            = (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+        PointLight* point_light
+            = (PointLight*)COMPONENTS[POINT_LIGHT_T][entity];
 
         static char uniform_name_buffer[64];
         sprintf(uniform_name_buffer, "point_lights[%ld].world_pos", i);
         program_set_uniform_4fv(
-            program, uniform_name_buffer,
-            transformation->translation.data, 1);
+            program, uniform_name_buffer, transformation->translation.data, 1
+        );
         sprintf(uniform_name_buffer, "point_lights[%ld].color", i);
         program_set_uniform_3fv(
-            program, uniform_name_buffer,
-            point_light->color.data, 1);
+            program, uniform_name_buffer, point_light->color.data, 1
+        );
         sprintf(uniform_name_buffer, "point_lights[%ld].linear", i);
         program_set_uniform_1f(
-            program, uniform_name_buffer,
-            point_light->linear);
+            program, uniform_name_buffer, point_light->linear
+        );
         sprintf(uniform_name_buffer, "point_lights[%ld].quadratic", i);
         program_set_uniform_1f(
-            program, uniform_name_buffer,
-            point_light->quadratic);
+            program, uniform_name_buffer, point_light->quadratic
+        );
     }
     program_set_uniform_1i(program, "n_point_lights", N_POINT_LIGHT_ENTITIES);
 }
 
 static void set_uniform_material(GLuint program, Material* material) {
     program_set_uniform_3fv(
-        program, "material.diffuse_color",
-        material->diffuse_color.data, 1);
-    program_set_uniform_1f(
-        program, "material.specular",
-        material->specular);
+        program, "material.diffuse_color", material->diffuse_color.data, 1
+    );
+    program_set_uniform_1f(program, "material.specular", material->specular);
 }

@@ -1,8 +1,7 @@
 #pragma once
-#include "la.h"
 #include "bitset.h"
 #include "constants.h"
-
+#include "la.h"
 
 typedef enum COMPONENT_TYPE {
     TRANSFORMATION_T,
@@ -74,4 +73,3 @@ int ecs_check_if_mesh_with_outline(size_t entity);
 int ecs_check_if_sprite_with_outline(size_t entity);
 int ecs_check_if_gui_rect(size_t entity);
 int ecs_check_if_gui_text(size_t entity);
-

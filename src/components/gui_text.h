@@ -1,8 +1,7 @@
 #pragma once
-#include "stddef.h"
 #include "../constants.h"
 #include "../includes.h"
-
+#include "stddef.h"
 
 typedef struct GUIText {
     unsigned int char_inds[GUI_TEXT_MAX_N_CHARS];
