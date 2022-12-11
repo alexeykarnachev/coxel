@@ -37,8 +37,8 @@ int overlay_buffer_create(
         0,
         width,
         height,
-        GL_R16F,
-        GL_RED,
+        GL_RGBA,
+        GL_RGBA,
         GL_UNSIGNED_BYTE,
         GL_LINEAR
     );

@@ -8,13 +8,21 @@
 #include "window.h"
 #include <string.h>
 
+typedef struct Button {
+    size_t rect;
+    size_t text;
+} Button;
+
 static Vec4 PANE_COLOR = {{0.1, 0.1, 0.1, 0.9}};
 static Vec4 BUTTON_COLD_COLOR = {{0.2, 0.2, 0.2, 1.0}};
 static Vec4 BUTTON_HOT_COLOR = {{0.3, 0.3, 0.3, 1.0}};
 static Vec4 BUTTON_ACTIVE_COLOR = {{0.8, 0.8, 0.8, 1.0}};
+static Vec3 BUTTON_TEXT_COLD_COLOR = {{0.8, 0.8, 0.8}};
+static Vec3 BUTTON_TEXT_HOT_COLOR = {{0.9, 0.9, 0.9}};
+static Vec3 BUTTON_TEXT_ACTIVE_COLOR = {{0.2, 0.2, 0.2}};
 static size_t BUTTON_FONT_SIZE = 24;
 
-static size_t BUTTONS[128];
+static Button BUTTONS[128];
 static size_t N_BUTTONS = 0;
 
 static int ENTITY_HOT = -1;
@@ -37,10 +45,12 @@ static size_t create_rect(
 }
 
 static size_t create_text(
-    int parent, char* label, int x, int y, size_t font_size
+    int parent, char* label, Vec3 color, int x, int y, size_t font_size
 ) {
     size_t text = ecs_create_entity(parent);
-    ecs_add_component(text, GUI_TEXT_T, gui_text_create(label, font_size));
+    ecs_add_component(
+        text, GUI_TEXT_T, gui_text_create(label, color, font_size)
+    );
     ecs_add_component(
         text,
         TRANSFORMATION_T,
@@ -58,7 +68,7 @@ static size_t create_pane(
     return pane;
 }
 
-static size_t create_button(
+static Button create_button(
     int parent,
     char* label,
     size_t x,
@@ -66,20 +76,22 @@ static size_t create_button(
     size_t width,
     size_t height
 ) {
-    size_t button = create_rect(
+    size_t rect = create_rect(
         parent, x, y, width, height, BUTTON_COLD_COLOR
     );
 
     size_t text_width = strlen(label)
                         * (GUI_FONT_ASPECT * BUTTON_FONT_SIZE);
     size_t text = create_text(
-        button,
+        rect,
         label,
+        BUTTON_TEXT_ACTIVE_COLOR,
         (width - text_width) / 2,
         (height - BUTTON_FONT_SIZE) / 2,
         BUTTON_FONT_SIZE
     );
 
+    Button button = {rect, text};
     BUTTONS[N_BUTTONS++] = button;
 
     return button;
@@ -87,13 +99,13 @@ static size_t create_button(
 
 static size_t create_graphics_debug_pane(size_t x, size_t y) {
     size_t pane = create_pane(x, y, 200, 600);
-    size_t test_button_0 = create_button(
+    Button test_button_0 = create_button(
         pane, "test_button_0", 10, 10, 180, 50
     );
-    size_t test_button_1 = create_button(
+    Button test_button_1 = create_button(
         pane, "test_button_1", 10, 70, 180, 50
     );
-    size_t test_button_2 = create_button(
+    Button test_button_2 = create_button(
         pane, "test_button_2", 10, 130, 180, 50
     );
 
@@ -105,16 +117,18 @@ void editor_gui_create() {
 }
 
 void editor_gui_update() {
+    float cursor_x = INPUT.cursor_x * INPUT.window_width;
+    float cursor_y = (1.0 - INPUT.cursor_y) * INPUT.window_height;
+
     for (size_t i = 0; i < N_BUTTONS; ++i) {
-        size_t entity = BUTTONS[i];
-        GUIRect* rect = (GUIRect*)COMPONENTS[GUI_RECT_T][entity];
-        Vec3 position = ecs_get_world_position(entity);
+        Button button = BUTTONS[i];
+        GUIRect* rect = (GUIRect*)COMPONENTS[GUI_RECT_T][button.rect];
+        GUIText* text = (GUIText*)COMPONENTS[GUI_TEXT_T][button.text];
+        Vec3 position = ecs_get_world_position(button.rect);
         float button_x = position.data[0];
         float button_y = position.data[1];
         float button_w = rect->width;
         float button_h = rect->height;
-        float cursor_x = INPUT.cursor_x * INPUT.window_width;
-        float cursor_y = (1.0 - INPUT.cursor_y) * INPUT.window_height;
 
         int is_button_hot = is_point_inside_rect(
             button_x, button_y, button_w, button_h, cursor_x, cursor_y
@@ -122,16 +136,20 @@ void editor_gui_update() {
 
         if (is_button_hot) {
             rect->color = BUTTON_HOT_COLOR;
+            text->color = BUTTON_TEXT_HOT_COLOR;
             if (INPUT.mouse_left_released) {
-                ENTITY_ACTIVE = ENTITY_ACTIVE == entity ? -1 : entity;
+                ENTITY_ACTIVE = ENTITY_ACTIVE == button.rect ? -1
+                                                             : button.rect;
                 INPUT.mouse_left_released = false;
             }
         } else {
             rect->color = BUTTON_COLD_COLOR;
+            text->color = BUTTON_TEXT_COLD_COLOR;
         }
 
-        if (entity == ENTITY_ACTIVE) {
+        if (button.rect == ENTITY_ACTIVE) {
             rect->color = BUTTON_ACTIVE_COLOR;
+            text->color = BUTTON_TEXT_ACTIVE_COLOR;
         }
     }
 }

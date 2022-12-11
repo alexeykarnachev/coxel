@@ -89,7 +89,7 @@ void main() {
     }
 
     vec4 gui_rect = texture(gui_rect_tex, tex_pos);
-    float gui_text = texture(gui_text_tex, tex_pos).r;
+    vec4 gui_text = texture(gui_text_tex, tex_pos);
     frag_color = gui_rect.a * gui_rect + (1.0 - gui_rect.a) * frag_color;
-    frag_color = gui_text * vec4(1.0) + (1.0 - gui_text) * frag_color;
+    frag_color = gui_text.a * gui_text + (1.0 - gui_text.a) * frag_color;
 }

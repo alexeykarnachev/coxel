@@ -340,6 +340,7 @@ static void render_overlay_buffer(
         program_set_uniform_1uiv(
             program, "char_inds", text->char_inds, text->n_chars
         );
+        program_set_uniform_3fv(program, "color", text->color.data, 1);
         glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
     }
 }
