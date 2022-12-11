@@ -27,8 +27,9 @@ static size_t create_rect(
     return pane;
 }
 
-static size_t
-create_text(int parent, char* label, int x, int y, size_t font_size) {
+static size_t create_text(
+    int parent, char* label, int x, int y, size_t font_size
+) {
     size_t text = ecs_create_entity(parent);
     ecs_add_component(text, GUI_TEXT_T, gui_text_create(label, font_size));
     ecs_add_component(
@@ -40,8 +41,9 @@ create_text(int parent, char* label, int x, int y, size_t font_size) {
     return text;
 }
 
-static size_t
-create_pane(size_t x, size_t y, size_t width, size_t height) {
+static size_t create_pane(
+    size_t x, size_t y, size_t width, size_t height
+) {
     size_t pane = create_rect(-1, x, y, width, height, PANE_COLOR);
 
     return pane;

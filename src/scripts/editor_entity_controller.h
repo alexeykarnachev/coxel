@@ -19,8 +19,10 @@ typedef struct EditorEntityControllerArgs {
     Mat4 entity_start_local_mat;
 } EditorEntityControllerArgs;
 
-EditorEntityControllerArgs
-editor_entity_controller_create_default_args(GBuffer* gbuffer);
+EditorEntityControllerArgs editor_entity_controller_create_default_args(
+    GBuffer* gbuffer
+);
 
-Script*
-editor_entity_controller_create_script(EditorEntityControllerArgs* args);
+Script* editor_entity_controller_create_script(
+    EditorEntityControllerArgs* args
+);

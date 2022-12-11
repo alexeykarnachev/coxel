@@ -101,8 +101,9 @@ void vec4_print(Vec4* v);
 void mat4_pack(float dst[], Mat4 mats[], size_t n_mats);
 void mat4_transpose_pack(float dst[], Mat4 mats[], size_t n_mats);
 void vec3_pack(float dst[], Vec3 vecs[], size_t n_vecs);
-CubemapViewProj
-get_cubemap_view_proj(float near_plane, float far_plane, Vec3* world_pos);
+CubemapViewProj get_cubemap_view_proj(
+    float near_plane, float far_plane, Vec3* world_pos
+);
 int isect_line_plane(
     Vec3* out_p,
     Vec3* line_p0,

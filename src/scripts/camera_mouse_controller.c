@@ -7,8 +7,9 @@
 #include "../la.h"
 #include "../window.h"
 
-static void
-translate(Camera* cam, Transformation* t, float dx, float dy, float dz) {
+static void translate(
+    Camera* cam, Transformation* t, float dx, float dy, float dz
+) {
     static float eps = 0.00001;
     if (fabs(dx) + fabs(dy) + fabs(dz) < eps) {
         return;
@@ -78,7 +79,8 @@ CameraMouseControllerArgs camera_mouse_controller_create_default_args() {
     return args;
 }
 
-Script*
-camera_mouse_controller_create_script(CameraMouseControllerArgs* args) {
+Script* camera_mouse_controller_create_script(
+    CameraMouseControllerArgs* args
+) {
     return script_create(camera_mouse_controller_update, args);
 }

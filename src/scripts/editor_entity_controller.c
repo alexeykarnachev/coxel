@@ -302,8 +302,9 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     }
 }
 
-EditorEntityControllerArgs
-editor_entity_controller_create_default_args(GBuffer* gbuffer) {
+EditorEntityControllerArgs editor_entity_controller_create_default_args(
+    GBuffer* gbuffer
+) {
     EditorEntityControllerArgs args;
 
     args.entity = -1;
@@ -314,7 +315,8 @@ editor_entity_controller_create_default_args(GBuffer* gbuffer) {
     return args;
 }
 
-Script*
-editor_entity_controller_create_script(EditorEntityControllerArgs* args) {
+Script* editor_entity_controller_create_script(
+    EditorEntityControllerArgs* args
+) {
     return script_create(_editor_entity_controller_update, args);
 }

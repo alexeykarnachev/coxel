@@ -3,8 +3,9 @@
 static Transformation TRANSFORMATIONS_ARENA[1 << 14];
 static size_t N_TRANSFORMATIONS = 0;
 
-Transformation*
-transformation_create(Vec3 scale, Vec3 rotation, Vec3 translation) {
+Transformation* transformation_create(
+    Vec3 scale, Vec3 rotation, Vec3 translation
+) {
     Transformation* t = &TRANSFORMATIONS_ARENA[N_TRANSFORMATIONS++];
 
     Mat3 rotation_mat = mat3_rotation(&rotation);

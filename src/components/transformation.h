@@ -8,8 +8,9 @@ typedef struct Transformation {
     Vec3 translation;
 } Transformation;
 
-Transformation*
-transformation_create(Vec3 scale, Vec3 rotation, Vec3 translation);
+Transformation* transformation_create(
+    Vec3 scale, Vec3 rotation, Vec3 translation
+);
 void transformation_create_from_model_mat(
     Transformation* t, Mat4* model_mat
 );

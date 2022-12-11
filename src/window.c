@@ -10,8 +10,9 @@ static GLFWwindow* WINDOW;
 static GLFWcursor* CURSOR_DRAG;
 static GLFWcursor* CURSOR_DEFAULT;
 
-static void
-cursor_position_callback(GLFWwindow* window, double x, double y) {
+static void cursor_position_callback(
+    GLFWwindow* window, double x, double y
+) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     x /= INPUT.window_width;
     y /= INPUT.window_height;
@@ -78,8 +79,9 @@ static void key_callback(
     }
 }
 
-static void
-framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+static void framebuffer_size_callback(
+    GLFWwindow* window, int width, int height
+) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     inp->window_width = width;
     inp->window_height = height;

@@ -690,8 +690,9 @@ void vec3_pack(float dst[], Vec3 vecs[], size_t n_vecs) {
     }
 }
 
-CubemapViewProj
-get_cubemap_view_proj(float near_plane, float far_plane, Vec3* world_pos) {
+CubemapViewProj get_cubemap_view_proj(
+    float near_plane, float far_plane, Vec3* world_pos
+) {
     Mat4 proj_mat = get_perspective_projection_mat(
         deg2rad(90.0), near_plane, far_plane, 1.0
     );
