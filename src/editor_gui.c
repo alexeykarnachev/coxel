@@ -57,11 +57,12 @@ static size_t create_button(
     size_t width,
     size_t height
 ) {
-    size_t button
-        = create_rect(parent, x, y, width, height, COLD_BUTTON_COLOR);
+    size_t button = create_rect(
+        parent, x, y, width, height, COLD_BUTTON_COLOR
+    );
 
-    size_t text_width
-        = strlen(label) * (GUI_FONT_ASPECT * BUTTON_FONT_SIZE);
+    size_t text_width = strlen(label)
+                        * (GUI_FONT_ASPECT * BUTTON_FONT_SIZE);
     size_t text = create_text(
         button,
         label,
@@ -75,8 +76,9 @@ static size_t create_button(
 
 static size_t create_graphics_debug_pane(size_t x, size_t y) {
     size_t pane = create_pane(x, y, 200, 600);
-    size_t test_button
-        = create_button(pane, "test_button", 10, 10, 180, 50);
+    size_t test_button = create_button(
+        pane, "test_button", 10, 10, 180, 50
+    );
 
     return pane;
 }

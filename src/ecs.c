@@ -118,8 +118,9 @@ Mat4 ecs_get_origin_world_mat(size_t entity) {
 
 Vec3 ecs_get_world_position(size_t entity) {
     Mat4 world_mat = ecs_get_world_mat(entity);
-    Vec3 pos
-        = vec3(world_mat.data[3], world_mat.data[7], world_mat.data[11]);
+    Vec3 pos = vec3(
+        world_mat.data[3], world_mat.data[7], world_mat.data[11]
+    );
     return pos;
 }
 

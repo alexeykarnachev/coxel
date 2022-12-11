@@ -15,23 +15,23 @@ Vec3 vec3_pos_z = {{0.0, 0.0, 1.0}};
 Vec3 vec3_neg_z = {{0.0, 0.0, -1.0}};
 Mat3 mat3_zeros = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
 Mat3 mat3_identity = {{1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}};
-Mat4 mat4_identity
-    = {{1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        1.0}};
+Mat4 mat4_identity = {
+    {1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0}};
 
 Vec2 vec2(float x, float y) {
     Vec2 v = {{x, y}};
@@ -49,10 +49,10 @@ Vec4 vec4(float x, float y, float z, float w) {
 }
 
 Vec3 vec3_cross(Vec3* v1, Vec3* v2) {
-    Vec3 res
-        = {{v1->data[1] * v2->data[2] - v1->data[2] * v2->data[1],
-            v1->data[2] * v2->data[0] - v1->data[0] * v2->data[2],
-            v1->data[0] * v2->data[1] - v1->data[1] * v2->data[0]}};
+    Vec3 res = {
+        {v1->data[1] * v2->data[2] - v1->data[2] * v2->data[1],
+         v1->data[2] * v2->data[0] - v1->data[0] * v2->data[2],
+         v1->data[0] * v2->data[1] - v1->data[1] * v2->data[0]}};
     return res;
 }
 
@@ -125,10 +125,10 @@ float vec2_angle(Vec2* v1, Vec2* v2) {
 }
 
 Vec3 vec3_sum(Vec3* v1, Vec3* v2) {
-    Vec3 res
-        = {{v1->data[0] + v2->data[0],
-            v1->data[1] + v2->data[1],
-            v1->data[2] + v2->data[2]}};
+    Vec3 res = {
+        {v1->data[0] + v2->data[0],
+         v1->data[1] + v2->data[1],
+         v1->data[2] + v2->data[2]}};
     return res;
 }
 
@@ -138,10 +138,10 @@ Vec2 vec2_diff(Vec2* v1, Vec2* v2) {
 }
 
 Vec3 vec3_diff(Vec3* v1, Vec3* v2) {
-    Vec3 res
-        = {{v1->data[0] - v2->data[0],
-            v1->data[1] - v2->data[1],
-            v1->data[2] - v2->data[2]}};
+    Vec3 res = {
+        {v1->data[0] - v2->data[0],
+         v1->data[1] - v2->data[1],
+         v1->data[2] - v2->data[2]}};
     return res;
 }
 
@@ -182,45 +182,45 @@ Vec3 vec4_to_vec3(Vec4* v) {
 }
 
 Mat4 mat4_from_rows(Vec4* row0, Vec4* row1, Vec4* row2, Vec4* row3) {
-    Mat4 mat
-        = {{row0->data[0],
-            row0->data[1],
-            row0->data[2],
-            row0->data[3],
-            row1->data[0],
-            row1->data[1],
-            row1->data[2],
-            row1->data[3],
-            row2->data[0],
-            row2->data[1],
-            row2->data[2],
-            row2->data[3],
-            row3->data[0],
-            row3->data[1],
-            row3->data[2],
-            row3->data[3]}};
+    Mat4 mat = {
+        {row0->data[0],
+         row0->data[1],
+         row0->data[2],
+         row0->data[3],
+         row1->data[0],
+         row1->data[1],
+         row1->data[2],
+         row1->data[3],
+         row2->data[0],
+         row2->data[1],
+         row2->data[2],
+         row2->data[3],
+         row3->data[0],
+         row3->data[1],
+         row3->data[2],
+         row3->data[3]}};
 
     return mat;
 }
 
 Mat4 mat4_from_cols(Vec4* col0, Vec4* col1, Vec4* col2, Vec4* col3) {
-    Mat4 mat
-        = {{col0->data[0],
-            col1->data[0],
-            col2->data[0],
-            col3->data[0],
-            col0->data[1],
-            col1->data[1],
-            col2->data[1],
-            col3->data[1],
-            col0->data[2],
-            col1->data[2],
-            col2->data[2],
-            col3->data[2],
-            col0->data[3],
-            col1->data[3],
-            col2->data[3],
-            col3->data[3]}};
+    Mat4 mat = {
+        {col0->data[0],
+         col1->data[0],
+         col2->data[0],
+         col3->data[0],
+         col0->data[1],
+         col1->data[1],
+         col2->data[1],
+         col3->data[1],
+         col0->data[2],
+         col1->data[2],
+         col2->data[2],
+         col3->data[2],
+         col0->data[3],
+         col1->data[3],
+         col2->data[3],
+         col3->data[3]}};
 
     return mat;
 }
@@ -236,30 +236,30 @@ Mat4 mat3_to_mat4(Mat3* m) {
 }
 
 Mat3 mat3_from_rows(Vec3* row0, Vec3* row1, Vec3* row2) {
-    Mat3 mat
-        = {{row0->data[0],
-            row0->data[1],
-            row0->data[2],
-            row1->data[0],
-            row1->data[1],
-            row1->data[2],
-            row2->data[0],
-            row2->data[1],
-            row2->data[2]}};
+    Mat3 mat = {
+        {row0->data[0],
+         row0->data[1],
+         row0->data[2],
+         row1->data[0],
+         row1->data[1],
+         row1->data[2],
+         row2->data[0],
+         row2->data[1],
+         row2->data[2]}};
     return mat;
 }
 
 Mat3 mat3_from_cols(Vec3* col0, Vec3* col1, Vec3* col2) {
-    Mat3 mat
-        = {{col0->data[0],
-            col1->data[0],
-            col2->data[0],
-            col0->data[1],
-            col1->data[1],
-            col2->data[1],
-            col0->data[2],
-            col1->data[2],
-            col2->data[2]}};
+    Mat3 mat = {
+        {col0->data[0],
+         col1->data[0],
+         col2->data[0],
+         col0->data[1],
+         col1->data[1],
+         col2->data[1],
+         col0->data[2],
+         col1->data[2],
+         col2->data[2]}};
 
     return mat;
 }
@@ -494,35 +494,35 @@ Mat4 mat4_inverse(Mat4* m) {
 }
 
 Mat4 get_world_mat(Vec3* scale, Mat3* rotation_mat, Vec3* translation) {
-    Mat3 scale_mat
-        = {{scale->data[0],
-            0.0,
-            0.0,
-            0.0,
-            scale->data[1],
-            0.0,
-            0.0,
-            0.0,
-            scale->data[2]}};
+    Mat3 scale_mat = {
+        {scale->data[0],
+         0.0,
+         0.0,
+         0.0,
+         scale->data[1],
+         0.0,
+         0.0,
+         0.0,
+         scale->data[2]}};
 
     Mat3 rs_mat = mat3_mat3_mul(rotation_mat, &scale_mat);
-    Mat4 world_mat
-        = {{rs_mat.data[0],
-            rs_mat.data[1],
-            rs_mat.data[2],
-            translation->data[0],
-            rs_mat.data[3],
-            rs_mat.data[4],
-            rs_mat.data[5],
-            translation->data[1],
-            rs_mat.data[6],
-            rs_mat.data[7],
-            rs_mat.data[8],
-            translation->data[2],
-            0.0f,
-            0.0f,
-            0.0f,
-            1.0f}};
+    Mat4 world_mat = {
+        {rs_mat.data[0],
+         rs_mat.data[1],
+         rs_mat.data[2],
+         translation->data[0],
+         rs_mat.data[3],
+         rs_mat.data[4],
+         rs_mat.data[5],
+         translation->data[1],
+         rs_mat.data[6],
+         rs_mat.data[7],
+         rs_mat.data[8],
+         translation->data[2],
+         0.0f,
+         0.0f,
+         0.0f,
+         1.0f}};
 
     return world_mat;
 }
@@ -533,23 +533,23 @@ Mat4 get_perspective_projection_mat(
     float f = 1.0f / tan(fov / 2.0f);
     float rng_inv = 1.0f / (near - far);
 
-    Mat4 proj
-        = {{f / aspect,
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            f,
-            0.0f,
-            0.0f,
-            0.0f,
-            0.0f,
-            (near + far) * rng_inv,
-            near * far * rng_inv * 2.0f,
-            0.0f,
-            0.0f,
-            -1.0f,
-            0.0f}};
+    Mat4 proj = {
+        {f / aspect,
+         0.0f,
+         0.0f,
+         0.0f,
+         0.0f,
+         f,
+         0.0f,
+         0.0f,
+         0.0f,
+         0.0f,
+         (near + far) * rng_inv,
+         near * far * rng_inv * 2.0f,
+         0.0f,
+         0.0f,
+         -1.0f,
+         0.0f}};
 
     return proj;
 }
@@ -604,8 +604,8 @@ Mat3 model_mat_extract_rotation_mat(Mat4* mat) {
     Mat3 rotation_mat = mat3_identity;
     for (size_t i = 0; i < 3; ++i) {
         for (size_t j = 0; j < 3; ++j) {
-            rotation_mat.data[j * 3 + i]
-                = mat->data[j * 4 + i] / scale.data[i];
+            rotation_mat.data[j * 3 + i] = mat->data[j * 4 + i]
+                                           / scale.data[i];
         }
     }
 
@@ -761,7 +761,8 @@ int get_two_vecs_nearest_point(
 Vec3 vec3_project(Vec3* position, Mat4* proj_mat) {
     Vec4 proj_position_4 = mat4_vec3_mul(proj_mat, position);
     Vec3 proj_position = vec4_to_vec3(&proj_position_4);
-    proj_position
-        = vec3_scale(&proj_position, 1.0 / proj_position_4.data[3]);
+    proj_position = vec3_scale(
+        &proj_position, 1.0 / proj_position_4.data[3]
+    );
     return proj_position;
 }

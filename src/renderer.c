@@ -230,11 +230,11 @@ static void render_gbuffer() {
             program, "world_mat", world_mat.data, 1, true
         );
 
-        float tex_pos[4]
-            = {sprite->tex_x,
-               sprite->tex_y,
-               sprite->tex_width,
-               sprite->tex_height};
+        float tex_pos[4] = {
+            sprite->tex_x,
+            sprite->tex_y,
+            sprite->tex_width,
+            sprite->tex_height};
         program_set_uniform_4fv(program, "tex_pos", tex_pos, 1);
         program_set_uniform_1i(program, "entity_id", entity);
 
@@ -351,8 +351,8 @@ static void set_uniform_camera(GLuint program) {
     }
 
     Camera* camera = (Camera*)COMPONENTS[CAMERA_T][entity];
-    Transformation* transformation
-        = (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
+    Transformation* transformation = (Transformation*)
+        COMPONENTS[TRANSFORMATION_T][entity];
 
     program_set_uniform_4fv(
         program, "camera.world_pos", transformation->translation.data, 1
@@ -376,10 +376,10 @@ static void set_uniform_camera(GLuint program) {
 static void set_uniform_point_lights(GLuint program) {
     for (size_t i = 0; i < N_POINT_LIGHT_ENTITIES; ++i) {
         size_t entity = POINT_LIGHT_ENTITIES[i];
-        Transformation* transformation
-            = (Transformation*)COMPONENTS[TRANSFORMATION_T][entity];
-        PointLight* point_light
-            = (PointLight*)COMPONENTS[POINT_LIGHT_T][entity];
+        Transformation* transformation = (Transformation*)
+            COMPONENTS[TRANSFORMATION_T][entity];
+        PointLight* point_light = (PointLight*)
+            COMPONENTS[POINT_LIGHT_T][entity];
 
         static char uniform_name_buffer[64];
         sprintf(uniform_name_buffer, "point_lights[%ld].world_pos", i);

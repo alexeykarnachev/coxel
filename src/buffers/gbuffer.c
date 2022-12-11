@@ -114,12 +114,12 @@ int gbuffer_create(GBuffer* buffer, size_t width, size_t height) {
         GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, buffer->rbo
     );
 
-    GLuint buffers[5]
-        = {GL_COLOR_ATTACHMENT0,
-           GL_COLOR_ATTACHMENT1,
-           GL_COLOR_ATTACHMENT2,
-           GL_COLOR_ATTACHMENT3,
-           GL_COLOR_ATTACHMENT4};
+    GLuint buffers[5] = {
+        GL_COLOR_ATTACHMENT0,
+        GL_COLOR_ATTACHMENT1,
+        GL_COLOR_ATTACHMENT2,
+        GL_COLOR_ATTACHMENT3,
+        GL_COLOR_ATTACHMENT4};
     glDrawBuffers(5, buffers);
     glReadBuffer(GL_COLOR_ATTACHMENT4);
 

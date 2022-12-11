@@ -6,10 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-static const char* VERT_SCREEN_RECT_SHADER
-    = "./assets/shaders/screen_rect.vert";
-static const char* VERT_PROJECTION_SHADER
-    = "./assets/shaders/projection.vert";
+static const char* VERT_SCREEN_RECT_SHADER = "./assets/shaders/"
+                                             "screen_rect.vert";
+static const char* VERT_PROJECTION_SHADER = "./assets/shaders/"
+                                            "projection.vert";
 static const char* VERT_GUI_RECT_SHADER = "./assets/shaders/gui_rect.vert";
 static const char* VERT_GUI_TEXT_SHADER = "./assets/shaders/gui_text.vert";
 static const char* VERT_SPRITE_SHADER = "./assets/shaders/sprite.vert";
@@ -99,8 +99,9 @@ static bool program_compile_file(
         }
     }
 
-    bool is_compiled
-        = program_compile_source(sources, 1 + n_deps, shader_type, shader);
+    bool is_compiled = program_compile_source(
+        sources, 1 + n_deps, shader_type, shader
+    );
 
     for (size_t i = 0; i < 1 + n_deps; ++i) {
         free((char*)sources[i]);
@@ -218,8 +219,8 @@ static bool program_create(
 }
 
 bool program_create_all() {
-    const char* deps_file_paths[]
-        = {VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
+    const char* deps_file_paths[] = {
+        VERSION_SHADER, CONSTANTS_SHADER, GLSL_COMMON_SHADER};
     bool ok = true;
 
     PROGRAM_COLOR = glCreateProgram();
