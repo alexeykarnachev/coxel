@@ -5,11 +5,20 @@
 #include "components/transformation.h"
 #include "ecs.h"
 #include "la.h"
+#include "window.h"
 #include <string.h>
 
 static Vec4 PANE_COLOR = {{0.1, 0.1, 0.1, 0.9}};
-static Vec4 COLD_BUTTON_COLOR = {{0.2, 0.2, 0.2, 1.0}};
+static Vec4 BUTTON_COLD_COLOR = {{0.2, 0.2, 0.2, 1.0}};
+static Vec4 BUTTON_HOT_COLOR = {{0.3, 0.3, 0.3, 1.0}};
+static Vec4 BUTTON_ACTIVE_COLOR = {{0.8, 0.8, 0.8, 1.0}};
 static size_t BUTTON_FONT_SIZE = 24;
+
+static size_t BUTTONS[128];
+static size_t N_BUTTONS = 0;
+
+static int ENTITY_HOT = -1;
+static int ENTITY_ACTIVE = -1;
 
 static size_t create_rect(
     int parent, int x, int y, size_t width, size_t height, Vec4 color
@@ -58,7 +67,7 @@ static size_t create_button(
     size_t height
 ) {
     size_t button = create_rect(
-        parent, x, y, width, height, COLD_BUTTON_COLOR
+        parent, x, y, width, height, BUTTON_COLD_COLOR
     );
 
     size_t text_width = strlen(label)
@@ -71,13 +80,21 @@ static size_t create_button(
         BUTTON_FONT_SIZE
     );
 
+    BUTTONS[N_BUTTONS++] = button;
+
     return button;
 }
 
 static size_t create_graphics_debug_pane(size_t x, size_t y) {
     size_t pane = create_pane(x, y, 200, 600);
-    size_t test_button = create_button(
-        pane, "test_button", 10, 10, 180, 50
+    size_t test_button_0 = create_button(
+        pane, "test_button_0", 10, 10, 180, 50
+    );
+    size_t test_button_1 = create_button(
+        pane, "test_button_1", 10, 70, 180, 50
+    );
+    size_t test_button_2 = create_button(
+        pane, "test_button_2", 10, 130, 180, 50
     );
 
     return pane;
@@ -87,4 +104,34 @@ void editor_gui_create() {
     size_t graphics_debug_pane = create_graphics_debug_pane(10, 10);
 }
 
-void editor_gui_update() {}
+void editor_gui_update() {
+    for (size_t i = 0; i < N_BUTTONS; ++i) {
+        size_t entity = BUTTONS[i];
+        GUIRect* rect = (GUIRect*)COMPONENTS[GUI_RECT_T][entity];
+        Vec3 position = ecs_get_world_position(entity);
+        float button_x = position.data[0];
+        float button_y = position.data[1];
+        float button_w = rect->width;
+        float button_h = rect->height;
+        float cursor_x = INPUT.cursor_x * INPUT.window_width;
+        float cursor_y = (1.0 - INPUT.cursor_y) * INPUT.window_height;
+
+        int is_button_hot = is_point_inside_rect(
+            button_x, button_y, button_w, button_h, cursor_x, cursor_y
+        );
+
+        if (is_button_hot) {
+            rect->color = BUTTON_HOT_COLOR;
+            if (INPUT.mouse_left_released) {
+                ENTITY_ACTIVE = ENTITY_ACTIVE == entity ? -1 : entity;
+                INPUT.mouse_left_released = false;
+            }
+        } else {
+            rect->color = BUTTON_COLD_COLOR;
+        }
+
+        if (entity == ENTITY_ACTIVE) {
+            rect->color = BUTTON_ACTIVE_COLOR;
+        }
+    }
+}

@@ -766,3 +766,19 @@ Vec3 vec3_project(Vec3* position, Mat4* proj_mat) {
     );
     return proj_position;
 }
+
+int is_point_inside_rect(
+    float rect_x,
+    float rect_y,
+    float rect_w,
+    float rect_h,
+    float point_x,
+    float point_y
+) {
+    if (point_x > rect_x && point_x < (rect_x + rect_w) && point_y > rect_y
+        && point_y < (rect_y + rect_h)) {
+        return 1;
+    }
+
+    return 0;
+}

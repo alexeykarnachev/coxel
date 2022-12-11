@@ -124,3 +124,12 @@ void mat4_print(Mat4* m);
 void mat3_print(Mat3* m);
 void vec3_print(Vec3* v);
 void vec4_print(Vec4* v);
+
+int is_point_inside_rect(
+    float rect_x,
+    float rect_y,
+    float rect_w,
+    float rect_h,
+    float point_x,
+    float point_y
+);
