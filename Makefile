@@ -3,14 +3,12 @@ CFLAGS=-std=c11 -Ideps # -DIGNORE_SHADER_LOC_ERRORS
 # CFLAGS=-std=c11 -Ideps -fsanitize=address -fno-omit-frame-pointer
 SRCS = $(shell find . -type f -name '*.c')
 
-# Use the patsubst function to generate the names of the corresponding object files.
-OBJS = $(patsubst %.c,%.o,$(SRCS))
+OBJS = $(patsubst %.c, build/%.o, $(SRCS))
 
-# Compile the source files using gcc.
 all: $(OBJS); \
 $(CC) $(CFLAGS) -o demo $^ $(LIBS)
 
-# Compile each source file into an object file.
-%.o: %.c; \
+build/%.o: %.c; \
+$(shell mkdir -p `dirname $@`) \
 $(CC) -c -o $@ $<
 
