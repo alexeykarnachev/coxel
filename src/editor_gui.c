@@ -116,15 +116,16 @@ static InputW create_input(
     int parent, char* label, size_t x, size_t y, size_t width
 ) {
     size_t input_rect_hight = INPUT_FONT_SIZE + 5;
+    size_t cursor_height = INPUT_FONT_SIZE * 0.8;
     size_t input_rect = create_rect(
         parent, x, y, width, input_rect_hight, INPUT_COLD_COLOR
     );
     size_t cursor_rect = create_rect(
         input_rect,
         0,
-        (input_rect_hight - INPUT_FONT_SIZE) / 2,
-        1,
-        INPUT_FONT_SIZE,
+        (input_rect_hight - cursor_height) / 2,
+        2,
+        cursor_height,
         INPUT_HOT_COLOR
     );
     ecs_disable_component(cursor_rect, GUI_RECT_T);
@@ -141,7 +142,7 @@ static InputW create_input(
     );
     size_t initial_text = create_text(
         input_rect,
-        "",
+        "A",
         INPUT_LABEL_COLD_COLOR,
         5,
         (input_rect_hight - INPUT_FONT_SIZE) / 2,
@@ -227,14 +228,17 @@ void editor_gui_update() {
 
     for (size_t i = 0; i < N_INPUTS; ++i) {
         InputW input = INPUTS[i];
-        GUIRect* rect = (GUIRect*)COMPONENTS[GUI_RECT_T][input.input_rect];
+        GUIRect* input_rect = (GUIRect*)
+            COMPONENTS[GUI_RECT_T][input.input_rect];
+        GUIText* input_text = (GUIText*)
+            COMPONENTS[GUI_TEXT_T][input.input_text];
         Vec3 position = ecs_get_world_position(input.input_rect);
         int was_active = (int)(ACTIVE_INPUT == input.input_rect);
         int is_hot = is_point_inside_rect(
             position.data[0],
             position.data[1],
-            rect->width,
-            rect->height,
+            input_rect->width,
+            input_rect->height,
             cursor_x,
             cursor_y
         );
@@ -246,6 +250,13 @@ void editor_gui_update() {
         if (is_hot && INPUT.mouse_left_released) {
             ACTIVE_INPUT = input.input_rect;
             mouse_left_released = 1;
+            Transformation* cursor_transformation = (Transformation*)
+                COMPONENTS[TRANSFORMATION_T][input.cursor_rect];
+            Transformation* text_transformation = (Transformation*)
+                COMPONENTS[TRANSFORMATION_T][input.input_text];
+            cursor_transformation->translation.data[0]
+                = input_text->n_chars * (GUI_FONT_ASPECT * INPUT_FONT_SIZE)
+                  + text_transformation->translation.data[0];
             ecs_enable_component(input.cursor_rect, GUI_RECT_T);
         }
 
