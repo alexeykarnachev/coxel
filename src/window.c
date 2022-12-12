@@ -9,6 +9,8 @@ Input INPUT;
 static GLFWwindow* WINDOW;
 static GLFWcursor* CURSOR_DRAG;
 static GLFWcursor* CURSOR_DEFAULT;
+static GLFWcursor* CURSOR_IBEAM;
+static GLFWcursor* CURSOR_CURRENT;
 
 static void cursor_position_callback(
     GLFWwindow* window, double x, double y
@@ -120,16 +122,30 @@ bool window_create(size_t width, size_t height) {
 
     CURSOR_DRAG = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
     CURSOR_DEFAULT = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+    CURSOR_IBEAM = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+    CURSOR_CURRENT = CURSOR_DEFAULT;
 
     return true;
 }
 
 void window_set_drag_cursor() {
-    glfwSetCursor(WINDOW, CURSOR_DRAG);
+    CURSOR_CURRENT = CURSOR_DRAG;
+}
+
+void window_set_scale_cursor() {
+    CURSOR_CURRENT = CURSOR_DRAG;
+}
+
+void window_set_rotate_cursor() {
+    CURSOR_CURRENT = CURSOR_DRAG;
+}
+
+void window_set_text_input_cursor() {
+    CURSOR_CURRENT = CURSOR_IBEAM;
 }
 
 void window_set_default_cursor() {
-    glfwSetCursor(WINDOW, CURSOR_DEFAULT);
+    CURSOR_CURRENT = CURSOR_DEFAULT;
 }
 
 void window_clear_input() {
@@ -147,6 +163,7 @@ void window_clear_input() {
 
 void window_update() {
     window_clear_input();
+    glfwSetCursor(WINDOW, CURSOR_CURRENT);
     glfwSwapBuffers(WINDOW);
     glfwPollEvents();
 }

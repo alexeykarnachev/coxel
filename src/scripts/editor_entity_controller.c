@@ -67,6 +67,14 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         return;
     }
 
+    if (args->mode == MODE_DRAG) {
+        window_set_drag_cursor();
+    } else if (args->mode == MODE_SCALE) {
+        window_set_scale_cursor();
+    } else if (args->mode == MODE_ROTATE) {
+        window_set_rotate_cursor();
+    }
+
     Camera* camera = (Camera*)COMPONENTS[CAMERA_T][camera_entity];
     Transformation* camera_transformation = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][camera_entity];
@@ -85,6 +93,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
 
     if (args->mode != MODE_SELECT
         && (INPUT.x_released || INPUT.y_released || INPUT.z_released)) {
+
         int axis = key_to_axis(INPUT.last_released_key);
         args->axis = args->axis == axis ? AXIS_W : axis;
         transformation_create_from_model_mat(
@@ -105,7 +114,6 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         // ----------------------------------------------
         // Entity drag:
         if (args->mode != MODE_DRAG) {
-            window_set_drag_cursor();
             args->mode = MODE_DRAG;
             args->axis = AXIS_W;
             args->cursor_x = 0.5 * (entity_proj_position.data[0] + 1.0);
@@ -179,7 +187,6 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         // ----------------------------------------------
         // Entity scale:
         if (args->mode != MODE_SCALE) {
-            window_set_drag_cursor();
             args->mode = MODE_SCALE;
             args->axis = AXIS_W;
             args->cursor_x = INPUT.cursor_x;
@@ -234,7 +241,6 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         // ----------------------------------------------
         // Entity rotate:
         if (args->mode != MODE_ROTATE) {
-            window_set_drag_cursor();
             args->mode = MODE_ROTATE;
             args->axis = AXIS_W;
             args->cursor_x = INPUT.cursor_x;

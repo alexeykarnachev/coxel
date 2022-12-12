@@ -45,6 +45,9 @@ extern Input INPUT;
 
 bool window_create(size_t width, size_t height);
 void window_set_drag_cursor();
+void window_set_rotate_cursor();
+void window_set_scale_cursor();
+void window_set_text_input_cursor();
 void window_set_default_cursor();
 void window_clear_input();
 void window_update();
