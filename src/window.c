@@ -51,33 +51,13 @@ static void key_callback(
     if (key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose(window, GL_TRUE);
         inp->window_should_close = true;
-    } else if (key == GLFW_KEY_LEFT_SHIFT) {
-        inp->shift_pressed = action == GLFW_PRESS;
-        inp->shift_released = action == GLFW_RELEASE;
-    } else if (key == GLFW_KEY_G) {
-        inp->g_pressed = action == GLFW_PRESS;
-        inp->g_released = action == GLFW_RELEASE;
-    } else if (key == GLFW_KEY_X) {
-        inp->x_pressed = action == GLFW_PRESS;
-        inp->x_released = action == GLFW_RELEASE;
-    } else if (key == GLFW_KEY_Y) {
-        inp->y_pressed = action == GLFW_PRESS;
-        inp->y_released = action == GLFW_RELEASE;
-    } else if (key == GLFW_KEY_Z) {
-        inp->z_pressed = action == GLFW_PRESS;
-        inp->z_released = action == GLFW_RELEASE;
-    } else if (key == GLFW_KEY_S) {
-        inp->s_pressed = action == GLFW_PRESS;
-        inp->s_released = action == GLFW_RELEASE;
-    } else if (key == GLFW_KEY_R) {
-        inp->r_pressed = action == GLFW_PRESS;
-        inp->r_released = action == GLFW_RELEASE;
+        return;
     }
 
     if (action == GLFW_PRESS) {
-        inp->last_pressed_key = key;
+        inp->key_pressed = key;
     } else if (action == GLFW_RELEASE) {
-        inp->last_released_key = key;
+        inp->key_released = key;
     }
 }
 
@@ -154,11 +134,8 @@ void window_clear_input() {
     INPUT.scroll_dy = 0.0;
     INPUT.mouse_middle_released = 0;
     INPUT.mouse_left_released = 0;
-    INPUT.shift_released = 0;
-    INPUT.g_released = 0;
-    INPUT.x_released = 0;
-    INPUT.y_released = 0;
-    INPUT.z_released = 0;
+    INPUT.key_pressed = 0;
+    INPUT.key_released = 0;
 }
 
 void window_update() {

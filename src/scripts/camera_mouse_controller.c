@@ -6,6 +6,7 @@
 #include "../ecs.h"
 #include "../la.h"
 #include "../window.h"
+#include <GLFW/glfw3.h>
 
 static void translate(
     Camera* cam, Transformation* t, float dx, float dy, float dz
@@ -44,7 +45,8 @@ static void camera_mouse_controller_update(size_t entity, void* args_p) {
     Transformation* t = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][entity];
 
-    if (INPUT.shift_pressed && INPUT.mouse_middle_pressed) {
+    if (INPUT.key_pressed = GLFW_KEY_LEFT_SHIFT
+                            && INPUT.mouse_middle_pressed) {
         translate(
             cam,
             t,

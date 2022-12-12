@@ -4,6 +4,7 @@
 #include "../components/transformation.h"
 #include "../ecs.h"
 #include "../window.h"
+#include <GLFW/glfw3.h>
 
 static int AXIS_X = 0;
 static int AXIS_Y = 1;
@@ -92,9 +93,11 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     );
 
     if (args->mode != MODE_SELECT
-        && (INPUT.x_released || INPUT.y_released || INPUT.z_released)) {
+        && (INPUT.key_released == GLFW_KEY_X
+            || INPUT.key_released == GLFW_KEY_Y
+            || INPUT.key_released == GLFW_KEY_Z)) {
 
-        int axis = key_to_axis(INPUT.last_released_key);
+        int axis = key_to_axis(INPUT.key_released);
         args->axis = args->axis == axis ? AXIS_W : axis;
         transformation_create_from_model_mat(
             entity_transformation, &args->entity_start_local_mat
@@ -110,7 +113,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
     Mat4 entity_local_mat = ecs_get_local_mat(entity);
     Mat4 wv_mat = mat4_mat4_mul(&view_mat, &entity_world_mat);
 
-    if (INPUT.g_pressed || args->mode == MODE_DRAG) {
+    if (INPUT.key_pressed == GLFW_KEY_G || args->mode == MODE_DRAG) {
         // ----------------------------------------------
         // Entity drag:
         if (args->mode != MODE_DRAG) {
@@ -183,7 +186,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         entity_transformation->translation = vec3_project(
             &entity_new_world_position, &origin_world_inv
         );
-    } else if (INPUT.s_pressed || args->mode == MODE_SCALE) {
+    } else if (INPUT.key_pressed == GLFW_KEY_S || args->mode == MODE_SCALE) {
         // ----------------------------------------------
         // Entity scale:
         if (args->mode != MODE_SCALE) {
@@ -237,7 +240,7 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
         transformation_create_from_model_mat(
             entity_transformation, &entity_new_local_mat
         );
-    } else if (INPUT.r_pressed || args->mode == MODE_ROTATE) {
+    } else if (INPUT.key_pressed == GLFW_KEY_R || args->mode == MODE_ROTATE) {
         // ----------------------------------------------
         // Entity rotate:
         if (args->mode != MODE_ROTATE) {

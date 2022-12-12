@@ -19,26 +19,12 @@ typedef struct Input {
 
     int mouse_middle_released;
     int mouse_left_released;
-    int shift_released;
-    int g_released;
-    int x_released;
-    int y_released;
-    int z_released;
-    int s_released;
-    int r_released;
 
     int mouse_middle_pressed;
     int mouse_left_pressed;
-    int shift_pressed;
-    int g_pressed;
-    int x_pressed;
-    int y_pressed;
-    int z_pressed;
-    int s_pressed;
-    int r_pressed;
 
-    int last_pressed_key;
-    int last_released_key;
+    int key_pressed;
+    int key_released;
 } Input;
 
 extern Input INPUT;
