@@ -92,7 +92,6 @@ bool window_create(size_t width, size_t height) {
     glfwSetMouseButtonCallback(WINDOW, mouse_button_callback);
     glfwSetKeyCallback(WINDOW, key_callback);
     glfwSetScrollCallback(WINDOW, scroll_callback);
-    glfwSetKeyCallback(WINDOW, key_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         printf("ERROR: failed to initialize GLAD");
