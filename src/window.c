@@ -54,7 +54,7 @@ static void key_callback(
         return;
     }
 
-    if (action == GLFW_PRESS) {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         inp->key_pressed = key;
     } else if (action == GLFW_RELEASE) {
         inp->key_released = key;

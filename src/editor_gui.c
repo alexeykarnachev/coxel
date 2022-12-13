@@ -367,6 +367,7 @@ void editor_gui_update() {
             }
         }
     }
+    was_gui_interacted |= ACTIVE_INPUT != -1;
 
     if (ACTIVE_INPUT != -1 && INPUT.key_pressed >= 0) {
         InputW input = INPUTS[ACTIVE_INPUT];
