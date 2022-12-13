@@ -32,6 +32,7 @@ static Vec3 BUTTON_LABEL_COLD_COLOR = {{0.8, 0.8, 0.8}};
 static Vec3 BUTTON_LABEL_HOT_COLOR = {{0.9, 0.9, 0.9}};
 static Vec3 BUTTON_LABEL_ACTIVE_COLOR = {{0.2, 0.2, 0.2}};
 static size_t BUTTON_FONT_SIZE = 24;
+static float BUTTON_GLYPH_WIDTH;
 static ButtonW BUTTONS[128];
 static size_t N_BUTTONS = 0;
 
@@ -39,6 +40,7 @@ static Vec4 INPUT_COLD_COLOR = {{0.05, 0.05, 0.05, 1.0}};
 static Vec4 INPUT_HOT_COLOR = {{0.8, 0.8, 0.8, 1.0}};
 static Vec3 INPUT_LABEL_COLD_COLOR = {{0.8, 0.8, 0.8}};
 static size_t INPUT_FONT_SIZE = 32;
+static float INPUT_GLYPH_WIDTH;
 static InputW INPUTS[128];
 static size_t N_INPUTS = 0;
 
@@ -99,8 +101,7 @@ static ButtonW* create_button(
         parent, x, y, width, height, BUTTON_COLD_COLOR
     );
 
-    size_t label_text_width = strlen(label)
-                              * (GUI_FONT_ASPECT * BUTTON_FONT_SIZE);
+    size_t label_text_width = strlen(label) * BUTTON_GLYPH_WIDTH;
     size_t label_text = create_text(
         button_rect,
         label,
@@ -135,8 +136,7 @@ static InputW* create_input(
     );
     ecs_disable_component(cursor_rect, GUI_RECT_T);
 
-    size_t label_text_width = strlen(label)
-                              * (GUI_FONT_ASPECT * INPUT_FONT_SIZE);
+    size_t label_text_width = strlen(label) * INPUT_GLYPH_WIDTH;
     size_t label_text = create_text(
         input_rect,
         label,
@@ -169,7 +169,7 @@ static void place_input_cursor_at(InputW* input, size_t pos) {
     Transformation* text_transformation = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][input->input_text];
     cursor_transformation->translation.data[0]
-        = pos * (GUI_FONT_ASPECT * INPUT_FONT_SIZE)
+        = pos * INPUT_GLYPH_WIDTH
           + text_transformation->translation.data[0];
 }
 
@@ -179,9 +179,7 @@ static void place_input_cursor_at_screen_cursor(InputW* input) {
     Vec3 text_world_pos = ecs_get_world_position(input->input_text);
     float cursor_local_pos = INPUT.cursor_x * INPUT.window_width
                              - text_world_pos.data[0];
-    int pos = round(
-        cursor_local_pos / (GUI_FONT_ASPECT * INPUT_FONT_SIZE)
-    );
+    int pos = round(cursor_local_pos / INPUT_GLYPH_WIDTH);
     pos = min(input_text->n_chars, pos);
     place_input_cursor_at(input, pos);
 }
@@ -190,7 +188,7 @@ static void move_input_cursor_n_steps(InputW* input, int n) {
     Transformation* cursor_transformation = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][input->cursor_rect];
     int curr_pos = cursor_transformation->translation.data[0]
-                   / (GUI_FONT_ASPECT * INPUT_FONT_SIZE);
+                   / INPUT_GLYPH_WIDTH;
 
     GUIText* input_text = (GUIText*)
         COMPONENTS[GUI_TEXT_T][input->input_text];
@@ -203,7 +201,7 @@ static void remove_input_char_left(InputW* input) {
     Transformation* cursor_transformation = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][input->cursor_rect];
     int curr_pos = cursor_transformation->translation.data[0]
-                   / (GUI_FONT_ASPECT * INPUT_FONT_SIZE);
+                   / INPUT_GLYPH_WIDTH;
     if (curr_pos == 0) {
         return;
     }
@@ -216,15 +214,21 @@ static void remove_input_char_left(InputW* input) {
     input_text->n_chars--;
     move_input_cursor_n_steps(input, -1);
 }
-
 void insert_input_char(InputW* input, char c) {
+
+    GUIRect* input_rect = (GUIRect*)
+        COMPONENTS[GUI_RECT_T][input->input_rect];
+    int max_n_chars = min(
+        input_rect->width / INPUT_GLYPH_WIDTH, GUI_TEXT_MAX_N_CHARS
+    );
+
     Transformation* cursor_transformation = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][input->cursor_rect];
     int curr_pos = cursor_transformation->translation.data[0]
-                   / (GUI_FONT_ASPECT * INPUT_FONT_SIZE);
+                   / INPUT_GLYPH_WIDTH;
     GUIText* input_text = (GUIText*)
         COMPONENTS[GUI_TEXT_T][input->input_text];
-    if (input_text->n_chars == GUI_TEXT_MAX_N_CHARS) {
+    if (input_text->n_chars == max_n_chars) {
         return;
     }
 
@@ -255,6 +259,8 @@ static size_t create_test_pane(size_t x, size_t y) {
 }
 
 void editor_gui_create() {
+    INPUT_GLYPH_WIDTH = GUI_FONT_ASPECT * (float)INPUT_FONT_SIZE;
+    BUTTON_GLYPH_WIDTH = GUI_FONT_ASPECT * (float)BUTTON_FONT_SIZE;
     size_t test_pane = create_test_pane(10, 10);
 }
 
