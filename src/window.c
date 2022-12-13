@@ -31,11 +31,11 @@ static void mouse_button_callback(
 ) {
     Input* inp = (Input*)(glfwGetWindowUserPointer(window));
     if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
-        inp->mouse_middle_pressed = action == GLFW_PRESS;
-        inp->mouse_middle_released = action == GLFW_RELEASE;
+        inp->is_mouse_middle_pressed = action == GLFW_PRESS;
+        inp->is_mouse_middle_released = action == GLFW_RELEASE;
     } else if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        inp->mouse_left_pressed = action == GLFW_PRESS;
-        inp->mouse_left_released = action == GLFW_RELEASE;
+        inp->is_mouse_left_pressed = action == GLFW_PRESS;
+        inp->is_mouse_left_released = action == GLFW_RELEASE;
     }
 }
 
@@ -56,8 +56,10 @@ static void key_callback(
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         inp->key_pressed = key;
+        inp->is_shift_pressed = key == GLFW_KEY_LEFT_SHIFT;
     } else if (action == GLFW_RELEASE) {
         inp->key_released = key;
+        inp->is_shift_released = key == GLFW_KEY_LEFT_SHIFT;
     }
 }
 
@@ -131,8 +133,9 @@ void window_clear_input() {
     INPUT.cursor_dx = 0.0;
     INPUT.cursor_dy = 0.0;
     INPUT.scroll_dy = 0.0;
-    INPUT.mouse_middle_released = 0;
-    INPUT.mouse_left_released = 0;
+    INPUT.is_mouse_middle_released = 0;
+    INPUT.is_mouse_left_released = 0;
+    INPUT.is_shift_released = 0;
     INPUT.key_pressed = -1;
     INPUT.key_released = -1;
 }

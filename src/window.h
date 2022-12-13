@@ -17,11 +17,14 @@ typedef struct Input {
 
     float scroll_dy;
 
-    int mouse_middle_released;
-    int mouse_left_released;
+    int is_mouse_middle_released;
+    int is_mouse_left_released;
 
-    int mouse_middle_pressed;
-    int mouse_left_pressed;
+    int is_mouse_middle_pressed;
+    int is_mouse_left_pressed;
+
+    int is_shift_pressed;
+    int is_shift_released;
 
     int key_pressed;
     int key_released;

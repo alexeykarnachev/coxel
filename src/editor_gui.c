@@ -306,7 +306,7 @@ void editor_gui_update() {
         }
 
         int push_direction = 0;
-        if (is_hot && INPUT.mouse_left_released) {
+        if (is_hot && INPUT.is_mouse_left_released) {
             push_direction = was_active ? -1 : 1;
         }
 
@@ -354,13 +354,13 @@ void editor_gui_update() {
             new_entity_hot = input.input_rect;
         }
 
-        if (is_hot && INPUT.mouse_left_pressed) {
+        if (is_hot && INPUT.is_mouse_left_pressed) {
             ACTIVE_INPUT = i;
             place_input_cursor_at_screen_cursor(&input);
             ecs_enable_component(input.cursor_rect, GUI_RECT_T);
         }
 
-        if (INPUT.mouse_left_pressed && !is_hot) {
+        if (INPUT.is_mouse_left_pressed && !is_hot) {
             ecs_disable_component(input.cursor_rect, GUI_RECT_T);
             if (was_active) {
                 ACTIVE_INPUT = -1;

@@ -42,13 +42,13 @@ void _editor_entity_controller_update(size_t _, void* args_p) {
 
     int entity = (int)id - 1;
 
-    if (INPUT.mouse_left_released && args->mode != MODE_SELECT) {
+    if (INPUT.is_mouse_left_released && args->mode != MODE_SELECT) {
         window_set_default_cursor();
         args->mode = MODE_SELECT;
         return;
     }
 
-    entity = INPUT.mouse_left_released ? entity : args->entity;
+    entity = INPUT.is_mouse_left_released ? entity : args->entity;
     ecs_disable_component(args->entity, HAS_OUTLINE_T);
     ecs_enable_component(entity, HAS_OUTLINE_T);
     args->entity = entity;
