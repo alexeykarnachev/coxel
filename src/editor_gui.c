@@ -22,6 +22,8 @@ typedef struct InputW {
 } InputW;
 
 static Vec4 PANE_COLOR = {{0.1, 0.1, 0.1, 0.9}};
+static size_t PANES[256];
+static size_t N_PANES = 0;
 
 static Vec4 BUTTON_COLD_COLOR = {{0.2, 0.2, 0.2, 1.0}};
 static Vec4 BUTTON_HOT_COLOR = {{0.3, 0.3, 0.3, 1.0}};
@@ -80,11 +82,12 @@ static size_t create_pane(
     size_t x, size_t y, size_t width, size_t height
 ) {
     size_t pane = create_rect(-1, x, y, width, height, PANE_COLOR);
+    PANES[N_PANES++] = pane;
 
     return pane;
 }
 
-static ButtonW create_button(
+static ButtonW* create_button(
     int parent,
     char* label,
     size_t x,
@@ -107,13 +110,14 @@ static ButtonW create_button(
         BUTTON_FONT_SIZE
     );
 
-    ButtonW button = {button_rect, label_text};
-    BUTTONS[N_BUTTONS++] = button;
+    ButtonW* button = &BUTTONS[N_BUTTONS++];
+    button->rect = button_rect;
+    button->text = label_text;
 
     return button;
 }
 
-static InputW create_input(
+static InputW* create_input(
     int parent, char* label, size_t x, size_t y, size_t width
 ) {
     size_t input_rect_hight = INPUT_FONT_SIZE + 5;
@@ -150,8 +154,11 @@ static InputW create_input(
         INPUT_FONT_SIZE
     );
 
-    InputW input = {input_rect, cursor_rect, label_text, initial_text};
-    INPUTS[N_INPUTS++] = input;
+    InputW* input = &INPUTS[N_INPUTS++];
+    input->input_rect = input_rect;
+    input->cursor_rect = cursor_rect;
+    input->label_text = label_text;
+    input->input_text = initial_text;
 
     return input;
 }
@@ -231,18 +238,18 @@ void insert_input_char(InputW* input, char c) {
 
 static size_t create_test_pane(size_t x, size_t y) {
     size_t pane = create_pane(x, y, 200, 600);
-    ButtonW test_button_0 = create_button(
+    ButtonW* test_button_0 = create_button(
         pane, "test_button_0", 10, 10, 180, 50
     );
-    ButtonW test_button_1 = create_button(
+    ButtonW* test_button_1 = create_button(
         pane, "test_button_1", 10, 70, 180, 50
     );
-    ButtonW test_button_2 = create_button(
+    ButtonW* test_button_2 = create_button(
         pane, "test_button_2", 10, 130, 180, 50
     );
-    InputW test_input_0 = create_input(pane, "Test_0", 100, 190, 90);
-    InputW test_input_1 = create_input(pane, "Test_1", 100, 220, 90);
-    InputW test_input_2 = create_input(pane, "Test_2", 100, 250, 90);
+    InputW* test_input_0 = create_input(pane, "Test_0", 100, 190, 90);
+    InputW* test_input_1 = create_input(pane, "Test_1", 100, 220, 90);
+    InputW* test_input_2 = create_input(pane, "Test_2", 100, 250, 90);
 
     return pane;
 }
@@ -255,7 +262,22 @@ void editor_gui_update() {
     float cursor_x = INPUT.cursor_x * INPUT.window_width;
     float cursor_y = (1.0 - INPUT.cursor_y) * INPUT.window_height;
     int new_entity_hot = -1;
-    int mouse_left_released = 0;
+    int was_gui_interacted = 0;
+
+    for (size_t i = 0; i < N_PANES; ++i) {
+        size_t pane = PANES[i];
+        GUIRect* rect = (GUIRect*)COMPONENTS[GUI_RECT_T][pane];
+        Vec3 position = ecs_get_world_position(pane);
+        int is_hot = is_point_inside_rect(
+            position.data[0],
+            position.data[1],
+            rect->width,
+            rect->height,
+            cursor_x,
+            cursor_y
+        );
+        was_gui_interacted |= is_hot;
+    }
 
     for (size_t i = 0; i < N_BUTTONS; ++i) {
         ButtonW button = BUTTONS[i];
@@ -271,6 +293,8 @@ void editor_gui_update() {
             cursor_x,
             cursor_y
         );
+        was_gui_interacted |= is_hot;
+
         if (is_hot) {
             new_entity_hot = button.rect;
         }
@@ -278,7 +302,6 @@ void editor_gui_update() {
         int push_direction = 0;
         if (is_hot && INPUT.mouse_left_released) {
             push_direction = was_active ? -1 : 1;
-            mouse_left_released = 1;
         }
 
         if (is_hot && !was_active) {
@@ -314,19 +337,24 @@ void editor_gui_update() {
             cursor_x,
             cursor_y
         );
+        was_gui_interacted |= is_hot;
+
+        if (!was_active) {
+            ecs_disable_component(input.cursor_rect, GUI_RECT_T);
+        }
+
         if (is_hot) {
             window_set_text_input_cursor();
             new_entity_hot = input.input_rect;
         }
 
-        if (is_hot && INPUT.mouse_left_released) {
+        if (is_hot && INPUT.mouse_left_pressed) {
             ACTIVE_INPUT = i;
-            mouse_left_released = 1;
             place_input_cursor_at_screen_cursor(&input);
             ecs_enable_component(input.cursor_rect, GUI_RECT_T);
         }
 
-        if (INPUT.mouse_left_released && !is_hot) {
+        if (INPUT.mouse_left_pressed && !is_hot) {
             ecs_disable_component(input.cursor_rect, GUI_RECT_T);
             if (was_active) {
                 ACTIVE_INPUT = -1;
@@ -353,7 +381,7 @@ void editor_gui_update() {
         HOT_ENTITY = new_entity_hot;
     }
 
-    if (mouse_left_released) {
-        INPUT.mouse_left_released = 0;
+    if (was_gui_interacted) {
+        window_clear_input();
     }
 }
