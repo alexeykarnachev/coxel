@@ -133,8 +133,8 @@ void window_clear_input() {
     INPUT.scroll_dy = 0.0;
     INPUT.mouse_middle_released = 0;
     INPUT.mouse_left_released = 0;
-    INPUT.key_pressed = 0;
-    INPUT.key_released = 0;
+    INPUT.key_pressed = -1;
+    INPUT.key_released = -1;
 }
 
 void window_update() {
