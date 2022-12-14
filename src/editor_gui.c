@@ -130,24 +130,6 @@ static InputW* create_input(
     size_t input_rect = create_rect(
         parent, x, y, width, input_rect_hight, INPUT_COLD_COLOR
     );
-    size_t cursor_rect = create_rect(
-        input_rect,
-        0,
-        (input_rect_hight - cursor_height) / 2,
-        2,
-        cursor_height,
-        INPUT_HOT_COLOR
-    );
-    ecs_disable_component(cursor_rect, GUI_RECT_T);
-
-    size_t selection_rect = create_rect(
-        input_rect,
-        input_text_offset,
-        (input_rect_hight - cursor_height) / 2,
-        0,
-        cursor_height,
-        INPUT_SELECTION_COLOR
-    );
 
     size_t label_text_width = strlen(label) * INPUT_GLYPH_WIDTH;
     size_t label_text = create_text(
@@ -166,6 +148,23 @@ static InputW* create_input(
         (input_rect_hight - INPUT_FONT_SIZE) / 2,
         INPUT_FONT_SIZE
     );
+    size_t selection_rect = create_rect(
+        initial_text,
+        0,
+        (input_rect_hight - cursor_height) / 2,
+        0,
+        cursor_height,
+        INPUT_SELECTION_COLOR
+    );
+    size_t cursor_rect = create_rect(
+        initial_text,
+        0,
+        (input_rect_hight - cursor_height) / 2,
+        2,
+        cursor_height,
+        INPUT_HOT_COLOR
+    );
+    ecs_disable_component(cursor_rect, GUI_RECT_T);
 
     InputW* input = &INPUTS[N_INPUTS++];
     input->input_rect = input_rect;
@@ -182,9 +181,7 @@ static void place_input_cursor_at(InputW* input, size_t pos) {
         COMPONENTS[TRANSFORMATION_T][input->cursor_rect];
     Transformation* text_transformation = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][input->input_text];
-    cursor_transformation->translation.data[0]
-        = pos * INPUT_GLYPH_WIDTH
-          + text_transformation->translation.data[0];
+    cursor_transformation->translation.data[0] = pos * INPUT_GLYPH_WIDTH;
 }
 
 static void expand_input_selection_to(InputW* input, size_t pos) {
@@ -199,8 +196,8 @@ static void expand_input_selection_to(InputW* input, size_t pos) {
         COMPONENTS[GUI_RECT_T][input->selection_rect];
 
     float x1 = pos * INPUT_GLYPH_WIDTH;
-    float x2 = cursor_transformation->translation.data[0] - 5;
-    selection_transformation->translation.data[0] = min(x1, x2) + 5;
+    float x2 = cursor_transformation->translation.data[0];
+    selection_transformation->translation.data[0] = min(x1, x2);
     selection_rect->width = max(x1, x2) - min(x1, x2);
 }
 
@@ -217,7 +214,22 @@ static void move_input_cursor_n_steps(InputW* input, int n) {
     place_input_cursor_at(input, new_pos);
 }
 
-static void remove_input_char_left(InputW* input) {
+static void remove_input_char(InputW* input) {
+    GUIText* input_text = (GUIText*)
+        COMPONENTS[GUI_TEXT_T][input->input_text];
+    Transformation* text_transformation = (Transformation*)
+        COMPONENTS[TRANSFORMATION_T][input->input_text];
+    GUIRect* selection_rect = (GUIRect*)
+        COMPONENTS[GUI_RECT_T][input->selection_rect];
+    if (selection_rect->width > 0) {
+        int text_offset = text_transformation->translation.data[0];
+        Transformation* selection_transformation = (Transformation*)
+            COMPONENTS[TRANSFORMATION_T][input->selection_rect];
+        int x = selection_transformation->translation.data[0];
+        int w = selection_rect->width;
+        printf("%d, %d, %f\n", x, w, INPUT_GLYPH_WIDTH);
+    }
+
     Transformation* cursor_transformation = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][input->cursor_rect];
     int curr_pos = cursor_transformation->translation.data[0]
@@ -226,8 +238,6 @@ static void remove_input_char_left(InputW* input) {
         return;
     }
 
-    GUIText* input_text = (GUIText*)
-        COMPONENTS[GUI_TEXT_T][input->input_text];
     for (size_t i = curr_pos - 1; i < input_text->n_chars - 1; ++i) {
         input_text->char_inds[i] = input_text->char_inds[i + 1];
     }
@@ -238,18 +248,17 @@ static void remove_input_char_left(InputW* input) {
 static void insert_input_char(InputW* input, char c) {
     GUIRect* input_rect = (GUIRect*)
         COMPONENTS[GUI_RECT_T][input->input_rect];
-    Transformation* input_text_transformation = (Transformation*)
+    Transformation* text_transformation = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][input->input_text];
     int max_n_chars = min(
-        (input_rect->width
-         - input_text_transformation->translation.data[0] * 2)
+        (input_rect->width - text_transformation->translation.data[0] * 2)
             / INPUT_GLYPH_WIDTH,
         GUI_TEXT_MAX_N_CHARS
     );
 
-    Transformation* cursor_rect_transformation = (Transformation*)
+    Transformation* cursor_transformation = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][input->cursor_rect];
-    int curr_pos = cursor_rect_transformation->translation.data[0]
+    int curr_pos = cursor_transformation->translation.data[0]
                    / INPUT_GLYPH_WIDTH;
     GUIText* input_text = (GUIText*)
         COMPONENTS[GUI_TEXT_T][input->input_text];
@@ -420,7 +429,7 @@ void editor_gui_update() {
         InputW input = INPUTS[ACTIVE_INPUT];
 
         if (INPUT.key_pressed == GLFW_KEY_BACKSPACE) {
-            remove_input_char_left(&input);
+            remove_input_char(&input);
         } else if (INPUT.key_pressed == GLFW_KEY_LEFT) {
             move_input_cursor_n_steps(&input, -1);
         } else if (INPUT.key_pressed == GLFW_KEY_RIGHT) {
