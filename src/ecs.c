@@ -151,6 +151,10 @@ void ecs_disable_component(size_t entity, COMPONENT_TYPE type) {
     bitset_disable_bit(&ENTITIES[entity].components, type);
 }
 
+int ecs_is_component_enabled(size_t entity, COMPONENT_TYPE type) {
+    return bitset_get_bit(&ENTITIES[entity].components, type);
+}
+
 int ecs_check_if_renderable(size_t entity) {
     if (entity == -1)
         return 0;

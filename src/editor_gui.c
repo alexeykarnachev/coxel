@@ -17,8 +17,10 @@ typedef struct ButtonW {
 typedef struct InputW {
     size_t input_rect;
     size_t cursor_rect;
+    size_t selection_rect;
     size_t label_text;
     size_t input_text;
+    int is_selection;
 } InputW;
 
 static Vec4 PANE_COLOR = {{0.1, 0.1, 0.1, 0.9}};
@@ -39,7 +41,8 @@ static size_t N_BUTTONS = 0;
 static Vec4 INPUT_COLD_COLOR = {{0.05, 0.05, 0.05, 1.0}};
 static Vec4 INPUT_HOT_COLOR = {{0.8, 0.8, 0.8, 1.0}};
 static Vec3 INPUT_LABEL_COLD_COLOR = {{0.8, 0.8, 0.8}};
-static size_t INPUT_FONT_SIZE = 32;
+static Vec4 INPUT_SELECTION_COLOR = {{0.5, 0.2, 0.0, 1.0}};
+static size_t INPUT_FONT_SIZE = 30;
 static float INPUT_GLYPH_WIDTH;
 static InputW INPUTS[128];
 static size_t N_INPUTS = 0;
@@ -121,6 +124,7 @@ static ButtonW* create_button(
 static InputW* create_input(
     int parent, char* label, size_t x, size_t y, size_t width
 ) {
+    size_t input_text_offset = 5;
     size_t input_rect_hight = INPUT_FONT_SIZE + 5;
     size_t cursor_height = INPUT_FONT_SIZE * 0.8;
     size_t input_rect = create_rect(
@@ -136,6 +140,15 @@ static InputW* create_input(
     );
     ecs_disable_component(cursor_rect, GUI_RECT_T);
 
+    size_t selection_rect = create_rect(
+        input_rect,
+        input_text_offset,
+        (input_rect_hight - cursor_height) / 2,
+        0,
+        cursor_height,
+        INPUT_SELECTION_COLOR
+    );
+
     size_t label_text_width = strlen(label) * INPUT_GLYPH_WIDTH;
     size_t label_text = create_text(
         input_rect,
@@ -147,9 +160,9 @@ static InputW* create_input(
     );
     size_t initial_text = create_text(
         input_rect,
-        "123.0",
+        "",
         INPUT_LABEL_COLD_COLOR,
-        5,
+        input_text_offset,
         (input_rect_hight - INPUT_FONT_SIZE) / 2,
         INPUT_FONT_SIZE
     );
@@ -157,6 +170,7 @@ static InputW* create_input(
     InputW* input = &INPUTS[N_INPUTS++];
     input->input_rect = input_rect;
     input->cursor_rect = cursor_rect;
+    input->selection_rect = selection_rect;
     input->label_text = label_text;
     input->input_text = initial_text;
 
@@ -173,15 +187,21 @@ static void place_input_cursor_at(InputW* input, size_t pos) {
           + text_transformation->translation.data[0];
 }
 
-static void place_input_cursor_at_screen_cursor(InputW* input) {
-    GUIText* input_text = (GUIText*)
-        COMPONENTS[GUI_TEXT_T][input->input_text];
-    Vec3 text_world_pos = ecs_get_world_position(input->input_text);
-    float cursor_local_pos = INPUT.cursor_x * INPUT.window_width
-                             - text_world_pos.data[0];
-    int pos = round(cursor_local_pos / INPUT_GLYPH_WIDTH);
-    pos = min(input_text->n_chars, pos);
-    place_input_cursor_at(input, pos);
+static void expand_input_selection_to(InputW* input, size_t pos) {
+    Transformation* cursor_transformation = (Transformation*)
+        COMPONENTS[TRANSFORMATION_T][input->cursor_rect];
+    int cursor_pos = cursor_transformation->translation.data[0]
+                     / INPUT_GLYPH_WIDTH;
+
+    Transformation* selection_transformation = (Transformation*)
+        COMPONENTS[TRANSFORMATION_T][input->selection_rect];
+    GUIRect* selection_rect = (GUIRect*)
+        COMPONENTS[GUI_RECT_T][input->selection_rect];
+
+    float x1 = pos * INPUT_GLYPH_WIDTH;
+    float x2 = cursor_transformation->translation.data[0] - 5;
+    selection_transformation->translation.data[0] = min(x1, x2) + 5;
+    selection_rect->width = max(x1, x2) - min(x1, x2);
 }
 
 static void move_input_cursor_n_steps(InputW* input, int n) {
@@ -214,17 +234,22 @@ static void remove_input_char_left(InputW* input) {
     input_text->n_chars--;
     move_input_cursor_n_steps(input, -1);
 }
-void insert_input_char(InputW* input, char c) {
 
+static void insert_input_char(InputW* input, char c) {
     GUIRect* input_rect = (GUIRect*)
         COMPONENTS[GUI_RECT_T][input->input_rect];
+    Transformation* input_text_transformation = (Transformation*)
+        COMPONENTS[TRANSFORMATION_T][input->input_text];
     int max_n_chars = min(
-        input_rect->width / INPUT_GLYPH_WIDTH, GUI_TEXT_MAX_N_CHARS
+        (input_rect->width
+         - input_text_transformation->translation.data[0] * 2)
+            / INPUT_GLYPH_WIDTH,
+        GUI_TEXT_MAX_N_CHARS
     );
 
-    Transformation* cursor_transformation = (Transformation*)
+    Transformation* cursor_rect_transformation = (Transformation*)
         COMPONENTS[TRANSFORMATION_T][input->cursor_rect];
-    int curr_pos = cursor_transformation->translation.data[0]
+    int curr_pos = cursor_rect_transformation->translation.data[0]
                    / INPUT_GLYPH_WIDTH;
     GUIText* input_text = (GUIText*)
         COMPONENTS[GUI_TEXT_T][input->input_text];
@@ -330,10 +355,12 @@ void editor_gui_update() {
     }
 
     for (size_t i = 0; i < N_INPUTS; ++i) {
-        InputW input = INPUTS[i];
+        InputW* input = &INPUTS[i];
         GUIRect* input_rect = (GUIRect*)
-            COMPONENTS[GUI_RECT_T][input.input_rect];
-        Vec3 position = ecs_get_world_position(input.input_rect);
+            COMPONENTS[GUI_RECT_T][input->input_rect];
+        GUIRect* selection_rect = (GUIRect*)
+            COMPONENTS[GUI_RECT_T][input->selection_rect];
+        Vec3 position = ecs_get_world_position(input->input_rect);
         int was_active = (int)(ACTIVE_INPUT == i);
         int is_hot = is_point_inside_rect(
             position.data[0],
@@ -346,27 +373,47 @@ void editor_gui_update() {
         was_gui_interacted |= is_hot;
 
         if (!was_active) {
-            ecs_disable_component(input.cursor_rect, GUI_RECT_T);
+            ecs_disable_component(input->cursor_rect, GUI_RECT_T);
+            selection_rect->width = 0;
         }
 
         if (is_hot) {
             window_set_text_input_cursor();
-            new_entity_hot = input.input_rect;
+            new_entity_hot = input->input_rect;
+        }
+
+        if (!INPUT.is_mouse_left_pressed) {
+            input->is_selection = 0;
         }
 
         if (is_hot && INPUT.is_mouse_left_pressed) {
             ACTIVE_INPUT = i;
-            place_input_cursor_at_screen_cursor(&input);
-            ecs_enable_component(input.cursor_rect, GUI_RECT_T);
+            GUIText* input_text = (GUIText*)
+                COMPONENTS[GUI_TEXT_T][input->input_text];
+            Vec3 text_world_pos = ecs_get_world_position(input->input_text
+            );
+            float cursor_local_pos = INPUT.cursor_x * INPUT.window_width
+                                     - text_world_pos.data[0];
+            int pos = round(cursor_local_pos / INPUT_GLYPH_WIDTH);
+            pos = min(input_text->n_chars, pos);
+            ecs_enable_component(input->cursor_rect, GUI_RECT_T);
+
+            if (!input->is_selection) {
+                place_input_cursor_at(input, pos);
+                input->is_selection = 1;
+            } else {
+                expand_input_selection_to(input, pos);
+            }
         }
 
         if (INPUT.is_mouse_left_pressed && !is_hot) {
-            ecs_disable_component(input.cursor_rect, GUI_RECT_T);
+            ecs_disable_component(input->cursor_rect, GUI_RECT_T);
             if (was_active) {
                 ACTIVE_INPUT = -1;
             }
         }
     }
+
     was_gui_interacted |= ACTIVE_INPUT != -1;
 
     if (ACTIVE_INPUT != -1 && INPUT.key_pressed >= 0) {
