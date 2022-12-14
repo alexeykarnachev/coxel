@@ -42,7 +42,7 @@ static Vec4 INPUT_COLD_COLOR = {{0.05, 0.05, 0.05, 1.0}};
 static Vec4 INPUT_HOT_COLOR = {{0.8, 0.8, 0.8, 1.0}};
 static Vec3 INPUT_LABEL_COLD_COLOR = {{0.8, 0.8, 0.8}};
 static Vec4 INPUT_SELECTION_COLOR = {{0.5, 0.2, 0.0, 1.0}};
-static size_t INPUT_FONT_SIZE = 30;
+static size_t INPUT_FONT_SIZE = 24;
 static float INPUT_GLYPH_WIDTH;
 static InputW INPUTS[128];
 static size_t N_INPUTS = 0;
@@ -225,9 +225,14 @@ static void remove_input_char(InputW* input) {
         int text_offset = text_transformation->translation.data[0];
         Transformation* selection_transformation = (Transformation*)
             COMPONENTS[TRANSFORMATION_T][input->selection_rect];
-        int x = selection_transformation->translation.data[0];
-        int w = selection_rect->width;
-        printf("%d, %d, %f\n", x, w, INPUT_GLYPH_WIDTH);
+        int x = selection_transformation->translation.data[0]
+                / INPUT_GLYPH_WIDTH;
+        int w = selection_rect->width / INPUT_GLYPH_WIDTH;
+        place_input_cursor_at(input, x + w);
+        selection_rect->width = 0;
+        for (size_t i = 0; i < w - 1; ++i) {
+            remove_input_char(input);
+        }
     }
 
     Transformation* cursor_transformation = (Transformation*)
