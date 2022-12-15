@@ -106,6 +106,9 @@ bool window_create(size_t width, size_t height) {
     CURSOR_IBEAM = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
     CURSOR_CURRENT = CURSOR_DEFAULT;
 
+    INPUT.window_width = width;
+    INPUT.window_height = height;
+
     return true;
 }
 

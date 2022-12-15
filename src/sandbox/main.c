@@ -12,6 +12,7 @@
 #include "../renderer.h"
 #include "../scripts/camera_mouse_controller.h"
 #include "../scripts/editor_entity_controller.h"
+#include "../scripts/editor_gui_controller.h"
 #include "../window.h"
 #include <GLFW/glfw3.h>
 #include <stdbool.h>
@@ -253,6 +254,16 @@ int main(void) {
     );
 
     editor_gui_create();
+    size_t editor_gui_controller_0 = ecs_create_entity(-1);
+    EditorGUIControllerArgs editor_gui_controller_args
+        = editor_gui_controller_create_default_args(&renderer.overlay_buffer);
+    ecs_add_component(
+        editor_gui_controller_0,
+        SCRIPT_T,
+        editor_gui_controller_create_script(
+            &editor_gui_controller_args
+        )
+    );
 
     size_t editor_entity_controller_0 = ecs_create_entity(-1);
     EditorEntityControllerArgs editor_entity_controller_args
@@ -266,7 +277,7 @@ int main(void) {
     );
 
     while (!INPUT.window_should_close) {
-        editor_gui_update();
+        // editor_gui_update();
         ecs_update();
         renderer_update(&renderer);
         window_update();

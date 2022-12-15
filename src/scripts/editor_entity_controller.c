@@ -28,7 +28,7 @@ static int key_to_axis(int key) {
 }
 
 // TODO: Refactor this. Alot of repeated stuff could be factored out.
-void _editor_entity_controller_update(size_t _, void* args_p) {
+static void _editor_entity_controller_update(size_t _, void* args_p) {
     EditorEntityControllerArgs* args = (EditorEntityControllerArgs*)(args_p
     );
 

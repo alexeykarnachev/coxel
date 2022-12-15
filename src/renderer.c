@@ -23,7 +23,7 @@ static void update_scripts();
 static void render_color(GBuffer* gbuffer, OverlayBuffer* overlay_buffer);
 static void render_gbuffer();
 static void render_overlay_buffer(
-    size_t viewport_width, size_t viewport_height, GLuint font_tex
+    size_t buffer_width, size_t buffer_height, GLuint font_tex
 );
 
 static void set_uniform_camera(GLuint program);
@@ -70,6 +70,7 @@ int renderer_create(
 int renderer_update(Renderer* renderer) {
     if (renderer->viewport_width != INPUT.window_width
         || renderer->viewport_height != INPUT.window_height) {
+
         renderer->viewport_width = INPUT.window_width;
         renderer->viewport_height = INPUT.window_height;
         glViewport(0, 0, INPUT.window_width, INPUT.window_height);
@@ -98,8 +99,8 @@ int renderer_update(Renderer* renderer) {
     );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     render_overlay_buffer(
-        renderer->viewport_width,
-        renderer->viewport_height,
+        renderer->overlay_buffer.width,
+        renderer->overlay_buffer.height,
         renderer->gui_font_texture.tex
     );
 
@@ -244,7 +245,7 @@ static void render_gbuffer() {
 
 // TODO: Factor out repetitive code here and in render gbuffer meshes
 static void render_overlay_buffer(
-    size_t viewport_width, size_t viewport_height, GLuint font_tex
+    size_t buffer_width, size_t buffer_height, GLuint font_tex
 ) {
     // ----------------------------------------------
     // Mesh outlines:
@@ -309,10 +310,11 @@ static void render_overlay_buffer(
         program_set_uniform_1i(program, "width", rect->width);
         program_set_uniform_1i(program, "height", rect->height);
         program_set_uniform_4fv(program, "color", rect->color.data, 1);
-        program_set_uniform_1i(program, "viewport_width", viewport_width);
+        program_set_uniform_1i(program, "buffer_width", buffer_width);
         program_set_uniform_1i(
-            program, "viewport_height", viewport_height
+            program, "buffer_height", buffer_height
         );
+        program_set_uniform_1i(program, "entity_id", entity);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
@@ -333,9 +335,9 @@ static void render_overlay_buffer(
             program, "world_mat", world_mat.data, 1, true
         );
         program_set_uniform_1i(program, "font_height", text->font_height);
-        program_set_uniform_1i(program, "viewport_width", viewport_width);
+        program_set_uniform_1i(program, "buffer_width", buffer_width);
         program_set_uniform_1i(
-            program, "viewport_height", viewport_height
+            program, "buffer_height", buffer_height
         );
         program_set_uniform_1uiv(
             program, "char_inds", text->char_inds, text->n_chars
