@@ -6,32 +6,6 @@
 #include "ecs.h"
 #include "la.h"
 
-typedef struct PaneW {
-    size_t rect;
-
-    int is_hot;
-} PaneW;
-
-typedef struct ButtonW {
-    size_t rect;
-    size_t text;
-
-    int is_pushed;
-    int is_hot;
-} ButtonW;
-
-
-typedef struct InputW {
-    size_t input_rect;
-    size_t cursor_rect;
-    size_t selection_rect;
-    size_t label_text;
-    size_t input_text;
-
-    int is_selecting;
-    int is_hot;
-} InputW;
-
 static PaneW PANES[256];
 static ButtonW BUTTONS[128];
 static InputW INPUTS[128];
@@ -89,10 +63,9 @@ static PaneW* create_pane(
 
     PaneW* pane = &PANES[N_PANES++];
     pane->rect = rect;
-    pane->is_hot = 0;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
-    widget->widget_p = pane;
+    widget->pointer = pane;
     widget->type = GUI_WIDGET_PANE;
     ecs_add_component(pane->rect, GUI_WIDGET_COMPONENT, widget);
     return pane;
@@ -123,10 +96,9 @@ static ButtonW* create_button(
         text_cold_color
     );
     button->is_pushed = 0;
-    button->is_hot = 0;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
-    widget->widget_p = button;
+    widget->pointer = button;
     widget->type = GUI_WIDGET_BUTTON;
     ecs_add_component(button->rect, GUI_WIDGET_COMPONENT, widget);
     return button;
@@ -199,10 +171,9 @@ static InputW* create_input(
     input->label_text = label_text;
     input->input_text = input_text;
     input->is_selecting = 0;
-    input->is_hot = 0;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
-    widget->widget_p = input;
+    widget->pointer = input;
     widget->type = GUI_WIDGET_INPUT;
     ecs_add_component(input->input_rect, GUI_WIDGET_COMPONENT, widget);
     return input;
