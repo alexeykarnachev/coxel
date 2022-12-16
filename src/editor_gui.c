@@ -35,10 +35,12 @@ typedef struct InputW {
 static PaneW PANES[256];
 static ButtonW BUTTONS[128];
 static InputW INPUTS[128];
+static GUIWidget WIDGETS[256];
 
 static size_t N_PANES = 0;
 static size_t N_BUTTONS = 0;
 static size_t N_INPUTS = 0;
+static size_t N_WIDGETS = 0;
 
 
 /*
@@ -49,11 +51,11 @@ static size_t create_rect(
 ) {
     size_t rect = ecs_create_entity(parent);
     ecs_add_component(
-        rect, GUI_RECT_T, gui_rect_create(width, height, color)
+        rect, GUI_RECT_COMPONENT, gui_rect_create(width, height, color)
     );
     ecs_add_component(
         rect,
-        TRANSFORMATION_T,
+        TRANSFORMATION_COMPONENT,
         transformation_create(vec3_ones, vec3_zeros, vec3(x, y, 0))
     );
 
@@ -65,11 +67,11 @@ static size_t create_text(
 ) {
     size_t text = ecs_create_entity(parent);
     ecs_add_component(
-        text, GUI_TEXT_T, gui_text_create(label, color, font_size)
+        text, GUI_TEXT_COMPONENT, gui_text_create(label, color, font_size)
     );
     ecs_add_component(
         text,
-        TRANSFORMATION_T,
+        TRANSFORMATION_COMPONENT,
         transformation_create(vec3_ones, vec3_zeros, vec3(x, y, 0.0))
     );
 
@@ -89,6 +91,10 @@ static PaneW* create_pane(
     pane->rect = rect;
     pane->is_hot = 0;
 
+    GUIWidget* widget = &WIDGETS[N_WIDGETS++];
+    widget->widget_p = pane;
+    widget->type = GUI_WIDGET_PANE;
+    ecs_add_component(pane->rect, GUI_WIDGET_COMPONENT, widget);
     return pane;
 }
 
@@ -119,6 +125,10 @@ static ButtonW* create_button(
     button->is_pushed = 0;
     button->is_hot = 0;
 
+    GUIWidget* widget = &WIDGETS[N_WIDGETS++];
+    widget->widget_p = button;
+    widget->type = GUI_WIDGET_BUTTON;
+    ecs_add_component(button->rect, GUI_WIDGET_COMPONENT, widget);
     return button;
 }
 
@@ -180,7 +190,7 @@ static InputW* create_input(
         cursor_color
     );
 
-    ecs_disable_component(cursor_rect, GUI_RECT_T);
+    ecs_disable_component(cursor_rect, GUI_RECT_COMPONENT);
 
     InputW* input = &INPUTS[N_INPUTS++];
     input->input_rect = input_rect;
@@ -191,6 +201,10 @@ static InputW* create_input(
     input->is_selecting = 0;
     input->is_hot = 0;
 
+    GUIWidget* widget = &WIDGETS[N_WIDGETS++];
+    widget->widget_p = input;
+    widget->type = GUI_WIDGET_INPUT;
+    ecs_add_component(input->input_rect, GUI_WIDGET_COMPONENT, widget);
     return input;
 }
 
@@ -218,19 +232,19 @@ static PaneW* create_test_pane() {
     create_input(
         pane->rect, "Test_0",
         100, 200, 90, 5, 2, 22,
-        vec3(0.8, 0.8, 0.8), vec4(0.2, 0.2, 0.2, 1.0),
+        vec3(0.8, 0.8, 0.8), vec4(0.05, 0.05, 0.05, 1.0),
         vec4(0.5, 0.2, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0)
     );
     create_input(
         pane->rect, "Test_1",
         100, 240, 90, 5, 2, 22,
-        vec3(0.8, 0.8, 0.8), vec4(0.2, 0.2, 0.2, 1.0),
+        vec3(0.8, 0.8, 0.8), vec4(0.05, 0.05, 0.05, 1.0),
         vec4(0.5, 0.2, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0)
     );
     create_input(
         pane->rect, "Test_2",
         100, 280, 90, 5, 2, 22,
-        vec3(0.8, 0.8, 0.8), vec4(0.2, 0.2, 0.2, 1.0),
+        vec3(0.8, 0.8, 0.8), vec4(0.05, 0.05, 0.05, 1.0),
         vec4(0.5, 0.2, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0)
     );
 

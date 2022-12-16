@@ -117,7 +117,7 @@ int renderer_update(Renderer* renderer) {
 static void update_scripts() {
     for (size_t i = 0; i < N_SCRIPT_ENTITIES; ++i) {
         size_t entity = SCRIPT_ENTITIES[i];
-        Script* script = (Script*)COMPONENTS[SCRIPT_T][entity];
+        Script* script = (Script*)COMPONENTS[SCRIPT_COMPONENT][entity];
         (*script->update)(entity, script->args);
     }
 }
@@ -172,7 +172,7 @@ static void render_gbuffer() {
     for (size_t i = 0; i < N_RENDERABLE_ENTITIES; ++i) {
         size_t entity = RENDERABLE_ENTITIES[i];
         Mat4 world_mat = ecs_get_world_mat(entity);
-        Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
+        Mesh* mesh = (Mesh*)COMPONENTS[MESH_COMPONENT][entity];
 
         if (vao_buffer == NULL
             || mesh->vao_buffer.vao != vao_buffer->vao) {
@@ -187,7 +187,7 @@ static void render_gbuffer() {
         }
 
         // TODO: Don't bind the material if already binded.
-        Material* material = (Material*)COMPONENTS[MATERIAL_T][entity];
+        Material* material = (Material*)COMPONENTS[MATERIAL_COMPONENT][entity];
         set_uniform_material(program, material);
 
         program_set_uniform_1i(program, "entity_id", entity);
@@ -222,7 +222,7 @@ static void render_gbuffer() {
 
         // TODO: Don't bind the same texture and the same sprite if
         // already binded.
-        Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_T][entity];
+        Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_COMPONENT][entity];
         GLuint tex = sprite->texture->tex;
         glActiveTexture(GL_TEXTURE0 + 0);
         glBindTexture(GL_TEXTURE_2D, tex);
@@ -257,7 +257,7 @@ static void render_overlay_buffer(
     for (size_t i = 0; i < N_MESH_WITH_OUTLINE_ENTITIES; ++i) {
         size_t entity = MESH_WITH_OUTLINE_ENTITIES[i];
         Mat4 world_mat = ecs_get_world_mat(entity);
-        Mesh* mesh = (Mesh*)COMPONENTS[MESH_T][entity];
+        Mesh* mesh = (Mesh*)COMPONENTS[MESH_COMPONENT][entity];
 
         if (vao_buffer == NULL
             || mesh->vao_buffer.vao != vao_buffer->vao) {
@@ -285,7 +285,7 @@ static void render_overlay_buffer(
     for (size_t i = 0; i < N_SPRITE_WITH_OUTLINE_ENTITIES; ++i) {
         size_t entity = SPRITE_WITH_OUTLINE_ENTITIES[i];
         Mat4 world_mat = ecs_get_world_mat(entity);
-        Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_T][entity];
+        Sprite* sprite = (Sprite*)COMPONENTS[SPRITE_COMPONENT][entity];
 
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true
@@ -301,7 +301,7 @@ static void render_overlay_buffer(
 
     for (size_t i = 0; i < N_GUI_RECT_ENTITIES; ++i) {
         size_t entity = GUI_RECT_ENTITIES[i];
-        GUIRect* rect = (GUIRect*)COMPONENTS[GUI_RECT_T][entity];
+        GUIRect* rect = (GUIRect*)COMPONENTS[GUI_RECT_COMPONENT][entity];
 
         Mat4 world_mat = ecs_get_world_mat(entity);
         program_set_uniform_matrix_4fv(
@@ -329,7 +329,7 @@ static void render_overlay_buffer(
     for (size_t i = 0; i < N_GUI_TEXT_ENTITIES; ++i) {
         size_t entity = GUI_TEXT_ENTITIES[i];
         Mat4 world_mat = ecs_get_world_mat(entity);
-        GUIText* text = (GUIText*)COMPONENTS[GUI_TEXT_T][entity];
+        GUIText* text = (GUIText*)COMPONENTS[GUI_TEXT_COMPONENT][entity];
 
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true
@@ -353,9 +353,9 @@ static void set_uniform_camera(GLuint program) {
         return;
     }
 
-    Camera* camera = (Camera*)COMPONENTS[CAMERA_T][entity];
+    Camera* camera = (Camera*)COMPONENTS[CAMERA_COMPONENT][entity];
     Transformation* transformation = (Transformation*)
-        COMPONENTS[TRANSFORMATION_T][entity];
+        COMPONENTS[TRANSFORMATION_COMPONENT][entity];
 
     program_set_uniform_4fv(
         program, "camera.world_pos", transformation->translation.data, 1
@@ -380,9 +380,9 @@ static void set_uniform_point_lights(GLuint program) {
     for (size_t i = 0; i < N_POINT_LIGHT_ENTITIES; ++i) {
         size_t entity = POINT_LIGHT_ENTITIES[i];
         Transformation* transformation = (Transformation*)
-            COMPONENTS[TRANSFORMATION_T][entity];
+            COMPONENTS[TRANSFORMATION_COMPONENT][entity];
         PointLight* point_light = (PointLight*)
-            COMPONENTS[POINT_LIGHT_T][entity];
+            COMPONENTS[POINT_LIGHT_COMPONENT][entity];
 
         static char uniform_name_buffer[64];
         sprintf(uniform_name_buffer, "point_lights[%ld].world_pos", i);

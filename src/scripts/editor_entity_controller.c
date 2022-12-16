@@ -49,8 +49,8 @@ static void _editor_entity_controller_update(size_t _, void* args_p) {
     }
 
     entity = INPUT.is_mouse_left_released ? entity : args->entity;
-    ecs_disable_component(args->entity, HAS_OUTLINE_T);
-    ecs_enable_component(entity, HAS_OUTLINE_T);
+    ecs_disable_component(args->entity, HAS_OUTLINE_COMPONENT);
+    ecs_enable_component(entity, HAS_OUTLINE_COMPONENT);
     args->entity = entity;
 
     if (entity == -1) {
@@ -58,7 +58,7 @@ static void _editor_entity_controller_update(size_t _, void* args_p) {
     }
 
     Transformation* entity_transformation = (Transformation*)
-        COMPONENTS[TRANSFORMATION_T][entity];
+        COMPONENTS[TRANSFORMATION_COMPONENT][entity];
     if (!entity_transformation) {
         return;
     }
@@ -76,9 +76,9 @@ static void _editor_entity_controller_update(size_t _, void* args_p) {
         window_set_rotate_cursor();
     }
 
-    Camera* camera = (Camera*)COMPONENTS[CAMERA_T][camera_entity];
+    Camera* camera = (Camera*)COMPONENTS[CAMERA_COMPONENT][camera_entity];
     Transformation* camera_transformation = (Transformation*)
-        COMPONENTS[TRANSFORMATION_T][camera_entity];
+        COMPONENTS[TRANSFORMATION_COMPONENT][camera_entity];
     Mat4 proj_mat = camera_get_perspective_projection_mat(camera);
     Mat4 view_mat = camera_get_view_mat(camera, camera_transformation);
     Mat4 vp_mat = mat4_mat4_mul(&proj_mat, &view_mat);

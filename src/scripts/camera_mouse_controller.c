@@ -41,9 +41,9 @@ static void rotate(Transformation* t, float pitch, float yaw) {
 static void camera_mouse_controller_update(size_t entity, void* args_p) {
     static float eps = 0.00001;
     CameraMouseControllerArgs* args = (CameraMouseControllerArgs*)(args_p);
-    Camera* cam = (Camera*)COMPONENTS[CAMERA_T][entity];
+    Camera* cam = (Camera*)COMPONENTS[CAMERA_COMPONENT][entity];
     Transformation* t = (Transformation*)
-        COMPONENTS[TRANSFORMATION_T][entity];
+        COMPONENTS[TRANSFORMATION_COMPONENT][entity];
 
     if (INPUT.is_shift_pressed && INPUT.is_mouse_middle_pressed) {
         translate(
