@@ -39,9 +39,7 @@ typedef struct InputW {
     size_t input_text;
 
     int is_selecting;
+    float glyph_width;
 } InputW;
 
 void editor_gui_create();
-void gui_widget_heat_up(GUIWidget* widget);
-void gui_widget_cool_down(GUIWidget* widget);
-void gui_widget_toggle_activation(GUIWidget* widget);

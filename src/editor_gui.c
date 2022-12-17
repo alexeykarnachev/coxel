@@ -5,6 +5,7 @@
 #include "components/transformation.h"
 #include "ecs.h"
 #include "la.h"
+#include "window.h"
 
 static PaneW PANES[256];
 static ButtonW BUTTONS[128];
@@ -159,12 +160,7 @@ static InputW* create_input(
         selection_color
     );
     size_t cursor_rect = create_rect(
-        input_text,
-        0,
-        (input_rect_hight - font_size) / 2,
-        cursor_width,
-        font_size,
-        cursor_color
+        input_text, 0, 0, cursor_width, font_size, cursor_color
     );
 
     ecs_disable_component(cursor_rect, GUI_RECT_COMPONENT);
@@ -176,72 +172,13 @@ static InputW* create_input(
     input->label_text = label_text;
     input->input_text = input_text;
     input->is_selecting = 0;
+    input->glyph_width = GUI_FONT_ASPECT * font_size;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
     widget->pointer = input;
     widget->type = GUI_WIDGET_INPUT;
     ecs_add_component(input->input_rect, GUI_WIDGET_COMPONENT, widget);
     return input;
-}
-
-/*
-State changers: widget heat up, cool down, activation toggle, ...
-*/
-
-void gui_widget_heat_up(GUIWidget* widget) {
-    if (widget == NULL)
-        return;
-
-    if (widget->type == GUI_WIDGET_BUTTON) {
-        ButtonW* button = (ButtonW*)widget->pointer;
-        GUIRect* rect = (GUIRect*)
-            COMPONENTS[GUI_RECT_COMPONENT][button->rect];
-        GUIText* text = (GUIText*)
-            COMPONENTS[GUI_TEXT_COMPONENT][button->text];
-        if (!button->is_active) {
-            rect->color = button->rect_hot_color;
-            text->color = button->text_hot_color;
-        }
-    }
-}
-
-void gui_widget_cool_down(GUIWidget* widget) {
-    if (widget == NULL)
-        return;
-
-    if (widget->type == GUI_WIDGET_BUTTON) {
-        ButtonW* button = (ButtonW*)widget->pointer;
-        GUIRect* rect = (GUIRect*)
-            COMPONENTS[GUI_RECT_COMPONENT][button->rect];
-        GUIText* text = (GUIText*)
-            COMPONENTS[GUI_TEXT_COMPONENT][button->text];
-        if (!button->is_active) {
-            rect->color = button->rect_cold_color;
-            text->color = button->text_cold_color;
-        }
-    }
-}
-
-void gui_widget_toggle_activation(GUIWidget* widget) {
-    if (widget == NULL)
-        return;
-
-    if (widget->type == GUI_WIDGET_BUTTON) {
-        ButtonW* button = (ButtonW*)widget->pointer;
-        GUIRect* rect = (GUIRect*)
-            COMPONENTS[GUI_RECT_COMPONENT][button->rect];
-        GUIText* text = (GUIText*)
-            COMPONENTS[GUI_TEXT_COMPONENT][button->text];
-        if (button->is_active) {
-            rect->color = button->rect_hot_color;
-            text->color = button->text_hot_color;
-        } else {
-            rect->color = button->rect_active_color;
-            text->color = button->text_active_color;
-        }
-
-        button->is_active ^= 1;
-    }
 }
 
 /*

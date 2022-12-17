@@ -295,7 +295,6 @@ int main(void) {
     );
 
     while (!INPUT.window_should_close) {
-        // editor_gui_update();
         ecs_update();
         renderer_update(&renderer);
         window_update();

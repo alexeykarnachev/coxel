@@ -139,6 +139,9 @@ void window_clear_input() {
     INPUT.is_mouse_middle_released = 0;
     INPUT.is_mouse_left_released = 0;
     INPUT.is_shift_released = 0;
+    INPUT.is_mouse_middle_pressed = 0;
+    INPUT.is_mouse_left_pressed = 0;
+    INPUT.is_shift_pressed = 0;
     INPUT.key_pressed = -1;
     INPUT.key_released = -1;
 }

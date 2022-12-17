@@ -1,4 +1,7 @@
 #pragma once
+#include "./components/gui_rect.h"
+#include "./components/gui_text.h"
+#include "./components/transformation.h"
 #include "bitset.h"
 #include "constants.h"
 #include "la.h"
@@ -63,6 +66,9 @@ Mat4 ecs_get_world_mat(size_t entity);
 Mat4 ecs_get_local_mat(size_t entity);
 Vec3 ecs_get_world_position(size_t entity);
 Mat4 ecs_get_origin_world_mat(size_t entity);
+GUIRect* ecs_get_gui_rect(size_t entity);
+GUIText* ecs_get_gui_text(size_t entity);
+Transformation* ecs_get_transformation(size_t entity);
 int ecs_get_active_camera_entity();
 void ecs_update();
 int ecs_check_if_camera(int entity);

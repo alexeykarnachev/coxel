@@ -124,6 +124,18 @@ Vec3 ecs_get_world_position(size_t entity) {
     return pos;
 }
 
+GUIRect* ecs_get_gui_rect(size_t entity) {
+    return (GUIRect*)COMPONENTS[GUI_RECT_COMPONENT][entity];
+}
+
+GUIText* ecs_get_gui_text(size_t entity) {
+    return (GUIText*)COMPONENTS[GUI_TEXT_COMPONENT][entity];
+}
+
+Transformation* ecs_get_transformation(size_t entity) {
+    return (Transformation*)COMPONENTS[TRANSFORMATION_COMPONENT][entity];
+}
+
 int ecs_get_active_camera_entity() {
     if (N_CAMERA_ENTITIES) {
         return CAMERA_ENTITIES[0];
