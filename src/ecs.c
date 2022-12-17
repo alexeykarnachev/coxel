@@ -133,18 +133,21 @@ int ecs_get_active_camera_entity() {
 }
 
 void ecs_add_component(int entity, COMPONENT_TYPE type, void* ptr) {
-    if (entity == -1) return;
+    if (entity == -1)
+        return;
     COMPONENTS[type][entity] = ptr;
     bitset_set_bit(&ENTITIES[entity].components, type);
 }
 
 void ecs_enable_component(int entity, COMPONENT_TYPE type) {
-    if (entity == -1) return;
+    if (entity == -1)
+        return;
     bitset_set_bit(&ENTITIES[entity].components, type);
 }
 
 void ecs_disable_component(int entity, COMPONENT_TYPE type) {
-    if (entity == -1) return;
+    if (entity == -1)
+        return;
     bitset_disable_bit(&ENTITIES[entity].components, type);
 }
 
@@ -153,63 +156,75 @@ int ecs_is_component_enabled(int entity, COMPONENT_TYPE type) {
 }
 
 int ecs_check_if_renderable(int entity) {
-    if (entity == -1) return 0;
+    if (entity == -1)
+        return 0;
     Bitset* b = &ENTITIES[entity].components;
-    return bitset_get_bit(b, MESH_COMPONENT) && bitset_get_bit(b, MATERIAL_COMPONENT)
+    return bitset_get_bit(b, MESH_COMPONENT)
+           && bitset_get_bit(b, MATERIAL_COMPONENT)
            && bitset_get_bit(b, TRANSFORMATION_COMPONENT);
 }
 
 int ecs_check_if_camera(int entity) {
-    if (entity == -1) return 0;
+    if (entity == -1)
+        return 0;
     Bitset* b = &ENTITIES[entity].components;
     return bitset_get_bit(b, CAMERA_COMPONENT)
            && bitset_get_bit(b, TRANSFORMATION_COMPONENT);
 }
 
 int ecs_check_if_point_light(int entity) {
-    if (entity == -1) return 0;
+    if (entity == -1)
+        return 0;
     Bitset* b = &ENTITIES[entity].components;
     return bitset_get_bit(b, POINT_LIGHT_COMPONENT)
            && bitset_get_bit(b, TRANSFORMATION_COMPONENT);
 }
 
 int ecs_check_if_script(int entity) {
-    if (entity == -1) return 0;
+    if (entity == -1)
+        return 0;
     Bitset* b = &ENTITIES[entity].components;
     return bitset_get_bit(b, SCRIPT_COMPONENT);
 }
 
 int ecs_check_if_gui_rect(int entity) {
-    if (entity == -1) return 0;
+    if (entity == -1)
+        return 0;
     Bitset* b = &ENTITIES[entity].components;
     return bitset_get_bit(b, GUI_RECT_COMPONENT)
            && bitset_get_bit(b, TRANSFORMATION_COMPONENT);
 }
 
 int ecs_check_if_gui_text(int entity) {
-    if (entity == -1) return 0;
+    if (entity == -1)
+        return 0;
     Bitset* b = &ENTITIES[entity].components;
     return bitset_get_bit(b, GUI_TEXT_COMPONENT)
            && bitset_get_bit(b, TRANSFORMATION_COMPONENT);
 }
 
 int ecs_check_if_sprite(int entity) {
-    if (entity == -1) return 0;
+    if (entity == -1)
+        return 0;
     Bitset* b = &ENTITIES[entity].components;
     return bitset_get_bit(b, SPRITE_COMPONENT)
            && bitset_get_bit(b, TRANSFORMATION_COMPONENT);
 }
 
 int ecs_check_if_mesh_with_outline(int entity) {
-    if (entity == -1) return 0;
+    if (entity == -1)
+        return 0;
     Bitset* b = &ENTITIES[entity].components;
-    return bitset_get_bit(b, HAS_OUTLINE_COMPONENT) && bitset_get_bit(b, MESH_COMPONENT)
+    return bitset_get_bit(b, HAS_OUTLINE_COMPONENT)
+           && bitset_get_bit(b, MESH_COMPONENT)
            && bitset_get_bit(b, TRANSFORMATION_COMPONENT);
 }
 
 int ecs_check_if_sprite_with_outline(int entity) {
-    if (entity == -1) return 0;
+    if (entity == -1)
+        return 0;
     Bitset* b = &ENTITIES[entity].components;
-    return bitset_get_bit(b, HAS_OUTLINE_COMPONENT) && bitset_get_bit(b, SPRITE_COMPONENT)
+    return bitset_get_bit(b, HAS_OUTLINE_COMPONENT)
+           && bitset_get_bit(b, SPRITE_COMPONENT)
            && bitset_get_bit(b, TRANSFORMATION_COMPONENT);
 }

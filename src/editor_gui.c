@@ -16,7 +16,6 @@ static size_t N_BUTTONS = 0;
 static size_t N_INPUTS = 0;
 static size_t N_WIDGETS = 0;
 
-
 /*
 ECS Primitives: rect, text, ...
 */
@@ -37,7 +36,7 @@ static size_t create_rect(
 }
 
 static size_t create_text(
-    int parent, char* label, int x, int y, size_t font_size, Vec3 color 
+    int parent, char* label, int x, int y, size_t font_size, Vec3 color
 ) {
     size_t text = ecs_create_entity(parent);
     ecs_add_component(
@@ -51,7 +50,6 @@ static size_t create_text(
 
     return text;
 }
-
 
 /*
 GUI widgets: pane, button, text input, ...
@@ -80,13 +78,19 @@ static ButtonW* create_button(
     size_t height,
     size_t font_size,
     Vec4 rect_cold_color,
-    Vec3 text_cold_color
+    Vec4 rect_hot_color,
+    Vec4 rect_active_color,
+    Vec3 text_cold_color,
+    Vec3 text_hot_color,
+    Vec3 text_active_color
 ) {
     float char_width = GUI_FONT_ASPECT * (float)font_size;
     size_t text_width = strlen(text) * char_width;
 
     ButtonW* button = &BUTTONS[N_BUTTONS++];
-    button->rect = create_rect(parent, x, y, width, height, rect_cold_color);
+    button->rect = create_rect(
+        parent, x, y, width, height, rect_cold_color
+    );
     button->text = create_text(
         button->rect,
         text,
@@ -95,7 +99,13 @@ static ButtonW* create_button(
         font_size,
         text_cold_color
     );
-    button->is_pushed = 0;
+    button->is_active = 0;
+    button->rect_cold_color = rect_cold_color;
+    button->rect_hot_color = rect_hot_color;
+    button->rect_active_color = rect_active_color;
+    button->text_cold_color = text_cold_color;
+    button->text_hot_color = text_hot_color;
+    button->text_active_color = text_active_color;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
     widget->pointer = button;
@@ -122,12 +132,7 @@ static InputW* create_input(
     size_t input_rect_hight = font_size + border_width * 2;
 
     size_t input_rect = create_rect(
-        parent,
-        x,
-        y,
-        width,
-        input_rect_hight,
-        input_rect_color
+        parent, x, y, width, input_rect_hight, input_rect_color
     );
     size_t label_text = create_text(
         input_rect,
@@ -179,49 +184,162 @@ static InputW* create_input(
     return input;
 }
 
+/*
+State changers: widget heat up, cool down, activation toggle, ...
+*/
+
+void gui_widget_heat_up(GUIWidget* widget) {
+    if (widget == NULL)
+        return;
+
+    if (widget->type == GUI_WIDGET_BUTTON) {
+        ButtonW* button = (ButtonW*)widget->pointer;
+        GUIRect* rect = (GUIRect*)
+            COMPONENTS[GUI_RECT_COMPONENT][button->rect];
+        GUIText* text = (GUIText*)
+            COMPONENTS[GUI_TEXT_COMPONENT][button->text];
+        if (!button->is_active) {
+            rect->color = button->rect_hot_color;
+            text->color = button->text_hot_color;
+        }
+    }
+}
+
+void gui_widget_cool_down(GUIWidget* widget) {
+    if (widget == NULL)
+        return;
+
+    if (widget->type == GUI_WIDGET_BUTTON) {
+        ButtonW* button = (ButtonW*)widget->pointer;
+        GUIRect* rect = (GUIRect*)
+            COMPONENTS[GUI_RECT_COMPONENT][button->rect];
+        GUIText* text = (GUIText*)
+            COMPONENTS[GUI_TEXT_COMPONENT][button->text];
+        if (!button->is_active) {
+            rect->color = button->rect_cold_color;
+            text->color = button->text_cold_color;
+        }
+    }
+}
+
+void gui_widget_toggle_activation(GUIWidget* widget) {
+    if (widget == NULL)
+        return;
+
+    if (widget->type == GUI_WIDGET_BUTTON) {
+        ButtonW* button = (ButtonW*)widget->pointer;
+        GUIRect* rect = (GUIRect*)
+            COMPONENTS[GUI_RECT_COMPONENT][button->rect];
+        GUIText* text = (GUIText*)
+            COMPONENTS[GUI_TEXT_COMPONENT][button->text];
+        if (button->is_active) {
+            rect->color = button->rect_hot_color;
+            text->color = button->text_hot_color;
+        } else {
+            rect->color = button->rect_active_color;
+            text->color = button->text_active_color;
+        }
+
+        button->is_active ^= 1;
+    }
+}
 
 /*
 Pane presets
 */
 static PaneW* create_test_pane() {
     PaneW* pane = create_pane(10, 10, 200, 600, vec4(0.1, 0.1, 0.1, 0.9));
+
     create_button(
-        pane->rect, "test_button_0",
-        10, 10, 180, 50, 24,
-        vec4(0.2, 0.2, 0.2, 1.0), vec3(0.8, 0.8, 0.8)
+        pane->rect,
+        "test_button_0",
+        10,
+        10,
+        180,
+        50,
+        24,
+        vec4(0.2, 0.2, 0.2, 1.0),
+        vec4(0.3, 0.3, 0.3, 1.0),
+        vec4(0.8, 0.8, 0.8, 1.0),
+        vec3(0.8, 0.8, 0.8),
+        vec3(0.8, 0.8, 0.8),
+        vec3(0.2, 0.2, 0.2)
     );
     create_button(
-        pane->rect, "test_button_1",
-        10, 70, 180, 50, 24,
-        vec4(0.2, 0.2, 0.2, 1.0), vec3(0.8, 0.8, 0.8)
+        pane->rect,
+        "test_button_1",
+        10,
+        70,
+        180,
+        50,
+        24,
+        vec4(0.2, 0.2, 0.2, 1.0),
+        vec4(0.3, 0.3, 0.3, 1.0),
+        vec4(0.8, 0.8, 0.8, 1.0),
+        vec3(0.8, 0.8, 0.8),
+        vec3(0.8, 0.8, 0.8),
+        vec3(0.2, 0.2, 0.2)
     );
     create_button(
-        pane->rect, "test_button_2",
-        10, 130, 180, 50, 24,
-        vec4(0.2, 0.2, 0.2, 1.0), vec3(0.8, 0.8, 0.8)
+        pane->rect,
+        "test_button_2",
+        10,
+        130,
+        180,
+        50,
+        24,
+        vec4(0.2, 0.2, 0.2, 1.0),
+        vec4(0.3, 0.3, 0.3, 1.0),
+        vec4(0.8, 0.8, 0.8, 1.0),
+        vec3(0.8, 0.8, 0.8),
+        vec3(0.8, 0.8, 0.8),
+        vec3(0.2, 0.2, 0.2)
     );
     create_input(
-        pane->rect, "Test_0",
-        100, 200, 90, 5, 2, 22,
-        vec3(0.8, 0.8, 0.8), vec4(0.05, 0.05, 0.05, 1.0),
-        vec4(0.5, 0.2, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0)
+        pane->rect,
+        "Test_0",
+        100,
+        200,
+        90,
+        5,
+        2,
+        22,
+        vec3(0.8, 0.8, 0.8),
+        vec4(0.05, 0.05, 0.05, 1.0),
+        vec4(0.5, 0.2, 0.0, 1.0),
+        vec4(1.0, 1.0, 1.0, 1.0)
     );
     create_input(
-        pane->rect, "Test_1",
-        100, 240, 90, 5, 2, 22,
-        vec3(0.8, 0.8, 0.8), vec4(0.05, 0.05, 0.05, 1.0),
-        vec4(0.5, 0.2, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0)
+        pane->rect,
+        "Test_1",
+        100,
+        240,
+        90,
+        5,
+        2,
+        22,
+        vec3(0.8, 0.8, 0.8),
+        vec4(0.05, 0.05, 0.05, 1.0),
+        vec4(0.5, 0.2, 0.0, 1.0),
+        vec4(1.0, 1.0, 1.0, 1.0)
     );
     create_input(
-        pane->rect, "Test_2",
-        100, 280, 90, 5, 2, 22,
-        vec3(0.8, 0.8, 0.8), vec4(0.05, 0.05, 0.05, 1.0),
-        vec4(0.5, 0.2, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0)
+        pane->rect,
+        "Test_2",
+        100,
+        280,
+        90,
+        5,
+        2,
+        22,
+        vec3(0.8, 0.8, 0.8),
+        vec4(0.05, 0.05, 0.05, 1.0),
+        vec4(0.5, 0.2, 0.0, 1.0),
+        vec4(1.0, 1.0, 1.0, 1.0)
     );
 
     return pane;
 }
-
 
 void editor_gui_create() {
     create_test_pane();

@@ -187,7 +187,8 @@ static void render_gbuffer() {
         }
 
         // TODO: Don't bind the material if already binded.
-        Material* material = (Material*)COMPONENTS[MATERIAL_COMPONENT][entity];
+        Material* material = (Material*)
+            COMPONENTS[MATERIAL_COMPONENT][entity];
         set_uniform_material(program, material);
 
         program_set_uniform_1i(program, "entity_id", entity);
@@ -311,9 +312,7 @@ static void render_overlay_buffer(
         program_set_uniform_1i(program, "height", rect->height);
         program_set_uniform_4fv(program, "color", rect->color.data, 1);
         program_set_uniform_1i(program, "buffer_width", buffer_width);
-        program_set_uniform_1i(
-            program, "buffer_height", buffer_height
-        );
+        program_set_uniform_1i(program, "buffer_height", buffer_height);
         program_set_uniform_1i(program, "entity_id", entity);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -336,9 +335,7 @@ static void render_overlay_buffer(
         );
         program_set_uniform_1i(program, "font_height", text->font_height);
         program_set_uniform_1i(program, "buffer_width", buffer_width);
-        program_set_uniform_1i(
-            program, "buffer_height", buffer_height
-        );
+        program_set_uniform_1i(program, "buffer_height", buffer_height);
         program_set_uniform_1uiv(
             program, "char_inds", text->char_inds, text->n_chars
         );

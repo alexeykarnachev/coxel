@@ -1,4 +1,5 @@
 #pragma once
+#include "la.h"
 #include "stddef.h"
 
 typedef enum GUIWidgetType {
@@ -20,9 +21,15 @@ typedef struct ButtonW {
     size_t rect;
     size_t text;
 
-    int is_pushed;
-} ButtonW;
+    int is_active;
 
+    Vec3 text_cold_color;
+    Vec3 text_hot_color;
+    Vec3 text_active_color;
+    Vec4 rect_cold_color;
+    Vec4 rect_hot_color;
+    Vec4 rect_active_color;
+} ButtonW;
 
 typedef struct InputW {
     size_t input_rect;
@@ -34,6 +41,7 @@ typedef struct InputW {
     int is_selecting;
 } InputW;
 
-
 void editor_gui_create();
-
+void gui_widget_heat_up(GUIWidget* widget);
+void gui_widget_cool_down(GUIWidget* widget);
+void gui_widget_toggle_activation(GUIWidget* widget);

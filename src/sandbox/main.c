@@ -38,7 +38,9 @@ int main(void) {
         )
     );
     ecs_add_component(suzanne_0, MESH_COMPONENT, mesh_create_suzanne());
-    ecs_add_component(suzanne_0, MATERIAL_COMPONENT, material_create_default());
+    ecs_add_component(
+        suzanne_0, MATERIAL_COMPONENT, material_create_default()
+    );
 
     size_t ironman_0 = ecs_create_entity(-1);
     ecs_add_component(
@@ -51,7 +53,9 @@ int main(void) {
         )
     );
     ecs_add_component(ironman_0, MESH_COMPONENT, mesh_create_ironman());
-    ecs_add_component(ironman_0, MATERIAL_COMPONENT, material_create_default());
+    ecs_add_component(
+        ironman_0, MATERIAL_COMPONENT, material_create_default()
+    );
 
     size_t plane_0 = ecs_create_entity(-1);
     ecs_add_component(
@@ -64,7 +68,9 @@ int main(void) {
         )
     );
     ecs_add_component(plane_0, MESH_COMPONENT, mesh_create_plane());
-    ecs_add_component(plane_0, MATERIAL_COMPONENT, material_create_default());
+    ecs_add_component(
+        plane_0, MATERIAL_COMPONENT, material_create_default()
+    );
 
     size_t surf_sphere_0 = ecs_create_entity(-1);
     ecs_add_component(
@@ -74,7 +80,9 @@ int main(void) {
             vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), vec3(5.0, 2.0, -2.0)
         )
     );
-    ecs_add_component(surf_sphere_0, MESH_COMPONENT, mesh_create_surf_sphere());
+    ecs_add_component(
+        surf_sphere_0, MESH_COMPONENT, mesh_create_surf_sphere()
+    );
     ecs_add_component(
         surf_sphere_0,
         MATERIAL_COMPONENT,
@@ -93,7 +101,9 @@ int main(void) {
     );
     ecs_add_component(sphere_0, MESH_COMPONENT, mesh_create_sphere());
     ecs_add_component(
-        sphere_0, MATERIAL_COMPONENT, material_create(vec3(0.9, 0.2, 0.2), 0.0)
+        sphere_0,
+        MATERIAL_COMPONENT,
+        material_create(vec3(0.9, 0.2, 0.2), 0.0)
     );
 
     size_t sphere_1 = ecs_create_entity(-1);
@@ -106,7 +116,9 @@ int main(void) {
     );
     ecs_add_component(sphere_1, MESH_COMPONENT, mesh_create_sphere());
     ecs_add_component(
-        sphere_1, MATERIAL_COMPONENT, material_create(vec3(0.2, 0.9, 0.2), 0.0)
+        sphere_1,
+        MATERIAL_COMPONENT,
+        material_create(vec3(0.2, 0.9, 0.2), 0.0)
     );
 
     size_t sphere_2 = ecs_create_entity(-1);
@@ -121,7 +133,9 @@ int main(void) {
     );
     ecs_add_component(sphere_2, MESH_COMPONENT, mesh_create_sphere());
     ecs_add_component(
-        sphere_2, MATERIAL_COMPONENT, material_create(vec3(0.2, 0.2, 0.9), 0.0)
+        sphere_2,
+        MATERIAL_COMPONENT,
+        material_create(vec3(0.2, 0.2, 0.9), 0.0)
     );
 
     size_t sphere_3 = ecs_create_entity(sphere_2);
@@ -134,7 +148,9 @@ int main(void) {
     );
     ecs_add_component(sphere_3, MESH_COMPONENT, mesh_create_sphere());
     ecs_add_component(
-        sphere_3, MATERIAL_COMPONENT, material_create(vec3(0.1, 0.1, 0.95), 0.0)
+        sphere_3,
+        MATERIAL_COMPONENT,
+        material_create(vec3(0.1, 0.1, 0.95), 0.0)
     );
 
     size_t sphere_4 = ecs_create_entity(sphere_2);
@@ -147,7 +163,9 @@ int main(void) {
     );
     ecs_add_component(sphere_4, MESH_COMPONENT, mesh_create_sphere());
     ecs_add_component(
-        sphere_4, MATERIAL_COMPONENT, material_create(vec3(0.1, 0.1, 0.95), 0.0)
+        sphere_4,
+        MATERIAL_COMPONENT,
+        material_create(vec3(0.1, 0.1, 0.95), 0.0)
     );
 
     Texture sun_icon_texture;
@@ -256,13 +274,13 @@ int main(void) {
     editor_gui_create();
     size_t editor_gui_controller_0 = ecs_create_entity(-1);
     EditorGUIControllerArgs editor_gui_controller_args
-        = editor_gui_controller_create_default_args(&renderer.overlay_buffer);
+        = editor_gui_controller_create_default_args(
+            &renderer.overlay_buffer
+        );
     ecs_add_component(
         editor_gui_controller_0,
         SCRIPT_COMPONENT,
-        editor_gui_controller_create_script(
-            &editor_gui_controller_args
-        )
+        editor_gui_controller_create_script(&editor_gui_controller_args)
     );
 
     size_t editor_entity_controller_0 = ecs_create_entity(-1);

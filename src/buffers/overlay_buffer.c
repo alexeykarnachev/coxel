@@ -101,8 +101,7 @@ int overlay_buffer_create(
         GL_COLOR_ATTACHMENT0,
         GL_COLOR_ATTACHMENT1,
         GL_COLOR_ATTACHMENT2,
-        GL_COLOR_ATTACHMENT3
-    };
+        GL_COLOR_ATTACHMENT3};
     glDrawBuffers(4, buffers);
     glReadBuffer(GL_COLOR_ATTACHMENT3);
 
