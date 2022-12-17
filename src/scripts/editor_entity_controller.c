@@ -42,13 +42,15 @@ static void _editor_entity_controller_update(size_t _, void* args_p) {
 
     int entity = (int)id - 1;
 
-    if (INPUT.is_mouse_left_released && args->mode != MODE_SELECT) {
+    if (INPUT.mouse_released == GLFW_MOUSE_BUTTON_LEFT
+        && args->mode != MODE_SELECT) {
         window_set_default_cursor();
         args->mode = MODE_SELECT;
         return;
     }
 
-    entity = INPUT.is_mouse_left_released ? entity : args->entity;
+    entity = INPUT.mouse_released == GLFW_MOUSE_BUTTON_LEFT ? entity
+                                                            : args->entity;
     ecs_disable_component(args->entity, HAS_OUTLINE_COMPONENT);
     ecs_enable_component(entity, HAS_OUTLINE_COMPONENT);
     args->entity = entity;

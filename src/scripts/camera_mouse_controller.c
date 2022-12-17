@@ -45,7 +45,8 @@ static void camera_mouse_controller_update(size_t entity, void* args_p) {
     Transformation* t = (Transformation*)
         COMPONENTS[TRANSFORMATION_COMPONENT][entity];
 
-    if (INPUT.is_shift_pressed && INPUT.is_mouse_middle_pressed) {
+    if (INPUT.key_holding == GLFW_KEY_LEFT_SHIFT
+        && INPUT.mouse_holding == GLFW_MOUSE_BUTTON_MIDDLE) {
         translate(
             cam,
             t,
@@ -53,7 +54,7 @@ static void camera_mouse_controller_update(size_t entity, void* args_p) {
             INPUT.cursor_dy * args->side_sens,
             0.0
         );
-    } else if (INPUT.is_mouse_middle_pressed) {
+    } else if (INPUT.mouse_holding == GLFW_MOUSE_BUTTON_MIDDLE) {
         rotate(
             t,
             -INPUT.cursor_dy * args->rotation_sens,

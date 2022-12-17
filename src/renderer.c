@@ -302,7 +302,7 @@ static void render_overlay_buffer(
 
     for (size_t i = 0; i < N_GUI_RECT_ENTITIES; ++i) {
         size_t entity = GUI_RECT_ENTITIES[i];
-        GUIRect* rect = (GUIRect*)COMPONENTS[GUI_RECT_COMPONENT][entity];
+        GUIRect* rect = ecs_get_gui_rect(entity);
 
         Mat4 world_mat = ecs_get_world_mat(entity);
         program_set_uniform_matrix_4fv(
