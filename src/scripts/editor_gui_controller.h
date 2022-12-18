@@ -59,6 +59,7 @@ static void input_activate(InputW* input) {
     if (input == NULL)
         return;
     ecs_enable_component(input->cursor_rect, GUI_RECT_COMPONENT);
+    ecs_enable_component(input->selection_rect, GUI_RECT_COMPONENT);
 }
 
 static void input_place_cursor_at(InputW* input, size_t pos) {
@@ -151,6 +152,22 @@ static void input_remove_char(InputW* input) {
     input_move_cursor_n_steps(input, -1);
 }
 
+static void expand_input_selection_to(InputW* input, size_t pos) {
+    Transformation* cursor_transformation = ecs_get_transformation(
+        input->cursor_rect
+    );
+    Transformation* selection_transformation = ecs_get_transformation(
+        input->selection_rect
+    );
+    GUIRect* selection_rect = ecs_get_gui_rect(input->selection_rect);
+    int cursor_pos = cursor_transformation->translation.data[0]
+                     / input->glyph_width;
+    float x1 = pos * input->glyph_width;
+    float x2 = cursor_transformation->translation.data[0];
+    selection_transformation->translation.data[0] = min(x1, x2);
+    selection_rect->width = max(x1, x2) - min(x1, x2);
+}
+
 static void editor_gui_controller_update(size_t _, void* args_p) {
     EditorGUIControllerArgs* args = (EditorGUIControllerArgs*)(args_p);
 
@@ -162,8 +179,11 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
 
     int entity = (int)id - 1;
     // TODO: Make ecs function ecs_check_if_widget
-    int is_widget = ecs_is_component_enabled(entity, GUI_WIDGET_COMPONENT);
     int tag = ecs_get_tag(entity);
+    if (tag == GUI_TAG_CURSOR || tag == GUI_TAG_SELECTION) {
+        entity = args->active_input->input_rect;
+    }
+    int is_widget = ecs_is_component_enabled(entity, GUI_WIDGET_COMPONENT);
     int is_cursor_on_gui = entity != -1;
 
     if (is_widget) {
@@ -186,6 +206,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
             }
         } else if (widget->type == GUI_WIDGET_INPUT) {
             args->hot_input = (InputW*)widget->pointer;
+
             if (INPUT.mouse_pressed == GLFW_MOUSE_BUTTON_LEFT) {
                 if (args->active_input != args->hot_input) {
                     input_cool_down(args->active_input);
@@ -204,6 +225,20 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
                 );
                 pos = min(input_text->n_chars, pos);
                 input_place_cursor_at(args->active_input, pos);
+            } else if (INPUT.mouse_holding == GLFW_MOUSE_BUTTON_LEFT) {
+                GUIText* input_text = ecs_get_gui_text(
+                    args->active_input->input_text
+                );
+                Vec3 text_world_pos = ecs_get_world_position(
+                    args->active_input->input_text
+                );
+
+                int pos = round(
+                    (x - text_world_pos.data[0])
+                    / args->active_input->glyph_width
+                );
+                pos = min(input_text->n_chars, pos);
+                expand_input_selection_to(args->active_input, pos);
             }
         }
 
@@ -214,6 +249,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
 
         if (args->active_input != NULL
             && (INPUT.key_pressed >= 0 || INPUT.key_repeating >= 0)) {
+
             if (INPUT.key_holding == GLFW_KEY_BACKSPACE) {
                 input_remove_char(args->active_input);
             } else if (INPUT.key_holding == GLFW_KEY_LEFT) {
@@ -228,7 +264,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
             args->hot_input = NULL;
             args->active_input = NULL;
         }
-    } else if (INPUT.mouse_pressed != -1 && args->active_input != NULL && tag != GUI_TAG_CURSOR) {
+    } else if (INPUT.mouse_pressed != -1 && args->active_input != NULL) {
         input_cool_down(args->active_input);
         args->hot_input = NULL;
         args->active_input = NULL;

@@ -3,7 +3,7 @@
 #include "./components/transformation.h"
 
 void* COMPONENTS[N_COMPONENT_TYPES][MAX_N_ENTITIES];
-static int TAGS[MAX_N_ENTITIES] = {[0 ... MAX_N_ENTITIES - 1] = -1};
+static int TAGS[MAX_N_ENTITIES] = {[0 ... MAX_N_ENTITIES - 1] = 0};
 
 Entity ENTITIES[MAX_N_ENTITIES];
 size_t N_ENTITIES = 0;

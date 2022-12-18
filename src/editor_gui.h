@@ -13,7 +13,7 @@ typedef struct GUIWidget {
     GUIWidgetType type;
 } GUIWidget;
 
-enum GUITag { GUI_TAG_CURSOR };
+enum GUITag { GUI_TAG_CURSOR = 1 << 0, GUI_TAG_SELECTION = 1 << 1 };
 
 typedef struct PaneW {
     size_t rect;

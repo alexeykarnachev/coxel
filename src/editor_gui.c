@@ -169,13 +169,7 @@ static InputW* create_input(
         -1
     );
     size_t selection_rect = create_rect(
-        input_text,
-        0,
-        (input_rect_hight - font_size) / 2,
-        0,
-        font_size,
-        selection_color,
-        -1
+        input_text, 0, 0, 0, font_size, selection_color, GUI_TAG_SELECTION
     );
     size_t cursor_rect = create_rect(
         input_text,
