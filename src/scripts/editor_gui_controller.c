@@ -223,6 +223,9 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
         }
     } else if (widget->type == GUI_WIDGET_INPUT) {
         args->hot_input = (InputW*)widget->pointer;
+        int is_active_input_selection_expanding
+            = args->active_input != NULL
+              && INPUT.mouse_holding == GLFW_MOUSE_BUTTON_LEFT;
 
         if (INPUT.mouse_pressed == GLFW_MOUSE_BUTTON_LEFT) {
             if (args->active_input != args->hot_input) {
@@ -231,7 +234,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
             }
             int loc = get_input_char_loc(args->active_input, x);
             place_input_cursor_at(args->active_input, loc);
-        } else if (args->active_input != NULL && INPUT.mouse_holding == GLFW_MOUSE_BUTTON_LEFT) {
+        } else if (is_active_input_selection_expanding) {
             int loc = get_input_char_loc(args->active_input, x);
             expand_input_selection_to(args->active_input, loc);
         }
