@@ -174,9 +174,13 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &id);
 
     int entity = (int)id - 1;
-    // TODO: Make ecs function ecs_check_if_widget
     int tag = ecs_get_tag(entity);
-    if (tag == GUI_TAG_CURSOR || tag == GUI_TAG_SELECTION) {
+    int is_interacting_with_active_input
+        = (INPUT.mouse_pressed != GLFW_MOUSE_BUTTON_LEFT
+           && INPUT.mouse_holding == GLFW_MOUSE_BUTTON_LEFT
+           && args->active_input != NULL)
+          || (tag == GUI_TAG_CURSOR || tag == GUI_TAG_SELECTION);
+    if (is_interacting_with_active_input) {
         entity = args->active_input->input_rect;
     }
     int is_widget = ecs_is_component_enabled(entity, GUI_WIDGET_COMPONENT);
@@ -219,6 +223,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
                     (x - text_world_pos.data[0])
                     / args->active_input->glyph_width
                 );
+                pos = max(0, pos);
                 pos = min(input_text->n_chars, pos);
                 input_place_cursor_at(args->active_input, pos);
             } else if (INPUT.mouse_holding == GLFW_MOUSE_BUTTON_LEFT) {
@@ -233,6 +238,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
                     (x - text_world_pos.data[0])
                     / args->active_input->glyph_width
                 );
+                pos = max(0, pos);
                 pos = min(input_text->n_chars, pos);
                 expand_input_selection_to(args->active_input, pos);
             }
@@ -255,7 +261,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
             } else {
                 input_insert_char(args->active_input, INPUT.key_holding);
             }
-        } else if (args->active_input != NULL && args->active_input != args->hot_input && (INPUT.mouse_released != -1 || INPUT.mouse_pressed != -1)) {
+        } else if (args->active_input != NULL && args->active_input != args->hot_input && INPUT.mouse_pressed != -1) {
             input_cool_down(args->active_input);
             args->hot_input = NULL;
             args->active_input = NULL;
