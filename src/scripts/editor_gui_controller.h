@@ -163,6 +163,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     int entity = (int)id - 1;
     // TODO: Make ecs function ecs_check_if_widget
     int is_widget = ecs_is_component_enabled(entity, GUI_WIDGET_COMPONENT);
+    int tag = ecs_get_tag(entity);
     int is_cursor_on_gui = entity != -1;
 
     if (is_widget) {
@@ -198,7 +199,8 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
                 );
 
                 int pos = round(
-                    (x - text_world_pos.data[0]) / args->active_input->glyph_width
+                    (x - text_world_pos.data[0])
+                    / args->active_input->glyph_width
                 );
                 pos = min(input_text->n_chars, pos);
                 input_place_cursor_at(args->active_input, pos);
@@ -226,7 +228,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
             args->hot_input = NULL;
             args->active_input = NULL;
         }
-    } else if (INPUT.mouse_pressed != -1 && args->active_input != NULL) {
+    } else if (INPUT.mouse_pressed != -1 && args->active_input != NULL && tag != GUI_TAG_CURSOR) {
         input_cool_down(args->active_input);
         args->hot_input = NULL;
         args->active_input = NULL;

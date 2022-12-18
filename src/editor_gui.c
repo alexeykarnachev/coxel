@@ -21,7 +21,13 @@ static size_t N_WIDGETS = 0;
 ECS Primitives: rect, text, ...
 */
 static size_t create_rect(
-    int parent, int x, int y, size_t width, size_t height, Vec4 color
+    int parent,
+    int x,
+    int y,
+    size_t width,
+    size_t height,
+    Vec4 color,
+    int tag
 ) {
     size_t rect = ecs_create_entity(parent);
     ecs_add_component(
@@ -32,12 +38,19 @@ static size_t create_rect(
         TRANSFORMATION_COMPONENT,
         transformation_create(vec3_ones, vec3_zeros, vec3(x, y, 0))
     );
+    ecs_set_tag(rect, tag);
 
     return rect;
 }
 
 static size_t create_text(
-    int parent, char* label, int x, int y, size_t font_size, Vec3 color
+    int parent,
+    char* label,
+    int x,
+    int y,
+    size_t font_size,
+    Vec3 color,
+    int tag
 ) {
     size_t text = ecs_create_entity(parent);
     ecs_add_component(
@@ -48,6 +61,7 @@ static size_t create_text(
         TRANSFORMATION_COMPONENT,
         transformation_create(vec3_ones, vec3_zeros, vec3(x, y, 0.0))
     );
+    ecs_set_tag(text, tag);
 
     return text;
 }
@@ -58,7 +72,7 @@ GUI widgets: pane, button, text input, ...
 static PaneW* create_pane(
     size_t x, size_t y, size_t width, size_t height, Vec4 color
 ) {
-    size_t rect = create_rect(-1, x, y, width, height, color);
+    size_t rect = create_rect(-1, x, y, width, height, color, -1);
 
     PaneW* pane = &PANES[N_PANES++];
     pane->rect = rect;
@@ -90,7 +104,7 @@ static ButtonW* create_button(
 
     ButtonW* button = &BUTTONS[N_BUTTONS++];
     button->rect = create_rect(
-        parent, x, y, width, height, rect_cold_color
+        parent, x, y, width, height, rect_cold_color, -1
     );
     button->text = create_text(
         button->rect,
@@ -98,7 +112,8 @@ static ButtonW* create_button(
         (width - text_width) / 2,
         (height - font_size) / 2,
         font_size,
-        text_cold_color
+        text_cold_color,
+        -1
     );
     button->is_active = 0;
     button->rect_cold_color = rect_cold_color;
@@ -133,7 +148,7 @@ static InputW* create_input(
     size_t input_rect_hight = font_size + border_width * 2;
 
     size_t input_rect = create_rect(
-        parent, x, y, width, input_rect_hight, input_rect_color
+        parent, x, y, width, input_rect_hight, input_rect_color, -1
     );
     size_t label_text = create_text(
         input_rect,
@@ -141,7 +156,8 @@ static InputW* create_input(
         -(strlen(label) * input_char_width) - border_width,
         (input_rect_hight - font_size) / 2,
         font_size,
-        text_color
+        text_color,
+        -1
     );
     size_t input_text = create_text(
         input_rect,
@@ -149,7 +165,8 @@ static InputW* create_input(
         border_width,
         (input_rect_hight - font_size) / 2,
         font_size,
-        text_color
+        text_color,
+        -1
     );
     size_t selection_rect = create_rect(
         input_text,
@@ -157,10 +174,17 @@ static InputW* create_input(
         (input_rect_hight - font_size) / 2,
         0,
         font_size,
-        selection_color
+        selection_color,
+        -1
     );
     size_t cursor_rect = create_rect(
-        input_text, 0, 0, cursor_width, font_size, cursor_color
+        input_text,
+        0,
+        0,
+        cursor_width,
+        font_size,
+        cursor_color,
+        GUI_TAG_CURSOR
     );
 
     ecs_disable_component(cursor_rect, GUI_RECT_COMPONENT);

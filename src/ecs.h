@@ -62,6 +62,8 @@ void ecs_add_component(int entity, COMPONENT_TYPE type, void* ptr);
 void ecs_enable_component(int entity, COMPONENT_TYPE type);
 void ecs_disable_component(int entity, COMPONENT_TYPE type);
 int ecs_is_component_enabled(int entity, COMPONENT_TYPE type);
+void ecs_set_tag(int entity, int tag);
+int ecs_get_tag(int entity);
 Mat4 ecs_get_world_mat(size_t entity);
 Mat4 ecs_get_local_mat(size_t entity);
 Vec3 ecs_get_world_position(size_t entity);

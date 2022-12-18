@@ -3,6 +3,7 @@
 #include "./components/transformation.h"
 
 void* COMPONENTS[N_COMPONENT_TYPES][MAX_N_ENTITIES];
+static int TAGS[MAX_N_ENTITIES] = {[0 ... MAX_N_ENTITIES - 1] = -1};
 
 Entity ENTITIES[MAX_N_ENTITIES];
 size_t N_ENTITIES = 0;
@@ -165,6 +166,14 @@ void ecs_disable_component(int entity, COMPONENT_TYPE type) {
 
 int ecs_is_component_enabled(int entity, COMPONENT_TYPE type) {
     return bitset_get_bit(&ENTITIES[entity].components, type);
+}
+
+void ecs_set_tag(int entity, int tag) {
+    TAGS[entity] = tag;
+}
+
+int ecs_get_tag(int entity) {
+    return TAGS[entity];
 }
 
 int ecs_check_if_renderable(int entity) {
