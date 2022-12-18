@@ -70,7 +70,8 @@ KeepEmptyLinesAtTheStartOfBlocks: true
 MacroBlockBegin: ''
 MacroBlockEnd:   ''
 MaxEmptyLinesToKeep: 1
-PenaltyBreakAssignment: 120
+PenaltyBreakAssignment: 100
+PenaltyBreakOpenParenthesis: 5
 PenaltyBreakBeforeFirstCallParameter: 19
 PenaltyBreakComment: 300
 PenaltyBreakFirstLessLess: 120
