@@ -71,11 +71,11 @@ static void input_place_cursor_at(InputW* input, size_t pos) {
     cursor_transformation->translation.data[0] = pos * input->glyph_width;
 }
 
-static void input_move_cursor_n_steps(InputW* input, int n) {
+static void input_move_cursor_n_steps(InputW* input, int n, float screen_width_ratio) {
     Transformation* cursor_transformation = ecs_get_transformation(
         input->cursor_rect
     );
-    int curr_pos = cursor_transformation->translation.data[0]
+    int curr_pos = cursor_transformation->translation.data[0] * screen_width_ratio
                    / input->glyph_width;
     GUIText* input_text = ecs_get_gui_text(input->input_text);
     int new_pos = curr_pos + n;
@@ -83,7 +83,7 @@ static void input_move_cursor_n_steps(InputW* input, int n) {
     input_place_cursor_at(input, new_pos);
 }
 
-static void input_insert_char(InputW* input, char c) {
+static void input_insert_char(InputW* input, char c, float screen_width_ratio) {
     GUIRect* input_rect = ecs_get_gui_rect(input->input_rect);
     Transformation* text_transformation = ecs_get_transformation(
         input->input_text
@@ -97,7 +97,7 @@ static void input_insert_char(InputW* input, char c) {
     Transformation* cursor_transformation = ecs_get_transformation(
         input->cursor_rect
     );
-    int curr_pos = cursor_transformation->translation.data[0]
+    int curr_pos = cursor_transformation->translation.data[0] * screen_width_ratio
                    / input->glyph_width;
     GUIText* input_text = (GUIText*)
         COMPONENTS[GUI_TEXT_COMPONENT][input->input_text];
@@ -110,10 +110,10 @@ static void input_insert_char(InputW* input, char c) {
     }
     input_text->char_inds[curr_pos] = c;
     input_text->n_chars++;
-    input_move_cursor_n_steps(input, 1);
+    input_move_cursor_n_steps(input, 1, screen_width_ratio);
 }
 
-static void input_remove_char(InputW* input) {
+static void input_remove_char(InputW* input, float screen_width_ratio) {
     GUIText* input_text = ecs_get_gui_text(input->input_text);
     GUIRect* selection_rect = ecs_get_gui_rect(input->selection_rect);
     Transformation* text_transformation = ecs_get_transformation(
@@ -131,14 +131,14 @@ static void input_remove_char(InputW* input) {
         input_place_cursor_at(input, x + w);
         selection_rect->width = 0;
         for (size_t i = 0; i < w - 1; ++i) {
-            input_remove_char(input);
+            input_remove_char(input, screen_width_ratio);
         }
     }
 
     Transformation* cursor_transformation = ecs_get_transformation(
         input->cursor_rect
     );
-    int curr_pos = cursor_transformation->translation.data[0]
+    int curr_pos = cursor_transformation->translation.data[0] * screen_width_ratio
                    / input->glyph_width;
     if (curr_pos == 0) {
         return;
@@ -148,7 +148,7 @@ static void input_remove_char(InputW* input) {
         input_text->char_inds[i] = input_text->char_inds[i + 1];
     }
     input_text->n_chars--;
-    input_move_cursor_n_steps(input, -1);
+    input_move_cursor_n_steps(input, -1, screen_width_ratio);
 }
 
 static void editor_gui_controller_update(size_t _, void* args_p) {
@@ -157,6 +157,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     unsigned char id = 0;
     int x = (int)(INPUT.cursor_x * args->overlay_buffer->width);
     int y = (int)(INPUT.cursor_y * args->overlay_buffer->height);
+    float screen_width_ratio = args->overlay_buffer->width / INPUT.window_width;
     glBindFramebuffer(GL_FRAMEBUFFER, args->overlay_buffer->fbo);
     glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &id);
 
@@ -199,13 +200,9 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
                 float cursor_local_pos = INPUT.cursor_x
                                              * INPUT.window_width
                                          - text_world_pos.data[0];
+                cursor_local_pos *= screen_width_ratio;
                 int pos = round(
                     cursor_local_pos / args->active_input->glyph_width
-                );
-                printf(
-                    "local: %f, glyph: %f\n",
-                    cursor_local_pos,
-                    args->active_input->glyph_width
                 );
                 pos = min(input_text->n_chars, pos);
                 input_place_cursor_at(args->active_input, pos);
@@ -220,13 +217,13 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
         if (args->active_input != NULL
             && (INPUT.key_pressed >= 0 || INPUT.key_repeating >= 0)) {
             if (INPUT.key_holding == GLFW_KEY_BACKSPACE) {
-                input_remove_char(args->active_input);
+                input_remove_char(args->active_input, screen_width_ratio);
             } else if (INPUT.key_holding == GLFW_KEY_LEFT) {
-                input_move_cursor_n_steps(args->active_input, -1);
+                input_move_cursor_n_steps(args->active_input, -1, screen_width_ratio);
             } else if (INPUT.key_holding == GLFW_KEY_RIGHT) {
-                input_move_cursor_n_steps(args->active_input, 1);
+                input_move_cursor_n_steps(args->active_input, 1, screen_width_ratio);
             } else {
-                input_insert_char(args->active_input, INPUT.key_holding);
+                input_insert_char(args->active_input, INPUT.key_holding, screen_width_ratio);
             }
         } else if (args->active_input != NULL && args->active_input != args->hot_input && (INPUT.mouse_released != -1 || INPUT.mouse_pressed != -1)) {
             input_cool_down(args->active_input);
