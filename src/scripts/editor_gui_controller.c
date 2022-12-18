@@ -75,36 +75,6 @@ static void input_move_cursor_n_steps(InputW* input, int n) {
     input_place_cursor_at(input, new_pos);
 }
 
-static void input_insert_char(InputW* input, char c) {
-    GUIRect* input_rect = ecs_get_gui_rect(input->input_rect);
-    Transformation* text_transformation = ecs_get_transformation(
-        input->input_text
-    );
-    int max_n_chars = min(
-        (input_rect->width - text_transformation->translation.data[0] * 2)
-            / input->glyph_width,
-        GUI_TEXT_MAX_N_CHARS
-    );
-
-    Transformation* cursor_transformation = ecs_get_transformation(
-        input->cursor_rect
-    );
-    int curr_pos = cursor_transformation->translation.data[0]
-                   / input->glyph_width;
-    GUIText* input_text = (GUIText*)
-        COMPONENTS[GUI_TEXT_COMPONENT][input->input_text];
-    if (input_text->n_chars == max_n_chars) {
-        return;
-    }
-
-    for (size_t i = input_text->n_chars; i > curr_pos; --i) {
-        input_text->char_inds[i] = input_text->char_inds[i - 1];
-    }
-    input_text->char_inds[curr_pos] = c;
-    input_text->n_chars++;
-    input_move_cursor_n_steps(input, 1);
-}
-
 static void input_remove_char(InputW* input) {
     GUIText* input_text = ecs_get_gui_text(input->input_text);
     GUIRect* selection_rect = ecs_get_gui_rect(input->selection_rect);
@@ -141,6 +111,41 @@ static void input_remove_char(InputW* input) {
     }
     input_text->n_chars--;
     input_move_cursor_n_steps(input, -1);
+}
+
+static void input_insert_char(InputW* input, char c) {
+    GUIRect* selection_rect = ecs_get_gui_rect(input->selection_rect);
+    if (selection_rect->width > 0) {
+        input_remove_char(input);
+    }
+
+    GUIRect* input_rect = ecs_get_gui_rect(input->input_rect);
+    Transformation* text_transformation = ecs_get_transformation(
+        input->input_text
+    );
+    int max_n_chars = min(
+        (input_rect->width - text_transformation->translation.data[0] * 2)
+            / input->glyph_width,
+        GUI_TEXT_MAX_N_CHARS
+    );
+
+    Transformation* cursor_transformation = ecs_get_transformation(
+        input->cursor_rect
+    );
+    int curr_pos = cursor_transformation->translation.data[0]
+                   / input->glyph_width;
+    GUIText* input_text = (GUIText*)
+        COMPONENTS[GUI_TEXT_COMPONENT][input->input_text];
+    if (input_text->n_chars == max_n_chars) {
+        return;
+    }
+
+    for (size_t i = input_text->n_chars; i > curr_pos; --i) {
+        input_text->char_inds[i] = input_text->char_inds[i - 1];
+    }
+    input_text->char_inds[curr_pos] = c;
+    input_text->n_chars++;
+    input_move_cursor_n_steps(input, 1);
 }
 
 static void expand_input_selection_to(InputW* input, size_t pos) {
