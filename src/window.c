@@ -26,6 +26,14 @@ static void cursor_position_callback(
     inp->cursor_y = y;
 }
 
+int window_check_if_lmb_pressed() {
+    return INPUT.mouse_pressed == GLFW_MOUSE_BUTTON_LEFT;
+}
+
+int window_check_if_lmb_released() {
+    return INPUT.mouse_released == GLFW_MOUSE_BUTTON_LEFT;
+}
+
 int window_check_if_mouse_pressed() {
     return INPUT.mouse_pressed != -1;
 }

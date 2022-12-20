@@ -30,6 +30,8 @@ typedef struct Input {
 extern Input INPUT;
 
 int window_check_if_mouse_pressed();
+int window_check_if_lmb_pressed();
+int window_check_if_lmb_released();
 int window_check_if_lmb_keep_holding();
 
 bool window_create(size_t width, size_t height);

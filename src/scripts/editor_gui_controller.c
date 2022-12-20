@@ -182,15 +182,28 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     int is_cursor_on_gui = hot_entity != -1;
     int hot_tag = ecs_get_tag(hot_entity);
     hot_entity = ecs_get_parent_with_component(
-        hot_entity, GUI_WIDGET_COMPONENT
+        hot_entity, GUI_WIDGET_COMPONENT, 1
     );
-    args->hot_widget = ecs_get_gui_widget(hot_entity);
+    GUIWidget* w = ecs_get_gui_widget(hot_entity);
+    args->hot_widget = w == NULL ? &NULL_WIDGET : w;
 
     if (args->active_widget->type == GUI_WIDGET_INPUT) {
         if (window_check_if_mouse_pressed()) {
             cool_down_input(args->active_widget->pointer);
             args->active_widget = &NULL_WIDGET;
         } else if (window_check_if_lmb_keep_holding()) {
+        }
+    }
+
+    if (args->hot_widget->type == GUI_WIDGET_BUTTON) {
+        ButtonW* hot_button = (ButtonW*)args->hot_widget->pointer;
+        if (window_check_if_lmb_released()) {
+            hot_button->is_active ^= 1;
+            if (hot_button->is_active) {
+                cool_down_button(hot_button);
+            } else {
+                activate_button(hot_button);
+            }
         }
     }
 #if 0
@@ -263,6 +276,7 @@ EditorGUIControllerArgs editor_gui_controller_create_default_args(
     EditorGUIControllerArgs args = {0};
     args.overlay_buffer = overlay_buffer;
     args.active_widget = &NULL_WIDGET;
+    args.hot_widget = &NULL_WIDGET;
     return args;
 }
 
