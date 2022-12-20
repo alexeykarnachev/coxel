@@ -17,3 +17,5 @@ typedef struct OverlayBuffer {
 int overlay_buffer_create(
     OverlayBuffer* buffer, size_t width, size_t height
 );
+int overlay_buffer_get_entity_id_at(OverlayBuffer* buffer, int x, int y);
+int overlay_buffer_get_entity_id_at_cursor(OverlayBuffer* buffer);

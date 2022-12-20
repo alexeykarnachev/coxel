@@ -6,10 +6,8 @@
 typedef struct EditorGUIControllerArgs {
     OverlayBuffer* overlay_buffer;
 
-    ButtonW* hot_button;
-    ButtonW* active_button;
-    InputW* hot_input;
-    InputW* active_input;
+    GUIWidget* hot_widget;
+    GUIWidget* active_widget;
 } EditorGUIControllerArgs;
 
 EditorGUIControllerArgs editor_gui_controller_create_default_args(

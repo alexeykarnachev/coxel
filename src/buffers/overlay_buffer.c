@@ -1,6 +1,7 @@
 #include "overlay_buffer.h"
 
 #include "../includes.h"
+#include "../window.h"
 
 int overlay_buffer_create(
     OverlayBuffer* buffer, size_t width, size_t height
@@ -112,4 +113,17 @@ int overlay_buffer_create(
     buffer->height = height;
 
     return 1;
+}
+
+int overlay_buffer_get_entity_id_at(OverlayBuffer* buffer, int x, int y) {
+    unsigned char id = 0;
+    glBindFramebuffer(GL_FRAMEBUFFER, buffer->fbo);
+    glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &id);
+    return (int)id - 1;
+}
+
+int overlay_buffer_get_entity_id_at_cursor(OverlayBuffer* buffer) {
+    int x = (int)(INPUT.cursor_x * buffer->width);
+    int y = (int)(INPUT.cursor_y * buffer->height);
+    return overlay_buffer_get_entity_id_at(buffer, x, y);
 }

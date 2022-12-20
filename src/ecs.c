@@ -137,6 +137,10 @@ Transformation* ecs_get_transformation(size_t entity) {
     return (Transformation*)COMPONENTS[TRANSFORMATION_COMPONENT][entity];
 }
 
+GUIWidget* ecs_get_gui_widget(size_t entity) {
+    return (GUIWidget*)COMPONENTS[GUI_WIDGET_COMPONENT][entity];
+}
+
 int ecs_get_active_camera_entity() {
     if (N_CAMERA_ENTITIES) {
         return CAMERA_ENTITIES[0];
@@ -166,6 +170,14 @@ void ecs_disable_component(int entity, COMPONENT_TYPE type) {
 
 int ecs_is_component_enabled(int entity, COMPONENT_TYPE type) {
     return bitset_get_bit(&ENTITIES[entity].components, type);
+}
+
+int ecs_get_parent_with_component(int entity, COMPONENT_TYPE type) {
+    int parent = ENTITIES[entity].parent_id;
+    if (parent == -1 || ecs_is_component_enabled(parent, type)) {
+        return parent;
+    }
+    return ecs_get_parent_with_component(parent, type);
 }
 
 void ecs_set_tag(int entity, int tag) {

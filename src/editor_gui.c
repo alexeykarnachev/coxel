@@ -17,6 +17,8 @@ static size_t N_BUTTONS = 0;
 static size_t N_INPUTS = 0;
 static size_t N_WIDGETS = 0;
 
+GUIWidget NULL_WIDGET = {NULL, GUI_WIDGET_NULL};
+
 /*
 ECS Primitives: rect, text, ...
 */

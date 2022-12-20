@@ -2,6 +2,7 @@
 #include "./components/gui_rect.h"
 #include "./components/gui_text.h"
 #include "./components/transformation.h"
+#include "./editor_gui.h"
 #include "bitset.h"
 #include "constants.h"
 #include "la.h"
@@ -62,6 +63,7 @@ void ecs_add_component(int entity, COMPONENT_TYPE type, void* ptr);
 void ecs_enable_component(int entity, COMPONENT_TYPE type);
 void ecs_disable_component(int entity, COMPONENT_TYPE type);
 int ecs_is_component_enabled(int entity, COMPONENT_TYPE type);
+int ecs_get_parent_with_component(int entity, COMPONENT_TYPE type);
 void ecs_set_tag(int entity, int tag);
 int ecs_get_tag(int entity);
 Mat4 ecs_get_world_mat(size_t entity);
@@ -71,6 +73,7 @@ Mat4 ecs_get_origin_world_mat(size_t entity);
 GUIRect* ecs_get_gui_rect(size_t entity);
 GUIText* ecs_get_gui_text(size_t entity);
 Transformation* ecs_get_transformation(size_t entity);
+GUIWidget* ecs_get_gui_widget(size_t entity);
 int ecs_get_active_camera_entity();
 void ecs_update();
 int ecs_check_if_camera(int entity);

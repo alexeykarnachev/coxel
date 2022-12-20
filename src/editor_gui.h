@@ -5,7 +5,8 @@
 typedef enum GUIWidgetType {
     GUI_WIDGET_PANE,
     GUI_WIDGET_BUTTON,
-    GUI_WIDGET_INPUT
+    GUI_WIDGET_INPUT,
+    GUI_WIDGET_NULL
 } GUIWidgetType;
 
 typedef struct GUIWidget {
@@ -14,6 +15,7 @@ typedef struct GUIWidget {
 } GUIWidget;
 
 enum GUITag { GUI_TAG_CURSOR = 1 << 0, GUI_TAG_SELECTION = 1 << 1 };
+extern GUIWidget NULL_WIDGET;
 
 typedef struct PaneW {
     size_t rect;

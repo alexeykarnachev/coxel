@@ -26,6 +26,15 @@ static void cursor_position_callback(
     inp->cursor_y = y;
 }
 
+int window_check_if_mouse_pressed() {
+    return INPUT.mouse_pressed != -1;
+}
+
+int window_check_if_lmb_keep_holding() {
+    return INPUT.mouse_pressed != GLFW_MOUSE_BUTTON_LEFT
+           && INPUT.mouse_holding == GLFW_MOUSE_BUTTON_LEFT;
+}
+
 static void mouse_button_callback(
     GLFWwindow* window, int button, int action, int mods
 ) {

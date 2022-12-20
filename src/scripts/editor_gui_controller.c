@@ -176,40 +176,25 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     EditorGUIControllerArgs* args = (EditorGUIControllerArgs*)(args_p);
     window_set_default_cursor();
 
-    unsigned char id = 0;
-    int x = (int)(INPUT.cursor_x * args->overlay_buffer->width);
-    int y = (int)(INPUT.cursor_y * args->overlay_buffer->height);
-    glBindFramebuffer(GL_FRAMEBUFFER, args->overlay_buffer->fbo);
-    glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &id);
+    int hot_entity = overlay_buffer_get_entity_id_at_cursor(
+        args->overlay_buffer
+    );
+    int is_cursor_on_gui = hot_entity != -1;
+    int hot_tag = ecs_get_tag(hot_entity);
+    hot_entity = ecs_get_parent_with_component(
+        hot_entity, GUI_WIDGET_COMPONENT
+    );
+    args->hot_widget = ecs_get_gui_widget(hot_entity);
 
-    int entity = (int)id - 1;
-    int tag = ecs_get_tag(entity);
-    int is_interacting_with_active_input
-        = (INPUT.mouse_pressed != GLFW_MOUSE_BUTTON_LEFT
-           && INPUT.mouse_holding == GLFW_MOUSE_BUTTON_LEFT
-           && args->active_input != NULL)
-          || (INPUT.mouse_pressed == -1 && args->active_input != NULL)
-          || (tag == GUI_TAG_CURSOR || tag == GUI_TAG_SELECTION);
-    if (is_interacting_with_active_input) {
-        entity = args->active_input->input_rect;
-    } else {
-        cool_down_input(args->active_input);
-        args->active_input = NULL;
+    if (args->active_widget->type == GUI_WIDGET_INPUT) {
+        if (window_check_if_mouse_pressed()) {
+            cool_down_input(args->active_widget->pointer);
+            args->active_widget = &NULL_WIDGET;
+        } else if (window_check_if_lmb_keep_holding()) {
+        }
     }
-    int is_widget = ecs_is_component_enabled(entity, GUI_WIDGET_COMPONENT);
-    int is_cursor_on_gui = entity != -1;
-
-    cool_down_button(args->hot_button);
-    cool_down_input(args->hot_input);
-    args->hot_button = NULL;
-    args->hot_input = NULL;
-
-    GUIWidget* widget = COMPONENTS[GUI_WIDGET_COMPONENT][entity];
-    if (widget == NULL) {
-        if (is_cursor_on_gui)
-            window_clear_input();
-        return;
-    }
+#if 0
+    
 
     if (widget->type == GUI_WIDGET_BUTTON) {
         args->hot_button = (ButtonW*)widget->pointer;
@@ -269,6 +254,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     heat_up_input(args->hot_input);
     activate_input(args->active_input);
     window_clear_input();
+#endif
 }
 
 EditorGUIControllerArgs editor_gui_controller_create_default_args(
@@ -276,6 +262,7 @@ EditorGUIControllerArgs editor_gui_controller_create_default_args(
 ) {
     EditorGUIControllerArgs args = {0};
     args.overlay_buffer = overlay_buffer;
+    args.active_widget = &NULL_WIDGET;
     return args;
 }
 
