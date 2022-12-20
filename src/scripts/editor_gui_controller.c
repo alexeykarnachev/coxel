@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 
 static void cool_down_button(ButtonW* button) {
-    if (button == NULL)
+    if (button == NULL || button->is_active)
         return;
     GUIRect* rect = ecs_get_gui_rect(button->rect);
     GUIText* text = ecs_get_gui_text(button->text);
@@ -16,7 +16,7 @@ static void cool_down_button(ButtonW* button) {
 }
 
 static void heat_up_button(ButtonW* button) {
-    if (button == NULL)
+    if (button == NULL || button->is_active)
         return;
     GUIRect* rect = ecs_get_gui_rect(button->rect);
     GUIText* text = ecs_get_gui_text(button->text);
@@ -31,6 +31,25 @@ static void activate_button(ButtonW* button) {
     GUIText* text = ecs_get_gui_text(button->text);
     rect->color = button->rect_active_color;
     text->color = button->text_active_color;
+    button->is_active = 1;
+}
+
+static void deactivate_button(ButtonW* button) {
+    if (button == NULL)
+        return;
+    GUIRect* rect = ecs_get_gui_rect(button->rect);
+    GUIText* text = ecs_get_gui_text(button->text);
+    rect->color = button->rect_hot_color;
+    text->color = button->text_hot_color;
+    button->is_active = 0;
+}
+
+static void toggle_button(ButtonW* button) {
+    if (button->is_active) {
+        deactivate_button(button);
+    } else {
+        activate_button(button);
+    }
 }
 
 static void cool_down_input(InputW* input) {
@@ -184,27 +203,31 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     hot_entity = ecs_get_parent_with_component(
         hot_entity, GUI_WIDGET_COMPONENT, 1
     );
-    GUIWidget* w = ecs_get_gui_widget(hot_entity);
-    args->hot_widget = w == NULL ? &NULL_WIDGET : w;
 
-    if (args->active_widget->type == GUI_WIDGET_INPUT) {
+    GUIWidget* w = ecs_get_gui_widget(hot_entity);
+    GUIWidget* hot_widget = w == NULL ? &NULL_WIDGET : w;
+
+    if (args->active_input != NULL) {
         if (window_check_if_mouse_pressed()) {
-            cool_down_input(args->active_widget->pointer);
-            args->active_widget = &NULL_WIDGET;
+            cool_down_input(args->active_input);
+            args->active_input = NULL;
         } else if (window_check_if_lmb_keep_holding()) {
         }
     }
 
-    if (args->hot_widget->type == GUI_WIDGET_BUTTON) {
-        ButtonW* hot_button = (ButtonW*)args->hot_widget->pointer;
+    if (hot_widget->type == GUI_WIDGET_BUTTON) {
+        ButtonW* hot_button = (ButtonW*)hot_widget->pointer;
         if (window_check_if_lmb_released()) {
-            hot_button->is_active ^= 1;
-            if (hot_button->is_active) {
-                cool_down_button(hot_button);
-            } else {
-                activate_button(hot_button);
-            }
+            toggle_button(hot_button);
+        } else {
+            cool_down_button(args->hot_button);
+            heat_up_button(hot_button);
+            args->hot_button = hot_button;
         }
+    }
+
+    if (is_cursor_on_gui) {
+        window_clear_input();
     }
 #if 0
     
@@ -275,8 +298,8 @@ EditorGUIControllerArgs editor_gui_controller_create_default_args(
 ) {
     EditorGUIControllerArgs args = {0};
     args.overlay_buffer = overlay_buffer;
-    args.active_widget = &NULL_WIDGET;
-    args.hot_widget = &NULL_WIDGET;
+    args.hot_button = NULL;
+    args.active_input = NULL;
     return args;
 }
 
