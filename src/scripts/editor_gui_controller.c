@@ -224,24 +224,22 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
             heat_up_button(hot_button);
             args->hot_button = hot_button;
         }
+    } else if (hot_widget->type == GUI_WIDGET_INPUT) {
+        InputW* hot_input = (InputW*)hot_widget->pointer;
+        heat_up_input(hot_input);
+        if (window_check_if_lmb_pressed()) {
+            args->active_input = hot_input;
+            int x = (int)(INPUT.cursor_x * args->overlay_buffer->width);
+            int loc = get_input_char_loc(args->active_input, x);
+            activate_input(args->active_input);
+            place_input_cursor_at(args->active_input, loc);
+        }
     }
 
     if (is_cursor_on_gui) {
         window_clear_input();
     }
 #if 0
-    
-
-    if (widget->type == GUI_WIDGET_BUTTON) {
-        args->hot_button = (ButtonW*)widget->pointer;
-        if (INPUT.mouse_released == GLFW_MOUSE_BUTTON_LEFT) {
-            cool_down_button(args->active_button);
-            if (args->active_button != args->hot_button) {
-                args->active_button = args->hot_button;
-            } else {
-                args->active_button = 0;
-            }
-        }
     } else if (widget->type == GUI_WIDGET_INPUT) {
         args->hot_input = (InputW*)widget->pointer;
         int is_active_input_selection_expanding
