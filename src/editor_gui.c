@@ -117,7 +117,6 @@ static ButtonW* create_button(
         text_cold_color,
         -1
     );
-    button->is_active = 0;
     button->rect_cold_color = rect_cold_color;
     button->rect_hot_color = rect_hot_color;
     button->rect_active_color = rect_active_color;
@@ -296,6 +295,49 @@ static PaneW* create_test_pane() {
     );
 
     return pane;
+}
+
+void button_set_hot_color(ButtonW* button) {
+    if (button == NULL)
+        return;
+    GUIRect* rect = ecs_get_gui_rect(button->rect);
+    GUIText* text = ecs_get_gui_text(button->text);
+    rect->color = button->rect_hot_color;
+    text->color = button->text_hot_color;
+}
+
+void button_set_cold_color(ButtonW* button) {
+    if (button == NULL)
+        return;
+    GUIRect* rect = ecs_get_gui_rect(button->rect);
+    GUIText* text = ecs_get_gui_text(button->text);
+    rect->color = button->rect_cold_color;
+    text->color = button->text_cold_color;
+}
+
+void button_set_active_color(ButtonW* button) {
+    if (button == NULL)
+        return;
+    GUIRect* rect = ecs_get_gui_rect(button->rect);
+    GUIText* text = ecs_get_gui_text(button->text);
+    rect->color = button->rect_active_color;
+    text->color = button->text_active_color;
+}
+
+void input_set_hot_color(InputW* input) {}
+
+void input_set_cold_color(InputW* input) {
+    if (input == NULL)
+        return;
+    ecs_disable_component(input->cursor_rect, GUI_RECT_COMPONENT);
+    ecs_disable_component(input->selection_rect, GUI_RECT_COMPONENT);
+}
+
+void input_set_active_color(InputW* input) {
+    if (input == NULL)
+        return;
+    ecs_enable_component(input->cursor_rect, GUI_RECT_COMPONENT);
+    ecs_enable_component(input->selection_rect, GUI_RECT_COMPONENT);
 }
 
 void editor_gui_create() {

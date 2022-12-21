@@ -6,70 +6,49 @@
 #include "../window.h"
 #include <GLFW/glfw3.h>
 
-static void cool_down_button(ButtonW* button) {
-    if (button == NULL || button->is_active)
-        return;
-    GUIRect* rect = ecs_get_gui_rect(button->rect);
-    GUIText* text = ecs_get_gui_text(button->text);
-    rect->color = button->rect_cold_color;
-    text->color = button->text_cold_color;
+static void heat_up_new_button(
+    EditorGUIControllerArgs* ctx, ButtonW* button
+) {
+    if (ctx->hot_button != ctx->active_button) {
+        button_set_cold_color(ctx->hot_button);
+    }
+    if (ctx->active_button != button) {
+        button_set_hot_color(button);
+    }
+    ctx->hot_button = button;
 }
 
-static void heat_up_button(ButtonW* button) {
-    if (button == NULL || button->is_active)
-        return;
-    GUIRect* rect = ecs_get_gui_rect(button->rect);
-    GUIText* text = ecs_get_gui_text(button->text);
-    rect->color = button->rect_hot_color;
-    text->color = button->text_hot_color;
+static void activate_new_button(
+    EditorGUIControllerArgs* ctx, ButtonW* button
+) {
+    button_set_cold_color(ctx->active_button);
+    button_set_active_color(button);
+    ctx->active_button = button;
 }
 
-static void activate_button(ButtonW* button) {
-    if (button == NULL)
-        return;
-    GUIRect* rect = ecs_get_gui_rect(button->rect);
-    GUIText* text = ecs_get_gui_text(button->text);
-    rect->color = button->rect_active_color;
-    text->color = button->text_active_color;
-    button->is_active = 1;
-}
-
-static void deactivate_button(ButtonW* button) {
-    if (button == NULL)
-        return;
-    GUIRect* rect = ecs_get_gui_rect(button->rect);
-    GUIText* text = ecs_get_gui_text(button->text);
-    rect->color = button->rect_hot_color;
-    text->color = button->text_hot_color;
-    button->is_active = 0;
-}
-
-static void toggle_button(ButtonW* button) {
-    if (button->is_active) {
-        deactivate_button(button);
+static void toggle_current_hot_button(EditorGUIControllerArgs* ctx) {
+    if (ctx->hot_button == ctx->active_button) {
+        activate_new_button(ctx, NULL);
     } else {
-        activate_button(button);
+        activate_new_button(ctx, ctx->hot_button);
     }
 }
 
-static void cool_down_input(InputW* input) {
-    if (input == NULL)
-        return;
-    ecs_disable_component(input->cursor_rect, GUI_RECT_COMPONENT);
-    ecs_disable_component(input->selection_rect, GUI_RECT_COMPONENT);
-}
-
-static void heat_up_input(InputW* input) {
-    if (input == NULL)
-        return;
-    window_set_text_input_cursor();
-}
-
-static void activate_input(InputW* input) {
-    if (input == NULL)
-        return;
-    ecs_enable_component(input->cursor_rect, GUI_RECT_COMPONENT);
-    ecs_enable_component(input->selection_rect, GUI_RECT_COMPONENT);
+static void heat_up_new_input(
+    EditorGUIControllerArgs* ctx, InputW* input
+) {
+    if (ctx->hot_input != ctx->active_input) {
+        input_set_cold_color(ctx->hot_input);
+    }
+    if (ctx->active_input != input) {
+        input_set_hot_color(input);
+    }
+    ctx->hot_input = input;
+    if (ctx->hot_input != NULL) {
+        window_set_text_input_cursor();
+    } else {
+        window_set_default_cursor();
+    }
 }
 
 static void place_input_cursor_at(InputW* input, size_t char_loc) {
@@ -83,7 +62,37 @@ static void place_input_cursor_at(InputW* input, size_t char_loc) {
                                                  * input->glyph_width;
 }
 
-static void move_input_cursor_n_steps(InputW* input, int n) {
+static int get_input_char_loc(InputW* input, int cursor_x) {
+    GUIText* input_text = ecs_get_gui_text(input->input_text);
+    Vec3 text_world_pos = ecs_get_world_position(input->input_text);
+    int loc = round(
+        (cursor_x - text_world_pos.data[0]) / input->glyph_width
+    );
+    loc = min(input_text->n_chars, max(0, loc));
+    return loc;
+}
+
+static void activate_new_input(
+    EditorGUIControllerArgs* ctx, InputW* input, int cursor_x
+) {
+    input_set_cold_color(ctx->active_input);
+    input_set_active_color(input);
+    ctx->active_input = input;
+
+    if (ctx->active_input == NULL)
+        return;
+
+    int loc = get_input_char_loc(ctx->active_input, cursor_x);
+    place_input_cursor_at(ctx->active_input, loc);
+}
+
+static void move_active_input_cursor_n_steps(
+    EditorGUIControllerArgs* ctx, int n
+) {
+    InputW* input = ctx->active_input;
+    if (input == NULL)
+        return;
+
     Transformation* cursor_transformation = ecs_get_transformation(
         input->cursor_rect
     );
@@ -95,7 +104,11 @@ static void move_input_cursor_n_steps(InputW* input, int n) {
     place_input_cursor_at(input, new_loc);
 }
 
-static void remove_input_char(InputW* input) {
+static void remove_char_in_active_input(EditorGUIControllerArgs* ctx) {
+    InputW* input = ctx->active_input;
+    if (input == NULL)
+        return;
+
     GUIText* input_text = ecs_get_gui_text(input->input_text);
     GUIRect* selection_rect = ecs_get_gui_rect(input->selection_rect);
     Transformation* text_transformation = ecs_get_transformation(
@@ -113,7 +126,7 @@ static void remove_input_char(InputW* input) {
         place_input_cursor_at(input, x + w);
         selection_rect->width = 0;
         for (size_t i = 0; i < w - 1; ++i) {
-            remove_input_char(input);
+            remove_char_in_active_input(ctx);
         }
     }
 
@@ -130,13 +143,19 @@ static void remove_input_char(InputW* input) {
         input_text->char_inds[i] = input_text->char_inds[i + 1];
     }
     input_text->n_chars--;
-    move_input_cursor_n_steps(input, -1);
+    move_active_input_cursor_n_steps(ctx, -1);
 }
 
-static void insert_input_char(InputW* input, char c) {
+static void insert_char_in_active_input(
+    EditorGUIControllerArgs* ctx, char c
+) {
+    InputW* input = ctx->active_input;
+    if (input == NULL)
+        return;
+
     GUIRect* selection_rect = ecs_get_gui_rect(input->selection_rect);
     if (selection_rect->width > 0) {
-        remove_input_char(input);
+        remove_char_in_active_input(ctx);
     }
 
     GUIRect* input_rect = ecs_get_gui_rect(input->input_rect);
@@ -165,10 +184,16 @@ static void insert_input_char(InputW* input, char c) {
     }
     input_text->char_inds[curr_loc] = c;
     input_text->n_chars++;
-    move_input_cursor_n_steps(input, 1);
+    move_active_input_cursor_n_steps(ctx, 1);
 }
 
-static void expand_input_selection_to(InputW* input, size_t char_loc) {
+static void expand_active_input_selection_to(
+    EditorGUIControllerArgs* ctx, int cursor_x
+) {
+    InputW* input = ctx->active_input;
+    if (input == NULL)
+        return;
+
     Transformation* cursor_transformation = ecs_get_transformation(
         input->cursor_rect
     );
@@ -178,25 +203,21 @@ static void expand_input_selection_to(InputW* input, size_t char_loc) {
     GUIRect* selection_rect = ecs_get_gui_rect(input->selection_rect);
     int cursor_loc = cursor_transformation->translation.data[0]
                      / input->glyph_width;
-    float x1 = char_loc * input->glyph_width;
+
+    int loc = get_input_char_loc(input, cursor_x);
+    float x1 = loc * input->glyph_width;
     float x2 = cursor_transformation->translation.data[0];
     selection_transformation->translation.data[0] = min(x1, x2);
     selection_rect->width = max(x1, x2) - min(x1, x2);
 }
 
-int get_input_char_loc(InputW* input, float x) {
-    GUIText* input_text = ecs_get_gui_text(input->input_text);
-    Vec3 text_world_pos = ecs_get_world_position(input->input_text);
-    int loc = round((x - text_world_pos.data[0]) / input->glyph_width);
-    return min(input_text->n_chars, max(0, loc));
-}
-
 static void editor_gui_controller_update(size_t _, void* args_p) {
-    EditorGUIControllerArgs* args = (EditorGUIControllerArgs*)(args_p);
+    EditorGUIControllerArgs* ctx = (EditorGUIControllerArgs*)(args_p);
     window_set_default_cursor();
 
+    int cursor_x = (int)(INPUT.cursor_x * ctx->overlay_buffer->width);
     int hot_entity = overlay_buffer_get_entity_id_at_cursor(
-        args->overlay_buffer
+        ctx->overlay_buffer
     );
     int is_cursor_on_gui = hot_entity != -1;
     int hot_tag = ecs_get_tag(hot_entity);
@@ -207,32 +228,34 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     GUIWidget* w = ecs_get_gui_widget(hot_entity);
     GUIWidget* hot_widget = w == NULL ? &NULL_WIDGET : w;
 
-    if (args->active_input != NULL) {
-        if (window_check_if_mouse_pressed()) {
-            cool_down_input(args->active_input);
-            args->active_input = NULL;
-        } else if (window_check_if_lmb_keep_holding()) {
-        }
+    heat_up_new_button(ctx, NULL);
+    heat_up_new_input(ctx, NULL);
+
+    if (window_check_if_mouse_pressed()) {
+        activate_new_input(ctx, NULL, 0);
+    } else if (window_check_if_lmb_keep_holding()) {
+        expand_active_input_selection_to(ctx, cursor_x);
+    } else if (window_check_if_backspace_should_be_printed()) {
+        remove_char_in_active_input(ctx);
+    } else if (window_check_if_left_should_be_printed()) {
+        move_active_input_cursor_n_steps(ctx, -1);
+    } else if (window_check_if_right_should_be_printed()) {
+        move_active_input_cursor_n_steps(ctx, 1);
+    } else if (window_check_if_key_should_be_printed()) {
+        insert_char_in_active_input(ctx, INPUT.key_holding);
     }
 
     if (hot_widget->type == GUI_WIDGET_BUTTON) {
         ButtonW* hot_button = (ButtonW*)hot_widget->pointer;
+        heat_up_new_button(ctx, hot_button);
         if (window_check_if_lmb_released()) {
-            toggle_button(hot_button);
-        } else {
-            cool_down_button(args->hot_button);
-            heat_up_button(hot_button);
-            args->hot_button = hot_button;
+            toggle_current_hot_button(ctx);
         }
     } else if (hot_widget->type == GUI_WIDGET_INPUT) {
         InputW* hot_input = (InputW*)hot_widget->pointer;
-        heat_up_input(hot_input);
+        heat_up_new_input(ctx, hot_input);
         if (window_check_if_lmb_pressed()) {
-            args->active_input = hot_input;
-            int x = (int)(INPUT.cursor_x * args->overlay_buffer->width);
-            int loc = get_input_char_loc(args->active_input, x);
-            activate_input(args->active_input);
-            place_input_cursor_at(args->active_input, loc);
+            activate_new_input(ctx, hot_input, cursor_x);
         }
     }
 
@@ -240,43 +263,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
         window_clear_input();
     }
 #if 0
-    } else if (widget->type == GUI_WIDGET_INPUT) {
-        args->hot_input = (InputW*)widget->pointer;
-        int is_active_input_selection_expanding
-            = args->active_input != NULL
-              && INPUT.mouse_holding == GLFW_MOUSE_BUTTON_LEFT;
-
-        if (INPUT.mouse_pressed == GLFW_MOUSE_BUTTON_LEFT) {
-            if (args->active_input != args->hot_input) {
-                cool_down_input(args->active_input);
-                args->active_input = args->hot_input;
-            }
-            int loc = get_input_char_loc(args->active_input, x);
-            place_input_cursor_at(args->active_input, loc);
-        } else if (is_active_input_selection_expanding) {
-            int loc = get_input_char_loc(args->active_input, x);
-            expand_input_selection_to(args->active_input, loc);
-        }
-    }
-
-    int is_active_input_cooling_down = args->active_input != NULL
-                                       && args->active_input
-                                              != args->hot_input
-                                       && INPUT.mouse_pressed != -1;
-    int is_active_input_processing_key = args->active_input != NULL
-                                         && (INPUT.key_pressed >= 0
-                                             || INPUT.key_repeating >= 0);
-
     if (is_active_input_processing_key) {
-        if (INPUT.key_holding == GLFW_KEY_BACKSPACE) {
-            remove_input_char(args->active_input);
-        } else if (INPUT.key_holding == GLFW_KEY_LEFT) {
-            move_input_cursor_n_steps(args->active_input, -1);
-        } else if (INPUT.key_holding == GLFW_KEY_RIGHT) {
-            move_input_cursor_n_steps(args->active_input, 1);
-        } else {
-            insert_input_char(args->active_input, INPUT.key_holding);
-        }
     } else if (is_active_input_cooling_down) {
         cool_down_input(args->active_input);
         args->hot_input = NULL;
@@ -297,6 +284,8 @@ EditorGUIControllerArgs editor_gui_controller_create_default_args(
     EditorGUIControllerArgs args = {0};
     args.overlay_buffer = overlay_buffer;
     args.hot_button = NULL;
+    args.active_button = NULL;
+    args.hot_input = NULL;
     args.active_input = NULL;
     return args;
 }

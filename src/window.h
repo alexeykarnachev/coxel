@@ -33,6 +33,10 @@ int window_check_if_mouse_pressed();
 int window_check_if_lmb_pressed();
 int window_check_if_lmb_released();
 int window_check_if_lmb_keep_holding();
+int window_check_if_backspace_should_be_printed();
+int window_check_if_left_should_be_printed();
+int window_check_if_right_should_be_printed();
+int window_check_if_key_should_be_printed();
 
 bool window_create(size_t width, size_t height);
 void window_set_drag_cursor();

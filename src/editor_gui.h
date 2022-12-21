@@ -25,8 +25,6 @@ typedef struct ButtonW {
     size_t rect;
     size_t text;
 
-    int is_active;
-
     Vec3 text_cold_color;
     Vec3 text_hot_color;
     Vec3 text_active_color;
@@ -47,3 +45,9 @@ typedef struct InputW {
 } InputW;
 
 void editor_gui_create();
+void button_set_hot_color(ButtonW* button);
+void button_set_cold_color(ButtonW* button);
+void button_set_active_color(ButtonW* button);
+void input_set_hot_color(InputW* input);
+void input_set_cold_color(InputW* input);
+void input_set_active_color(InputW* input);

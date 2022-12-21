@@ -43,6 +43,25 @@ int window_check_if_lmb_keep_holding() {
            && INPUT.mouse_holding == GLFW_MOUSE_BUTTON_LEFT;
 }
 
+int window_check_if_backspace_should_be_printed() {
+    return (INPUT.key_repeating == GLFW_KEY_BACKSPACE)
+           || (INPUT.key_pressed == GLFW_KEY_BACKSPACE);
+}
+
+int window_check_if_left_should_be_printed() {
+    return (INPUT.key_repeating == GLFW_KEY_LEFT)
+           || (INPUT.key_pressed == GLFW_KEY_LEFT);
+}
+
+int window_check_if_right_should_be_printed() {
+    return (INPUT.key_repeating == GLFW_KEY_RIGHT)
+           || (INPUT.key_pressed == GLFW_KEY_RIGHT);
+}
+
+int window_check_if_key_should_be_printed() {
+    return (INPUT.key_repeating != -1) || (INPUT.key_pressed != -1);
+}
+
 static void mouse_button_callback(
     GLFWwindow* window, int button, int action, int mods
 ) {

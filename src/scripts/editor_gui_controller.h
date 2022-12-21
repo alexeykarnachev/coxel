@@ -7,6 +7,8 @@ typedef struct EditorGUIControllerArgs {
     OverlayBuffer* overlay_buffer;
 
     ButtonW* hot_button;
+    ButtonW* active_button;
+    InputW* hot_input;
     InputW* active_input;
 } EditorGUIControllerArgs;
 
