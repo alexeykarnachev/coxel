@@ -225,12 +225,15 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
         hot_entity, GUI_WIDGET_COMPONENT, 1
     );
 
+    // Get widget which the mouse is pointing on
     GUIWidget* w = ecs_get_gui_widget(hot_entity);
     GUIWidget* hot_widget = w == NULL ? &NULL_WIDGET : w;
 
+    // Cool down hot elements
     heat_up_new_button(ctx, NULL);
     heat_up_new_input(ctx, NULL);
 
+    // Process user input from keyboard and mouse
     if (window_check_if_mouse_pressed()) {
         activate_new_input(ctx, NULL, 0);
     } else if (window_check_if_lmb_keep_holding()) {
@@ -245,6 +248,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
         insert_char_in_active_input(ctx, INPUT.key_holding);
     }
 
+    // Process hot widget
     if (hot_widget->type == GUI_WIDGET_BUTTON) {
         ButtonW* hot_button = (ButtonW*)hot_widget->pointer;
         heat_up_new_button(ctx, hot_button);
@@ -262,20 +266,6 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     if (is_cursor_on_gui) {
         window_clear_input();
     }
-#if 0
-    if (is_active_input_processing_key) {
-    } else if (is_active_input_cooling_down) {
-        cool_down_input(args->active_input);
-        args->hot_input = NULL;
-        args->active_input = NULL;
-    }
-
-    heat_up_button(args->hot_button);
-    activate_button(args->active_button);
-    heat_up_input(args->hot_input);
-    activate_input(args->active_input);
-    window_clear_input();
-#endif
 }
 
 EditorGUIControllerArgs editor_gui_controller_create_default_args(
