@@ -10,6 +10,8 @@ typedef struct EditorGUIControllerArgs {
     ButtonW* active_button;
     InputW* hot_input;
     InputW* active_input;
+    PaneW* hot_pane;
+    PaneW* active_pane;
 } EditorGUIControllerArgs;
 
 EditorGUIControllerArgs editor_gui_controller_create_default_args(

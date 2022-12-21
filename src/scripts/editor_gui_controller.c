@@ -18,19 +18,13 @@ static void heat_up_new_button(
     ctx->hot_button = button;
 }
 
-static void activate_new_button(
-    EditorGUIControllerArgs* ctx, ButtonW* button
-) {
-    button_set_cold_color(ctx->active_button);
-    button_set_active_color(button);
-    ctx->active_button = button;
-}
-
 static void toggle_current_hot_button(EditorGUIControllerArgs* ctx) {
-    if (ctx->hot_button == ctx->active_button) {
-        activate_new_button(ctx, NULL);
+    button_set_cold_color(ctx->active_button);
+    if (ctx->hot_button != ctx->active_button) {
+        button_set_active_color(ctx->hot_button);
+        ctx->active_button = ctx->hot_button;
     } else {
-        activate_new_button(ctx, ctx->hot_button);
+        ctx->active_button = NULL;
     }
 }
 
@@ -72,12 +66,12 @@ static int get_input_char_loc(InputW* input, int cursor_x) {
     return loc;
 }
 
-static void activate_new_input(
-    EditorGUIControllerArgs* ctx, InputW* input, int cursor_x
+static void activate_current_hot_input(
+    EditorGUIControllerArgs* ctx, int cursor_x
 ) {
     input_set_cold_color(ctx->active_input);
-    input_set_active_color(input);
-    ctx->active_input = input;
+    input_set_active_color(ctx->hot_input);
+    ctx->active_input = ctx->hot_input;
 
     if (ctx->active_input == NULL)
         return;
@@ -211,11 +205,33 @@ static void expand_active_input_selection_to(
     selection_rect->width = max(x1, x2) - min(x1, x2);
 }
 
+static void heat_up_new_pane(EditorGUIControllerArgs* ctx, PaneW* pane) {
+    ctx->hot_pane = pane;
+}
+
+static void activate_current_hot_pane(EditorGUIControllerArgs* ctx) {
+    ctx->active_pane = ctx->hot_pane;
+
+    if (ctx->active_pane == NULL)
+        return;
+}
+
+static void resize_active_pane_to(
+    EditorGUIControllerArgs* ctx, int cursor_x, int cursor_y
+) {
+    PaneW* pane = ctx->active_pane;
+    if (pane == NULL)
+        return;
+
+    pane_resize_by_lower_right(pane, cursor_x, cursor_y);
+}
+
 static void editor_gui_controller_update(size_t _, void* args_p) {
     EditorGUIControllerArgs* ctx = (EditorGUIControllerArgs*)(args_p);
     window_set_default_cursor();
 
     int cursor_x = (int)(INPUT.cursor_x * ctx->overlay_buffer->width);
+    int cursor_y = (int)(INPUT.cursor_y * ctx->overlay_buffer->height);
     int hot_entity = overlay_buffer_get_entity_id_at_cursor(
         ctx->overlay_buffer
     );
@@ -229,15 +245,29 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     GUIWidget* w = ecs_get_gui_widget(hot_entity);
     GUIWidget* hot_widget = w == NULL ? &NULL_WIDGET : w;
 
-    // Cool down hot elements
+    // Cool down all widgets
     heat_up_new_button(ctx, NULL);
     heat_up_new_input(ctx, NULL);
+    heat_up_new_pane(ctx, NULL);
+
+    // Heat up mouse hovered widget
+    if (hot_widget->type == GUI_WIDGET_BUTTON) {
+        heat_up_new_button(ctx, (ButtonW*)hot_widget->pointer);
+    } else if (hot_widget->type == GUI_WIDGET_INPUT) {
+        heat_up_new_input(ctx, (InputW*)hot_widget->pointer);
+    } else if (hot_widget->type == GUI_WIDGET_PANE && hot_tag == GUI_TAG_RESIZE) {
+        heat_up_new_pane(ctx, (PaneW*)hot_widget->pointer);
+    }
 
     // Process user input from keyboard and mouse
-    if (window_check_if_mouse_pressed()) {
-        activate_new_input(ctx, NULL, 0);
-    } else if (window_check_if_lmb_keep_holding()) {
+    if (window_check_if_lmb_keep_holding()) {
+        resize_active_pane_to(ctx, cursor_x, cursor_y);
         expand_active_input_selection_to(ctx, cursor_x);
+    } else if (window_check_if_lmb_released()) {
+        toggle_current_hot_button(ctx);
+    } else if (window_check_if_lmb_pressed()) {
+        activate_current_hot_pane(ctx);
+        activate_current_hot_input(ctx, cursor_x);
     } else if (window_check_if_backspace_should_be_printed()) {
         remove_char_in_active_input(ctx);
     } else if (window_check_if_left_should_be_printed()) {
@@ -248,24 +278,9 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
         insert_char_in_active_input(ctx, INPUT.key_holding);
     }
 
-    // Process hot widget
-    if (hot_widget->type == GUI_WIDGET_BUTTON) {
-        ButtonW* hot_button = (ButtonW*)hot_widget->pointer;
-        heat_up_new_button(ctx, hot_button);
-        if (window_check_if_lmb_released()) {
-            toggle_current_hot_button(ctx);
-        }
-    } else if (hot_widget->type == GUI_WIDGET_INPUT) {
-        InputW* hot_input = (InputW*)hot_widget->pointer;
-        heat_up_new_input(ctx, hot_input);
-        if (window_check_if_lmb_pressed()) {
-            activate_new_input(ctx, hot_input, cursor_x);
-        }
-    }
-
-    if (is_cursor_on_gui) {
+    // Aufheben window inputs if gui has been interacted
+    if (is_cursor_on_gui)
         window_clear_input();
-    }
 }
 
 EditorGUIControllerArgs editor_gui_controller_create_default_args(
@@ -277,6 +292,8 @@ EditorGUIControllerArgs editor_gui_controller_create_default_args(
     args.active_button = NULL;
     args.hot_input = NULL;
     args.active_input = NULL;
+    args.hot_pane = NULL;
+    args.active_pane = NULL;
     return args;
 }
 

@@ -72,12 +72,28 @@ static size_t create_text(
 GUI widgets: pane, button, text input, ...
 */
 static PaneW* create_pane(
-    size_t x, size_t y, size_t width, size_t height, Vec4 color
+    size_t x,
+    size_t y,
+    size_t width,
+    size_t height,
+    Vec4 rect_color,
+    Vec4 resize_rect_color
 ) {
-    size_t rect = create_rect(-1, x, y, width, height, color, -1);
+    size_t resize_rect_size = 10;
+    size_t rect = create_rect(-1, x, y, width, height, rect_color, -1);
+    size_t resize_rect = create_rect(
+        rect,
+        width - resize_rect_size,
+        height - resize_rect_size,
+        resize_rect_size,
+        resize_rect_size,
+        resize_rect_color,
+        GUI_TAG_RESIZE
+    );
 
     PaneW* pane = &PANES[N_PANES++];
     pane->rect = rect;
+    pane->resize_rect = resize_rect;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
     widget->pointer = pane;
@@ -204,7 +220,14 @@ static InputW* create_input(
 Pane presets
 */
 static PaneW* create_test_pane() {
-    PaneW* pane = create_pane(10, 10, 200, 600, vec4(0.1, 0.1, 0.1, 0.9));
+    PaneW* pane = create_pane(
+        10,
+        10,
+        200,
+        600,
+        vec4(0.1, 0.1, 0.1, 0.9),
+        vec4(0.5, 0.5, 0.5, 1.0)
+    );
 
     create_button(
         pane->rect,
@@ -342,4 +365,18 @@ void input_set_active_color(InputW* input) {
 
 void editor_gui_create() {
     create_test_pane();
+}
+
+void pane_resize_by_lower_right(PaneW* pane, size_t x, size_t y) {
+    Transformation* t = ecs_get_transformation(pane->rect);
+    Transformation* resize_t = ecs_get_transformation(pane->resize_rect);
+    GUIRect* rect = ecs_get_gui_rect(pane->rect);
+    GUIRect* resize_rect = ecs_get_gui_rect(pane->resize_rect);
+    int width = x - t->translation.data[0];
+    int height = INPUT.window_height - y - t->translation.data[1];
+    rect->width = width;
+    rect->height = height;
+
+    resize_t->translation.data[0] = width - resize_rect->width;
+    resize_t->translation.data[1] = height - resize_rect->height;
 }
