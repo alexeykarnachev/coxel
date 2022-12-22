@@ -26,8 +26,8 @@ static size_t create_rect(
     int parent,
     int x,
     int y,
-    size_t width,
-    size_t height,
+    float width,
+    float height,
     Vec4 color,
     int tag
 ) {
@@ -74,8 +74,8 @@ GUI widgets: pane, button, text input, ...
 static PaneW* create_pane(
     size_t x,
     size_t y,
-    size_t width,
-    size_t height,
+    float width,
+    float height,
     Vec4 rect_color,
     Vec4 resize_rect_color
 ) {
@@ -223,8 +223,8 @@ static PaneW* create_test_pane() {
     PaneW* pane = create_pane(
         10,
         10,
-        200,
-        600,
+        200.0,
+        600.0,
         vec4(0.1, 0.1, 0.1, 0.9),
         vec4(0.5, 0.5, 0.5, 1.0)
     );
@@ -367,16 +367,13 @@ void editor_gui_create() {
     create_test_pane();
 }
 
-void pane_resize_by_lower_right(PaneW* pane, size_t x, size_t y) {
-    Transformation* t = ecs_get_transformation(pane->rect);
-    Transformation* resize_t = ecs_get_transformation(pane->resize_rect);
+void pane_resize_by_lower_right(PaneW* pane, float dx, float dy) {
     GUIRect* rect = ecs_get_gui_rect(pane->rect);
-    GUIRect* resize_rect = ecs_get_gui_rect(pane->resize_rect);
-    int width = x - t->translation.data[0];
-    int height = INPUT.window_height - y - t->translation.data[1];
-    rect->width = width;
-    rect->height = height;
+    rect->width += dx;
+    rect->height += dy;
 
-    resize_t->translation.data[0] = width - resize_rect->width;
-    resize_t->translation.data[1] = height - resize_rect->height;
+    GUIRect* resize_rect = ecs_get_gui_rect(pane->resize_rect);
+    Transformation* resize_t = ecs_get_transformation(pane->resize_rect);
+    resize_t->translation.data[0] = rect->width - resize_rect->width;
+    resize_t->translation.data[1] = rect->height - resize_rect->height;
 }

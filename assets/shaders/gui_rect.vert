@@ -1,6 +1,6 @@
 uniform mat4 world_mat;
-uniform int width;
-uniform int height;
+uniform float width;
+uniform float height;
 uniform int buffer_width;
 uniform int buffer_height;
 
@@ -18,8 +18,8 @@ void main() {
 
     float x = world_mat[3][0] / float(buffer_width);
     float y = (float(buffer_height) - world_mat[3][1]) / float(buffer_height);
-    float w = float(width) / float(buffer_width);
-    float h = float(height) / float(buffer_height);
+    float w = width / float(buffer_width);
+    float h = height / float(buffer_height);
 
     float x0 = (x * 2.0) - 1.0;
     float y0 = (y * 2.0) - 1.0;

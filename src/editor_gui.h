@@ -56,4 +56,4 @@ void button_set_active_color(ButtonW* button);
 void input_set_hot_color(InputW* input);
 void input_set_cold_color(InputW* input);
 void input_set_active_color(InputW* input);
-void pane_resize_by_lower_right(PaneW* pane, size_t x, size_t y);
+void pane_resize_by_lower_right(PaneW* pane, float dx, float dy);

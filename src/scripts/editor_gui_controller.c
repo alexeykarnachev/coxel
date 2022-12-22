@@ -216,14 +216,14 @@ static void activate_current_hot_pane(EditorGUIControllerArgs* ctx) {
         return;
 }
 
-static void resize_active_pane_to(
-    EditorGUIControllerArgs* ctx, int cursor_x, int cursor_y
+static void resize_active_pane(
+    EditorGUIControllerArgs* ctx, float cursor_dx, float cursor_dy
 ) {
     PaneW* pane = ctx->active_pane;
     if (pane == NULL)
         return;
 
-    pane_resize_by_lower_right(pane, cursor_x, cursor_y);
+    pane_resize_by_lower_right(pane, cursor_dx, cursor_dy);
 }
 
 static void editor_gui_controller_update(size_t _, void* args_p) {
@@ -231,7 +231,8 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     window_set_default_cursor();
 
     int cursor_x = (int)(INPUT.cursor_x * ctx->overlay_buffer->width);
-    int cursor_y = (int)(INPUT.cursor_y * ctx->overlay_buffer->height);
+    float cursor_dx = INPUT.cursor_dx * ctx->overlay_buffer->width;
+    float cursor_dy = INPUT.cursor_dy * ctx->overlay_buffer->height;
     int hot_entity = overlay_buffer_get_entity_id_at_cursor(
         ctx->overlay_buffer
     );
@@ -261,7 +262,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
 
     // Process user input from keyboard and mouse
     if (window_check_if_lmb_keep_holding()) {
-        resize_active_pane_to(ctx, cursor_x, cursor_y);
+        resize_active_pane(ctx, cursor_dx, -cursor_dy);
         expand_active_input_selection_to(ctx, cursor_x);
     } else if (window_check_if_lmb_released()) {
         toggle_current_hot_button(ctx);

@@ -308,8 +308,8 @@ static void render_overlay_buffer(
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true
         );
-        program_set_uniform_1i(program, "width", rect->width);
-        program_set_uniform_1i(program, "height", rect->height);
+        program_set_uniform_1f(program, "width", rect->width);
+        program_set_uniform_1f(program, "height", rect->height);
         program_set_uniform_4fv(program, "color", rect->color.data, 1);
         program_set_uniform_1i(program, "buffer_width", buffer_width);
         program_set_uniform_1i(program, "buffer_height", buffer_height);
