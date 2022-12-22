@@ -77,23 +77,36 @@ static PaneW* create_pane(
     float width,
     float height,
     Vec4 rect_color,
-    Vec4 resize_rect_color
+    Vec4 handle_rect_color
 ) {
     size_t resize_rect_size = 10;
-    size_t rect = create_rect(-1, x, y, width, height, rect_color, -1);
+    size_t drag_rect_size = 10;
+    size_t pane_rect = create_rect(
+        -1, x, y, width, height, rect_color, -1
+    );
     size_t resize_rect = create_rect(
-        rect,
+        pane_rect,
         width - resize_rect_size,
         height - resize_rect_size,
         resize_rect_size,
         resize_rect_size,
-        resize_rect_color,
+        handle_rect_color,
         GUI_TAG_RESIZE
+    );
+    size_t drag_rect = create_rect(
+        pane_rect,
+        0,
+        0,
+        width,
+        drag_rect_size,
+        handle_rect_color,
+        GUI_TAG_DRAG
     );
 
     PaneW* pane = &PANES[N_PANES++];
-    pane->rect = rect;
+    pane->rect = pane_rect;
     pane->resize_rect = resize_rect;
+    pane->drag_rect = drag_rect;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
     widget->pointer = pane;
@@ -367,7 +380,7 @@ void editor_gui_create() {
     create_test_pane();
 }
 
-void pane_resize_by_lower_right(PaneW* pane, float dx, float dy) {
+void pane_resize(PaneW* pane, float dx, float dy) {
     GUIRect* rect = ecs_get_gui_rect(pane->rect);
     rect->width += dx;
     rect->height += dy;
@@ -376,4 +389,13 @@ void pane_resize_by_lower_right(PaneW* pane, float dx, float dy) {
     Transformation* resize_t = ecs_get_transformation(pane->resize_rect);
     resize_t->translation.data[0] = rect->width - resize_rect->width;
     resize_t->translation.data[1] = rect->height - resize_rect->height;
+
+    GUIRect* drag_rect = ecs_get_gui_rect(pane->drag_rect);
+    drag_rect->width = rect->width;
+}
+
+void pane_drag(PaneW* pane, float dx, float dy) {
+    Transformation* pane_t = ecs_get_transformation(pane->rect);
+    pane_t->translation.data[0] += dx;
+    pane_t->translation.data[1] += dy;
 }

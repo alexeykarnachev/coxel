@@ -17,13 +17,15 @@ typedef struct GUIWidget {
 enum GUITag {
     GUI_TAG_CURSOR = 1 << 0,
     GUI_TAG_SELECTION = 1 << 1,
-    GUI_TAG_RESIZE = 1 << 2
+    GUI_TAG_RESIZE = 1 << 2,
+    GUI_TAG_DRAG = 1 << 3
 };
 extern GUIWidget NULL_WIDGET;
 
 typedef struct PaneW {
     size_t rect;
     size_t resize_rect;
+    size_t drag_rect;
 } PaneW;
 
 typedef struct ButtonW {
@@ -56,4 +58,5 @@ void button_set_active_color(ButtonW* button);
 void input_set_hot_color(InputW* input);
 void input_set_cold_color(InputW* input);
 void input_set_active_color(InputW* input);
-void pane_resize_by_lower_right(PaneW* pane, float dx, float dy);
+void pane_resize(PaneW* pane, float dx, float dy);
+void pane_drag(PaneW* pane, float dx, float dy);

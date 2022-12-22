@@ -223,7 +223,17 @@ static void resize_active_pane(
     if (pane == NULL)
         return;
 
-    pane_resize_by_lower_right(pane, cursor_dx, cursor_dy);
+    pane_resize(pane, cursor_dx, cursor_dy);
+}
+
+static void drag_active_pane(
+    EditorGUIControllerArgs* ctx, float cursor_dx, float cursor_dy
+) {
+    PaneW* pane = ctx->active_pane;
+    if (pane == NULL)
+        return;
+
+    pane_drag(pane, cursor_dx, cursor_dy);
 }
 
 static void editor_gui_controller_update(size_t _, void* args_p) {
@@ -238,31 +248,40 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
     );
     int is_cursor_on_gui = hot_entity != -1;
     int hot_tag = ecs_get_tag(hot_entity);
-    hot_entity = ecs_get_parent_with_component(
-        hot_entity, GUI_WIDGET_COMPONENT, 1
-    );
 
-    // Get widget which the mouse is pointing on
-    GUIWidget* w = ecs_get_gui_widget(hot_entity);
-    GUIWidget* hot_widget = w == NULL ? &NULL_WIDGET : w;
+    // Heat up stuff only if mouse btn is not holding
+    if (!window_check_if_mouse_holding()) {
+        ctx->last_hot_tag = hot_tag != 0 ? hot_tag : ctx->last_hot_tag;
+        hot_entity = ecs_get_parent_with_component(
+            hot_entity, GUI_WIDGET_COMPONENT, 1
+        );
 
-    // Cool down all widgets
-    heat_up_new_button(ctx, NULL);
-    heat_up_new_input(ctx, NULL);
-    heat_up_new_pane(ctx, NULL);
+        // Get widget which the mouse is pointing on
+        GUIWidget* w = ecs_get_gui_widget(hot_entity);
+        GUIWidget* hot_widget = w == NULL ? &NULL_WIDGET : w;
 
-    // Heat up mouse hovered widget
-    if (hot_widget->type == GUI_WIDGET_BUTTON) {
-        heat_up_new_button(ctx, (ButtonW*)hot_widget->pointer);
-    } else if (hot_widget->type == GUI_WIDGET_INPUT) {
-        heat_up_new_input(ctx, (InputW*)hot_widget->pointer);
-    } else if (hot_widget->type == GUI_WIDGET_PANE && hot_tag == GUI_TAG_RESIZE) {
-        heat_up_new_pane(ctx, (PaneW*)hot_widget->pointer);
+        // Cool down all widgets
+        heat_up_new_button(ctx, NULL);
+        heat_up_new_input(ctx, NULL);
+        heat_up_new_pane(ctx, NULL);
+
+        // Heat up mouse hovered widget
+        if (hot_widget->type == GUI_WIDGET_BUTTON) {
+            heat_up_new_button(ctx, (ButtonW*)hot_widget->pointer);
+        } else if (hot_widget->type == GUI_WIDGET_INPUT) {
+            heat_up_new_input(ctx, (InputW*)hot_widget->pointer);
+        } else if (hot_widget->type == GUI_WIDGET_PANE) {
+            heat_up_new_pane(ctx, (PaneW*)hot_widget->pointer);
+        }
     }
 
     // Process user input from keyboard and mouse
     if (window_check_if_lmb_keep_holding()) {
-        resize_active_pane(ctx, cursor_dx, -cursor_dy);
+        if (ctx->last_hot_tag == GUI_TAG_RESIZE) {
+            resize_active_pane(ctx, cursor_dx, -cursor_dy);
+        } else if (ctx->last_hot_tag == GUI_TAG_DRAG) {
+            drag_active_pane(ctx, cursor_dx, -cursor_dy);
+        }
         expand_active_input_selection_to(ctx, cursor_x);
     } else if (window_check_if_lmb_released()) {
         toggle_current_hot_button(ctx);
@@ -288,6 +307,9 @@ EditorGUIControllerArgs editor_gui_controller_create_default_args(
     OverlayBuffer* overlay_buffer
 ) {
     EditorGUIControllerArgs args = {0};
+
+    args.last_hot_tag = 0;
+
     args.overlay_buffer = overlay_buffer;
     args.hot_button = NULL;
     args.active_button = NULL;
