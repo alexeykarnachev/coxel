@@ -76,6 +76,7 @@ static void activate_current_hot_input(
     if (ctx->active_input == NULL)
         return;
 
+    window_set_text_input_cursor();
     int loc = get_input_char_loc(ctx->active_input, cursor_x);
     place_input_cursor_at(ctx->active_input, loc);
 }
@@ -188,6 +189,7 @@ static void expand_active_input_selection_to(
     if (input == NULL)
         return;
 
+    window_set_text_input_cursor();
     Transformation* cursor_transformation = ecs_get_transformation(
         input->cursor_rect
     );
