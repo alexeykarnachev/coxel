@@ -131,12 +131,12 @@ static PaneW* create_pane(
     );
 
     PaneW* pane = &PANES[N_PANES++];
+    pane->width = width;
+    pane->height = height;
     pane->rect = pane_rect;
     pane->resize_rect = resize_rect;
     pane->drag_rect = drag_rect;
     pane->scroll_rect = scroll_rect;
-    pane->min_width = handles_size * 3;
-    pane->min_height = handles_size * 3;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
     widget->pointer = pane;
@@ -441,9 +441,10 @@ void pane_resize(PaneW* pane, float dx, float dy) {
     GUIRect* drag_rect = ecs_get_gui_rect(pane->drag_rect);
     drag_rect->width += dx;
 
+    float width_ratio = min(1.0, rect->width / pane->width);
+    float height_ratio = min(1.0, rect->height / pane->height);
     GUIRect* scroll_rect = ecs_get_gui_rect(pane->scroll_rect);
-    scroll_rect->height += dy;
-
+    scroll_rect->height = rect->height * height_ratio;
     Transformation* scroll_t = ecs_get_transformation(pane->scroll_rect);
     scroll_t->translation.data[0] = rect->width - scroll_rect->width;
 }

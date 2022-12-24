@@ -25,13 +25,13 @@ enum GUITag {
 extern GUIWidget NULL_WIDGET;
 
 typedef struct PaneW {
+    float width;
+    float height;
+
     size_t rect;
     size_t resize_rect;
     size_t drag_rect;
     size_t scroll_rect;
-
-    float min_width;
-    float min_height;
 } PaneW;
 
 typedef struct ButtonW {
