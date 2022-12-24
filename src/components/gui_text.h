@@ -5,6 +5,7 @@
 #include "stddef.h"
 
 typedef struct GUIText {
+    int layer;
     size_t n_chars;
     size_t font_height;
     Vec3 color;
@@ -12,5 +13,5 @@ typedef struct GUIText {
 } GUIText;
 
 GUIText* gui_text_create(
-    unsigned char* text, Vec3 color, size_t font_height
+    unsigned char* text, int layer, Vec3 color, size_t font_height
 );

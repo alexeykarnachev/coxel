@@ -29,6 +29,7 @@ static void render_overlay_buffer(
 static void set_uniform_camera(GLuint program);
 static void set_uniform_point_lights(GLuint program);
 static void set_uniform_material(GLuint program, Material* material);
+static void apply_parent_pane_scisor(int entity, size_t buffer_height);
 
 int renderer_create(
     Renderer* renderer,
@@ -89,7 +90,6 @@ int renderer_update(Renderer* renderer) {
     render_gbuffer();
 
     // Terget: overlay buffer
-    glDisable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->overlay_buffer.fbo);
     glViewport(
         0,
@@ -304,18 +304,23 @@ static void render_overlay_buffer(
         size_t entity = GUI_RECT_ENTITIES[i];
         GUIRect* rect = ecs_get_gui_rect(entity);
 
+        glEnable(GL_SCISSOR_TEST);
+        apply_parent_pane_scisor(entity, buffer_height);
+
         Mat4 world_mat = ecs_get_world_mat(entity);
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true
         );
         program_set_uniform_1f(program, "width", rect->width);
         program_set_uniform_1f(program, "height", rect->height);
+        program_set_uniform_1i(program, "layer", rect->layer);
         program_set_uniform_4fv(program, "color", rect->color.data, 1);
         program_set_uniform_1i(program, "buffer_width", buffer_width);
         program_set_uniform_1i(program, "buffer_height", buffer_height);
         program_set_uniform_1i(program, "entity_id", entity);
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glDisable(GL_SCISSOR_TEST);
     }
 
     // ----------------------------------------------
@@ -330,9 +335,13 @@ static void render_overlay_buffer(
         Mat4 world_mat = ecs_get_world_mat(entity);
         GUIText* text = (GUIText*)COMPONENTS[GUI_TEXT_COMPONENT][entity];
 
+        glEnable(GL_SCISSOR_TEST);
+        apply_parent_pane_scisor(entity, buffer_height);
+
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true
         );
+        program_set_uniform_1i(program, "layer", text->layer);
         program_set_uniform_1i(program, "font_height", text->font_height);
         program_set_uniform_1i(program, "buffer_width", buffer_width);
         program_set_uniform_1i(program, "buffer_height", buffer_height);
@@ -340,7 +349,9 @@ static void render_overlay_buffer(
             program, "char_inds", text->char_inds, text->n_chars
         );
         program_set_uniform_3fv(program, "color", text->color.data, 1);
+
         glDrawArrays(GL_TRIANGLES, 0, 6 * text->n_chars);
+        glDisable(GL_SCISSOR_TEST);
     }
 }
 
@@ -414,4 +425,18 @@ static void set_uniform_material(GLuint program, Material* material) {
     program_set_uniform_1f(
         program, "material.specular", material->specular
     );
+}
+
+static void apply_parent_pane_scisor(int entity, size_t buffer_height) {
+    int pane_entity = ecs_get_parent_with_tag(entity, GUI_TAG_PANE, 0);
+    if (pane_entity == -1)
+        return;
+
+    GUIRect* pane_rect = ecs_get_gui_rect(pane_entity);
+    Transformation* pane_t = ecs_get_transformation(pane_entity);
+    float width = pane_rect->width;
+    float height = pane_rect->height;
+    float x = pane_t->translation.data[0];
+    float y = buffer_height - pane_t->translation.data[1] - height;
+    glScissor(x, y, width, height);
 }

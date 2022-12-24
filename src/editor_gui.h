@@ -15,10 +15,12 @@ typedef struct GUIWidget {
 } GUIWidget;
 
 enum GUITag {
-    GUI_TAG_CURSOR = 1 << 0,
-    GUI_TAG_SELECTION = 1 << 1,
-    GUI_TAG_RESIZE = 1 << 2,
-    GUI_TAG_DRAG = 1 << 3
+    GUI_TAG_PANE = 1 << 0,
+    GUI_TAG_CURSOR = 1 << 1,
+    GUI_TAG_SELECTION = 1 << 2,
+    GUI_TAG_RESIZE = 1 << 3,
+    GUI_TAG_DRAG = 1 << 4,
+    GUI_TAG_SCROLL = 1 << 5
 };
 extern GUIWidget NULL_WIDGET;
 
@@ -26,6 +28,10 @@ typedef struct PaneW {
     size_t rect;
     size_t resize_rect;
     size_t drag_rect;
+    size_t scroll_rect;
+
+    float min_width;
+    float min_height;
 } PaneW;
 
 typedef struct ButtonW {

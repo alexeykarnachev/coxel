@@ -4,7 +4,7 @@ static GUIText GUI_TEXTS_ARENA[1 << 14];
 static size_t N_GUI_TEXTS = 0;
 
 GUIText* gui_text_create(
-    unsigned char* text, Vec3 color, size_t font_height
+    unsigned char* text, int layer, Vec3 color, size_t font_height
 ) {
     GUIText* gui_text = &GUI_TEXTS_ARENA[N_GUI_TEXTS++];
 
@@ -13,6 +13,7 @@ GUIText* gui_text_create(
         gui_text->char_inds[i] = text[i];
     }
 
+    gui_text->layer = layer;
     gui_text->color = color;
     gui_text->n_chars = n_chars;
     gui_text->font_height = font_height;

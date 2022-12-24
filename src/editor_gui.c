@@ -17,6 +17,16 @@ static size_t N_BUTTONS = 0;
 static size_t N_INPUTS = 0;
 static size_t N_WIDGETS = 0;
 
+enum LAYER {
+    LAYER_HANDLE,
+    LAYER_TEXT,
+    LAYER_BUTTON,
+    LAYER_SELECTION,
+    LAYER_CURSOR,
+    LAYER_INPUT,
+    LAYER_PANE
+};
+
 GUIWidget NULL_WIDGET = {NULL, GUI_WIDGET_NULL};
 
 /*
@@ -26,6 +36,7 @@ static size_t create_rect(
     int parent,
     int x,
     int y,
+    int layer,
     float width,
     float height,
     Vec4 color,
@@ -33,7 +44,9 @@ static size_t create_rect(
 ) {
     size_t rect = ecs_create_entity(parent);
     ecs_add_component(
-        rect, GUI_RECT_COMPONENT, gui_rect_create(width, height, color)
+        rect,
+        GUI_RECT_COMPONENT,
+        gui_rect_create(width, height, layer, color)
     );
     ecs_add_component(
         rect,
@@ -50,13 +63,16 @@ static size_t create_text(
     char* label,
     int x,
     int y,
+    int layer,
     size_t font_size,
     Vec3 color,
     int tag
 ) {
     size_t text = ecs_create_entity(parent);
     ecs_add_component(
-        text, GUI_TEXT_COMPONENT, gui_text_create(label, color, font_size)
+        text,
+        GUI_TEXT_COMPONENT,
+        gui_text_create(label, layer, color, font_size)
     );
     ecs_add_component(
         text,
@@ -79,17 +95,17 @@ static PaneW* create_pane(
     Vec4 rect_color,
     Vec4 handle_rect_color
 ) {
-    size_t resize_rect_size = 10;
-    size_t drag_rect_size = 10;
+    size_t handles_size = 10;
     size_t pane_rect = create_rect(
-        -1, x, y, width, height, rect_color, -1
+        -1, x, y, LAYER_PANE, width, height, rect_color, GUI_TAG_PANE
     );
     size_t resize_rect = create_rect(
         pane_rect,
-        width - resize_rect_size,
-        height - resize_rect_size,
-        resize_rect_size,
-        resize_rect_size,
+        width - handles_size,
+        height - handles_size,
+        LAYER_HANDLE,
+        handles_size,
+        handles_size,
         handle_rect_color,
         GUI_TAG_RESIZE
     );
@@ -97,16 +113,30 @@ static PaneW* create_pane(
         pane_rect,
         0,
         0,
+        LAYER_HANDLE,
         width,
-        drag_rect_size,
+        handles_size,
         handle_rect_color,
         GUI_TAG_DRAG
+    );
+    size_t scroll_rect = create_rect(
+        pane_rect,
+        width - handles_size,
+        handles_size * 1.5,
+        LAYER_HANDLE,
+        handles_size,
+        height - handles_size * 3,
+        handle_rect_color,
+        GUI_TAG_SCROLL
     );
 
     PaneW* pane = &PANES[N_PANES++];
     pane->rect = pane_rect;
     pane->resize_rect = resize_rect;
     pane->drag_rect = drag_rect;
+    pane->scroll_rect = scroll_rect;
+    pane->min_width = handles_size * 3;
+    pane->min_height = handles_size * 3;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
     widget->pointer = pane;
@@ -116,7 +146,7 @@ static PaneW* create_pane(
 }
 
 static ButtonW* create_button(
-    int parent,
+    PaneW* pane,
     char* text,
     size_t x,
     size_t y,
@@ -135,13 +165,14 @@ static ButtonW* create_button(
 
     ButtonW* button = &BUTTONS[N_BUTTONS++];
     button->rect = create_rect(
-        parent, x, y, width, height, rect_cold_color, -1
+        pane->rect, x, y, LAYER_BUTTON, width, height, rect_cold_color, -1
     );
     button->text = create_text(
         button->rect,
         text,
         (width - text_width) / 2,
         (height - font_size) / 2,
+        LAYER_TEXT,
         font_size,
         text_cold_color,
         -1
@@ -178,13 +209,21 @@ static InputW* create_input(
     size_t input_rect_hight = font_size + border_width * 2;
 
     size_t input_rect = create_rect(
-        parent, x, y, width, input_rect_hight, input_rect_color, -1
+        parent,
+        x,
+        y,
+        LAYER_INPUT,
+        width,
+        input_rect_hight,
+        input_rect_color,
+        -1
     );
     size_t label_text = create_text(
         input_rect,
         label,
         -(strlen(label) * input_char_width) - border_width,
         (input_rect_hight - font_size) / 2,
+        LAYER_TEXT,
         font_size,
         text_color,
         -1
@@ -194,17 +233,26 @@ static InputW* create_input(
         "TEST!",
         border_width,
         (input_rect_hight - font_size) / 2,
+        LAYER_TEXT,
         font_size,
         text_color,
         -1
     );
     size_t selection_rect = create_rect(
-        input_text, 0, 0, 0, font_size, selection_color, GUI_TAG_SELECTION
+        input_text,
+        0,
+        0,
+        LAYER_SELECTION,
+        0,
+        font_size,
+        selection_color,
+        GUI_TAG_SELECTION
     );
     size_t cursor_rect = create_rect(
         input_text,
         0,
         0,
+        LAYER_CURSOR,
         cursor_width,
         font_size,
         cursor_color,
@@ -243,7 +291,7 @@ static PaneW* create_test_pane() {
     );
 
     create_button(
-        pane->rect,
+        pane,
         "test_button_0",
         10,
         10,
@@ -258,7 +306,7 @@ static PaneW* create_test_pane() {
         vec3(0.2, 0.2, 0.2)
     );
     create_button(
-        pane->rect,
+        pane,
         "test_button_1",
         10,
         70,
@@ -273,7 +321,7 @@ static PaneW* create_test_pane() {
         vec3(0.2, 0.2, 0.2)
     );
     create_button(
-        pane->rect,
+        pane,
         "test_button_2",
         10,
         130,
@@ -391,7 +439,13 @@ void pane_resize(PaneW* pane, float dx, float dy) {
     resize_t->translation.data[1] = rect->height - resize_rect->height;
 
     GUIRect* drag_rect = ecs_get_gui_rect(pane->drag_rect);
-    drag_rect->width = rect->width;
+    drag_rect->width += dx;
+
+    GUIRect* scroll_rect = ecs_get_gui_rect(pane->scroll_rect);
+    scroll_rect->height += dy;
+
+    Transformation* scroll_t = ecs_get_transformation(pane->scroll_rect);
+    scroll_t->translation.data[0] = rect->width - scroll_rect->width;
 }
 
 void pane_drag(PaneW* pane, float dx, float dy) {

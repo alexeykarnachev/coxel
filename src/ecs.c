@@ -175,16 +175,31 @@ int ecs_is_component_enabled(int entity, COMPONENT_TYPE type) {
 int ecs_get_parent_with_component(
     int entity, COMPONENT_TYPE type, int allow_self
 ) {
+    if (entity == -1) {
+        return -1;
+    }
+
     int is_enabled = ecs_is_component_enabled(entity, type);
     if (allow_self && is_enabled) {
         return entity;
     }
 
     int parent = ENTITIES[entity].parent_id;
-    if (parent == -1 || is_enabled) {
-        return parent;
+    return ecs_get_parent_with_component(parent, type, 1);
+}
+
+int ecs_get_parent_with_tag(int entity, int tag, int allow_self) {
+    if (entity == -1) {
+        return -1;
     }
-    return ecs_get_parent_with_component(parent, type, allow_self);
+
+    int this_tag = ecs_get_tag(entity);
+    if (allow_self && this_tag == tag) {
+        return entity;
+    }
+
+    int parent = ENTITIES[entity].parent_id;
+    return ecs_get_parent_with_tag(parent, tag, 1);
 }
 
 void ecs_set_tag(int entity, int tag) {
