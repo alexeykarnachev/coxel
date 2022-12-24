@@ -17,6 +17,8 @@ static size_t N_BUTTONS = 0;
 static size_t N_INPUTS = 0;
 static size_t N_WIDGETS = 0;
 
+static size_t HANDLES_SIZE = 10;
+
 enum LAYER {
     LAYER_HANDLE,
     LAYER_TEXT,
@@ -95,17 +97,16 @@ static PaneW* create_pane(
     Vec4 rect_color,
     Vec4 handle_rect_color
 ) {
-    size_t handles_size = 10;
     size_t pane_rect = create_rect(
         -1, x, y, LAYER_PANE, width, height, rect_color, GUI_TAG_PANE
     );
     size_t resize_rect = create_rect(
         pane_rect,
-        width - handles_size,
-        height - handles_size,
+        width - HANDLES_SIZE,
+        height - HANDLES_SIZE,
         LAYER_HANDLE,
-        handles_size,
-        handles_size,
+        HANDLES_SIZE,
+        HANDLES_SIZE,
         handle_rect_color,
         GUI_TAG_RESIZE
     );
@@ -115,17 +116,27 @@ static PaneW* create_pane(
         0,
         LAYER_HANDLE,
         width,
-        handles_size,
+        HANDLES_SIZE,
         handle_rect_color,
         GUI_TAG_DRAG
     );
-    size_t scroll_rect = create_rect(
+    size_t scroll_h_rect = create_rect(
         pane_rect,
-        width - handles_size,
-        handles_size * 1.5,
+        HANDLES_SIZE * 0.5,
+        height - HANDLES_SIZE,
         LAYER_HANDLE,
-        handles_size,
-        height - handles_size * 3,
+        width - HANDLES_SIZE * 2,
+        HANDLES_SIZE,
+        handle_rect_color,
+        GUI_TAG_SCROLL
+    );
+    size_t scroll_v_rect = create_rect(
+        pane_rect,
+        width - HANDLES_SIZE,
+        HANDLES_SIZE * 1.5,
+        LAYER_HANDLE,
+        HANDLES_SIZE,
+        height - HANDLES_SIZE * 3,
         handle_rect_color,
         GUI_TAG_SCROLL
     );
@@ -136,7 +147,8 @@ static PaneW* create_pane(
     pane->rect = pane_rect;
     pane->resize_rect = resize_rect;
     pane->drag_rect = drag_rect;
-    pane->scroll_rect = scroll_rect;
+    pane->scroll_h_rect = scroll_h_rect;
+    pane->scroll_v_rect = scroll_v_rect;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
     widget->pointer = pane;
@@ -441,12 +453,20 @@ void pane_resize(PaneW* pane, float dx, float dy) {
     GUIRect* drag_rect = ecs_get_gui_rect(pane->drag_rect);
     drag_rect->width += dx;
 
-    float width_ratio = min(1.0, rect->width / pane->width);
     float height_ratio = min(1.0, rect->height / pane->height);
-    GUIRect* scroll_rect = ecs_get_gui_rect(pane->scroll_rect);
-    scroll_rect->height = rect->height * height_ratio;
-    Transformation* scroll_t = ecs_get_transformation(pane->scroll_rect);
-    scroll_t->translation.data[0] = rect->width - scroll_rect->width;
+    GUIRect* scroll_v_rect = ecs_get_gui_rect(pane->scroll_v_rect);
+    scroll_v_rect->height = (rect->height - 3 * HANDLES_SIZE)
+                            * height_ratio;
+    Transformation* scroll_v_t = ecs_get_transformation(pane->scroll_v_rect
+    );
+    scroll_v_t->translation.data[0] = rect->width - scroll_v_rect->width;
+
+    float width_ratio = min(1.0, rect->width / pane->width);
+    GUIRect* scroll_h_rect = ecs_get_gui_rect(pane->scroll_h_rect);
+    scroll_h_rect->width = (rect->width - 2 * HANDLES_SIZE) * width_ratio;
+    Transformation* scroll_h_t = ecs_get_transformation(pane->scroll_h_rect
+    );
+    scroll_h_t->translation.data[1] = rect->height - scroll_h_rect->height;
 }
 
 void pane_drag(PaneW* pane, float dx, float dy) {

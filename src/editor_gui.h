@@ -31,7 +31,8 @@ typedef struct PaneW {
     size_t rect;
     size_t resize_rect;
     size_t drag_rect;
-    size_t scroll_rect;
+    size_t scroll_h_rect;
+    size_t scroll_v_rect;
 } PaneW;
 
 typedef struct ButtonW {
