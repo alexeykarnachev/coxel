@@ -20,7 +20,8 @@ enum GUITag {
     GUI_TAG_SELECTION = 1 << 2,
     GUI_TAG_RESIZE = 1 << 3,
     GUI_TAG_DRAG = 1 << 4,
-    GUI_TAG_SCROLL = 1 << 5
+    GUI_TAG_SCROLL_H = 1 << 5,
+    GUI_TAG_SCROLL_V = 1 << 6
 };
 extern GUIWidget NULL_WIDGET;
 
@@ -67,3 +68,4 @@ void input_set_cold_color(InputW* input);
 void input_set_active_color(InputW* input);
 void pane_resize(PaneW* pane, float dx, float dy);
 void pane_drag(PaneW* pane, float dx, float dy);
+void pane_scroll(PaneW* pane, float dx, float dy);

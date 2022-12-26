@@ -238,6 +238,16 @@ static void drag_active_pane(
     pane_drag(pane, cursor_dx, cursor_dy);
 }
 
+static void scroll_active_pane(
+    EditorGUIControllerArgs* ctx, float cursor_dx, float cursor_dy
+) {
+    PaneW* pane = ctx->active_pane;
+    if (pane == NULL)
+        return;
+
+    pane_scroll(pane, cursor_dx, cursor_dy);
+}
+
 static void editor_gui_controller_update(size_t _, void* args_p) {
     EditorGUIControllerArgs* ctx = (EditorGUIControllerArgs*)(args_p);
     window_set_default_cursor();
@@ -283,6 +293,10 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
             resize_active_pane(ctx, cursor_dx, -cursor_dy);
         } else if (ctx->last_hot_tag == GUI_TAG_DRAG) {
             drag_active_pane(ctx, cursor_dx, -cursor_dy);
+        } else if (ctx->last_hot_tag == GUI_TAG_SCROLL_V) {
+            scroll_active_pane(ctx, 0, -cursor_dy);
+        } else if (ctx->last_hot_tag == GUI_TAG_SCROLL_H) {
+            scroll_active_pane(ctx, cursor_dx, 0);
         }
         expand_active_input_selection_to(ctx, cursor_x);
     } else if (window_check_if_lmb_released()) {

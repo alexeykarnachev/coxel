@@ -128,7 +128,7 @@ static PaneW* create_pane(
         width - HANDLES_SIZE * 2,
         HANDLES_SIZE,
         handle_rect_color,
-        GUI_TAG_SCROLL
+        GUI_TAG_SCROLL_H
     );
     size_t scroll_v_rect = create_rect(
         pane_rect,
@@ -138,7 +138,7 @@ static PaneW* create_pane(
         HANDLES_SIZE,
         height - HANDLES_SIZE * 3,
         handle_rect_color,
-        GUI_TAG_SCROLL
+        GUI_TAG_SCROLL_V
     );
 
     PaneW* pane = &PANES[N_PANES++];
@@ -473,4 +473,32 @@ void pane_drag(PaneW* pane, float dx, float dy) {
     Transformation* pane_t = ecs_get_transformation(pane->rect);
     pane_t->translation.data[0] += dx;
     pane_t->translation.data[1] += dy;
+}
+
+void pane_scroll(PaneW* pane, float dx, float dy) {
+    GUIRect* pane_rect = ecs_get_gui_rect(pane->rect);
+
+    if (dx != 0) {
+        GUIRect* rect = ecs_get_gui_rect(pane->scroll_h_rect);
+        Transformation* t = ecs_get_transformation(pane->scroll_h_rect);
+        float pos = t->translation.data[0];
+        pos += dx;
+        pos = min(
+            pos, pane_rect->width - rect->width - 1.5 * HANDLES_SIZE
+        );
+        pos = max(pos, 0 + 0.5 * HANDLES_SIZE);
+        t->translation.data[0] = pos;
+    }
+
+    if (dy != 0) {
+        GUIRect* rect = ecs_get_gui_rect(pane->scroll_v_rect);
+        Transformation* t = ecs_get_transformation(pane->scroll_v_rect);
+        float pos = t->translation.data[1];
+        pos += dy;
+        pos = min(
+            pos, pane_rect->height - rect->height - 1.5 * HANDLES_SIZE
+        );
+        pos = max(pos, 0 + 1.5 * HANDLES_SIZE);
+        t->translation.data[1] = pos;
+    }
 }
