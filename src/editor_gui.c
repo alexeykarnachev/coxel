@@ -389,6 +389,21 @@ static PaneW* create_test_pane() {
         vec4(0.5, 0.2, 0.0, 1.0),
         vec4(1.0, 1.0, 1.0, 1.0)
     );
+    create_button(
+        pane,
+        "LOWER BUTTON",
+        10,
+        537,
+        180,
+        50,
+        24,
+        vec4(0.2, 0.2, 0.2, 1.0),
+        vec4(0.3, 0.3, 0.3, 1.0),
+        vec4(0.8, 0.8, 0.8, 1.0),
+        vec3(0.8, 0.8, 0.8),
+        vec3(0.8, 0.8, 0.8),
+        vec3(0.2, 0.2, 0.2)
+    );
 
     return pane;
 }
@@ -444,6 +459,8 @@ void pane_resize(PaneW* pane, float dx, float dy) {
     GUIRect* rect = ecs_get_gui_rect(pane->rect);
     rect->width += dx;
     rect->height += dy;
+    rect->view_x_offset = 0;
+    rect->view_y_offset = 0;
 
     GUIRect* resize_rect = ecs_get_gui_rect(pane->resize_rect);
     Transformation* resize_t = ecs_get_transformation(pane->resize_rect);
@@ -460,12 +477,14 @@ void pane_resize(PaneW* pane, float dx, float dy) {
     Transformation* scroll_v_t = ecs_get_transformation(pane->scroll_v_rect
     );
     scroll_v_t->translation.data[0] = rect->width - scroll_v_rect->width;
+    scroll_v_t->translation.data[1] = 1.5 * HANDLES_SIZE;
 
     float width_ratio = min(1.0, rect->width / pane->width);
     GUIRect* scroll_h_rect = ecs_get_gui_rect(pane->scroll_h_rect);
     scroll_h_rect->width = (rect->width - 2 * HANDLES_SIZE) * width_ratio;
     Transformation* scroll_h_t = ecs_get_transformation(pane->scroll_h_rect
     );
+    scroll_h_t->translation.data[0] = 0.5 * HANDLES_SIZE;
     scroll_h_t->translation.data[1] = rect->height - scroll_h_rect->height;
 }
 
@@ -478,6 +497,7 @@ void pane_drag(PaneW* pane, float dx, float dy) {
 void pane_scroll(PaneW* pane, float dx, float dy) {
     GUIRect* pane_rect = ecs_get_gui_rect(pane->rect);
 
+    // TODO: Refactor these similar pieces
     if (dx != 0) {
         GUIRect* rect = ecs_get_gui_rect(pane->scroll_h_rect);
         Transformation* t = ecs_get_transformation(pane->scroll_h_rect);
@@ -487,7 +507,12 @@ void pane_scroll(PaneW* pane, float dx, float dy) {
             pos, pane_rect->width - rect->width - 1.5 * HANDLES_SIZE
         );
         pos = max(pos, 0 + 0.5 * HANDLES_SIZE);
-        t->translation.data[0] = pos;
+        float shift = pos - t->translation.data[0];
+        t->translation.data[0] += shift;
+
+        pane_rect->view_x_offset
+            = -pane->width * (t->translation.data[0] - 0.5 * HANDLES_SIZE)
+              / (pane_rect->width - 2.0 * HANDLES_SIZE);
     }
 
     if (dy != 0) {
@@ -499,6 +524,11 @@ void pane_scroll(PaneW* pane, float dx, float dy) {
             pos, pane_rect->height - rect->height - 1.5 * HANDLES_SIZE
         );
         pos = max(pos, 0 + 1.5 * HANDLES_SIZE);
-        t->translation.data[1] = pos;
+        float shift = pos - t->translation.data[1];
+        t->translation.data[1] += shift;
+
+        pane_rect->view_y_offset
+            = -pane->height * (t->translation.data[1] - 1.5 * HANDLES_SIZE)
+              / (pane_rect->height - 3.0 * HANDLES_SIZE);
     }
 }

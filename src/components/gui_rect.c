@@ -10,6 +10,8 @@ GUIRect* gui_rect_create(
 
     gui_rect->width = width;
     gui_rect->height = height;
+    gui_rect->view_y_offset = 0;
+    gui_rect->view_x_offset = 0;
     gui_rect->layer = layer;
     gui_rect->color = color;
 
