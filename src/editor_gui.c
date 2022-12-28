@@ -520,7 +520,10 @@ void pane_scroll(PaneW* pane, float dx, float dy) {
 void pane_resize(PaneW* pane, float dx, float dy) {
     GUIRect* rect = ecs_get_gui_rect(pane->rect);
     GUIRect* scroll_v_rect = ecs_get_gui_rect(pane->scroll_v_rect);
+    GUIRect* scroll_h_rect = ecs_get_gui_rect(pane->scroll_h_rect);
     Transformation* scroll_v_t = ecs_get_transformation(pane->scroll_v_rect
+    );
+    Transformation* scroll_h_t = ecs_get_transformation(pane->scroll_h_rect
     );
 
     float curr_scroll_v_max_shift = rect->height - scroll_v_rect->height
@@ -531,9 +534,17 @@ void pane_resize(PaneW* pane, float dx, float dy) {
                                ? curr_scroll_v_shift
                                      / curr_scroll_v_max_shift
                                : 0.0;
-    // float fog_v_ratio = scroll_v_ratio * (pane->height - rect->height) /
-    // pane->height;
     float fog_v = scroll_v_ratio * (pane->height - rect->height);
+
+    float curr_scroll_h_max_shift = rect->width - scroll_h_rect->width
+                                    - 2.0 * HANDLES_SIZE;
+    float curr_scroll_h_shift = scroll_h_t->translation.data[0]
+                                - 0.5 * HANDLES_SIZE;
+    float scroll_h_ratio = curr_scroll_h_max_shift != 0
+                               ? curr_scroll_h_shift
+                                     / curr_scroll_h_max_shift
+                               : 0.0;
+    float fog_h = scroll_h_ratio * (pane->width - rect->width);
 
     rect->width += dx;
     rect->height += dy;
@@ -546,11 +557,9 @@ void pane_resize(PaneW* pane, float dx, float dy) {
     drag_rect->width += dx;
 
     float height_ratio = min(1.0, rect->height / pane->height);
-
     scroll_v_rect->height = (rect->height - 3 * HANDLES_SIZE)
                             * height_ratio;
     scroll_v_t->translation.data[0] = rect->width - scroll_v_rect->width;
-
     scroll_v_t->translation.data[1] = 1.5 * HANDLES_SIZE;
     float new_scroll_v_max_shift = rect->height - scroll_v_rect->height
                                    - 3.0 * HANDLES_SIZE;
@@ -566,12 +575,21 @@ void pane_resize(PaneW* pane, float dx, float dy) {
     }
 
     float width_ratio = min(1.0, rect->width / pane->width);
-    GUIRect* scroll_h_rect = ecs_get_gui_rect(pane->scroll_h_rect);
     scroll_h_rect->width = (rect->width - 2 * HANDLES_SIZE) * width_ratio;
-    Transformation* scroll_h_t = ecs_get_transformation(pane->scroll_h_rect
-    );
     scroll_h_t->translation.data[0] = 0.5 * HANDLES_SIZE;
     scroll_h_t->translation.data[1] = rect->height - scroll_h_rect->height;
+    float new_scroll_h_max_shift = rect->width - scroll_h_rect->width
+                                   - 2.0 * HANDLES_SIZE;
+    if (pane->width > rect->width) {
+        float new_scroll_h_shift = new_scroll_h_max_shift * fog_h
+                                   / (pane->width - rect->width);
+        scroll_h_t->translation.data[0] += new_scroll_h_shift;
+        float overshoot = scroll_h_t->translation.data[0]
+                          - new_scroll_h_max_shift - 0.5 * HANDLES_SIZE;
+        if (overshoot > 0) {
+            pane_scroll(pane, overshoot, 0.0);
+        }
+    }
 }
 
 void pane_drag(PaneW* pane, float dx, float dy) {
