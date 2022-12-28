@@ -83,6 +83,7 @@ Vec4 mat4_vec3_mul(Mat4* m, Vec3* v);
 Mat3 mat3_transpose(Mat3* m);
 Mat4 mat4_transpose(Mat4* m);
 Mat4 mat4_inverse(Mat4* m);
+Mat4 mat4_translation(Vec3* translation);
 Mat4 get_world_mat(Vec3* scale, Mat3* rotation_mat, Vec3* translation);
 Mat4 get_perspective_projection_mat(
     float fov, float near, float far, float aspect

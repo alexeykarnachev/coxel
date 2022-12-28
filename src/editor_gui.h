@@ -29,8 +29,7 @@ typedef struct PaneW {
     float width;
     float height;
 
-    float view_y_offset;
-
+    size_t id;
     size_t rect;
     size_t resize_rect;
     size_t drag_rect;

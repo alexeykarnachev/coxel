@@ -4,8 +4,7 @@
 typedef struct GUIRect {
     float width;
     float height;
-    float view_x_offset;
-    float view_y_offset;
+
     int layer;
     Vec4 color;
 } GUIRect;

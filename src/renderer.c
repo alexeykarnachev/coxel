@@ -30,7 +30,6 @@ static void set_uniform_camera(GLuint program);
 static void set_uniform_point_lights(GLuint program);
 static void set_uniform_material(GLuint program, Material* material);
 static void apply_parent_pane_scisor(int entity, size_t buffer_height);
-static Mat4 get_parent_pane_view_offset(int entity);
 
 int renderer_create(
     Renderer* renderer,
@@ -307,10 +306,8 @@ static void render_overlay_buffer(
 
         glEnable(GL_SCISSOR_TEST);
         apply_parent_pane_scisor(entity, buffer_height);
-        Mat4 parent_pane_view_offset = get_parent_pane_view_offset(entity);
 
         Mat4 world_mat = ecs_get_world_mat(entity);
-        world_mat = mat4_mat4_mul(&world_mat, &parent_pane_view_offset);
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true
         );
@@ -339,10 +336,8 @@ static void render_overlay_buffer(
 
         glEnable(GL_SCISSOR_TEST);
         apply_parent_pane_scisor(entity, buffer_height);
-        Mat4 parent_pane_view_offset = get_parent_pane_view_offset(entity);
 
         Mat4 world_mat = ecs_get_world_mat(entity);
-        world_mat = mat4_mat4_mul(&world_mat, &parent_pane_view_offset);
         program_set_uniform_matrix_4fv(
             program, "world_mat", world_mat.data, 1, true
         );
@@ -444,41 +439,4 @@ static void apply_parent_pane_scisor(int entity, size_t buffer_height) {
     float x = pane_t->translation.data[0];
     float y = buffer_height - pane_t->translation.data[1] - height;
     glScissor(x, y, width, height);
-}
-
-static Mat4 get_parent_pane_view_offset(int entity) {
-    int tag = ecs_get_tag(entity);
-    int pane_entity = ecs_get_parent_with_tag(entity, GUI_TAG_PANE, 0);
-    float x;
-    float y;
-    // TODO: Refactor tags checking. non-scrollable tag??
-    if (pane_entity == -1 || tag == GUI_TAG_RESIZE || tag == GUI_TAG_DRAG
-        || tag == GUI_TAG_SCROLL_H || tag == GUI_TAG_SCROLL_V) {
-        x = 1;
-        y = 1;
-    } else {
-        GUIRect* pane_rect = ecs_get_gui_rect(pane_entity);
-        x = pane_rect->view_x_offset;
-        y = pane_rect->view_y_offset;
-    };
-
-    Mat4 mat = {
-        {1.0,
-         0.0,
-         0.0,
-         x,
-         0.0,
-         1.0,
-         0.0,
-         y,
-         0.0,
-         0.0,
-         1.0,
-         0.0,
-         0.0,
-         0.0,
-         0.0,
-         1.0}};
-
-    return mat;
 }

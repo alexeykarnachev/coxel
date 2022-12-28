@@ -493,6 +493,28 @@ Mat4 mat4_inverse(Mat4* m) {
     return res;
 }
 
+Mat4 mat4_translation(Vec3* translation) {
+    Mat4 m = {{
+        1.0,
+        0.0,
+        0.0,
+        translation->data[0],
+        0.0,
+        1.0,
+        0.0,
+        translation->data[1],
+        0.0,
+        0.0,
+        1.0,
+        translation->data[2],
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+    }};
+    return m;
+}
+
 Mat4 get_world_mat(Vec3* scale, Mat3* rotation_mat, Vec3* translation) {
     Mat3 scale_mat = {
         {scale->data[0],

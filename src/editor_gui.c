@@ -7,10 +7,11 @@
 #include "la.h"
 #include "window.h"
 
-static PaneW PANES[256];
+static PaneW PANES[16];
 static ButtonW BUTTONS[128];
 static InputW INPUTS[128];
-static GUIWidget WIDGETS[256];
+static GUIWidget WIDGETS[512];
+static size_t PARENT_PANES[512];
 
 static size_t N_PANES = 0;
 static size_t N_BUTTONS = 0;
@@ -141,7 +142,8 @@ static PaneW* create_pane(
         GUI_TAG_SCROLL_V
     );
 
-    PaneW* pane = &PANES[N_PANES++];
+    PaneW* pane = &PANES[N_PANES];
+    pane->id = N_PANES++;
     pane->width = width;
     pane->height = height;
     pane->rect = pane_rect;
@@ -455,29 +457,113 @@ void editor_gui_create() {
     create_test_pane();
 }
 
+void pane_scroll(PaneW* pane, float dx, float dy) {
+    GUIRect* pane_rect = ecs_get_gui_rect(pane->rect);
+
+    float x_shift = 0;
+    if (dx != 0) {
+        GUIRect* rect = ecs_get_gui_rect(pane->scroll_h_rect);
+        Transformation* t = ecs_get_transformation(pane->scroll_h_rect);
+        float start_pos = t->translation.data[0];
+        float max_pos = pane_rect->width - rect->width
+                        - 1.5 * HANDLES_SIZE;
+        float min_pos = 0.5 * HANDLES_SIZE;
+        float range = max_pos - min_pos;
+        if (range != 0) {
+            float curr_pos = max(min(start_pos + dx, max_pos), min_pos);
+            t->translation.data[0] = curr_pos;
+            x_shift = ((start_pos - curr_pos) / range)
+                      * (pane->width - pane_rect->width);
+        }
+    }
+
+    float y_shift = 0;
+    if (dy != 0) {
+        GUIRect* rect = ecs_get_gui_rect(pane->scroll_v_rect);
+        Transformation* t = ecs_get_transformation(pane->scroll_v_rect);
+        float start_pos = t->translation.data[1];
+        float max_pos = pane_rect->height - rect->height
+                        - 1.5 * HANDLES_SIZE;
+        float min_pos = 1.5 * HANDLES_SIZE;
+        float range = max_pos - min_pos;
+        if (range != 0) {
+            float curr_pos = max(min(start_pos + dy, max_pos), min_pos);
+            t->translation.data[1] = curr_pos;
+            y_shift = ((start_pos - curr_pos) / range)
+                      * (pane->height - pane_rect->height);
+        }
+    }
+
+    for (size_t i = 0; i < N_WIDGETS; ++i) {
+        GUIWidget widget = WIDGETS[i];
+        size_t parent_pane_id = PARENT_PANES[i];
+        if (parent_pane_id != pane->id) {
+            continue;
+        }
+
+        Transformation* t;
+        if (widget.type == GUI_WIDGET_BUTTON) {
+            ButtonW* button = (ButtonW*)widget.pointer;
+            t = ecs_get_transformation(button->rect);
+        } else if (widget.type == GUI_WIDGET_INPUT) {
+            InputW* input = (InputW*)widget.pointer;
+            t = ecs_get_transformation(input->input_rect);
+        } else {
+            continue;
+        }
+
+        t->translation.data[0] += x_shift;
+        t->translation.data[1] += y_shift;
+    }
+}
+
 void pane_resize(PaneW* pane, float dx, float dy) {
     GUIRect* rect = ecs_get_gui_rect(pane->rect);
+    GUIRect* scroll_v_rect = ecs_get_gui_rect(pane->scroll_v_rect);
+    Transformation* scroll_v_t = ecs_get_transformation(pane->scroll_v_rect
+    );
+
+    float curr_scroll_v_max_shift = rect->height - scroll_v_rect->height
+                                    - 3.0 * HANDLES_SIZE;
+    float curr_scroll_v_shift = scroll_v_t->translation.data[1]
+                                - 1.5 * HANDLES_SIZE;
+    float scroll_v_ratio = curr_scroll_v_max_shift != 0
+                               ? curr_scroll_v_shift
+                                     / curr_scroll_v_max_shift
+                               : 0.0;
+    // float fog_v_ratio = scroll_v_ratio * (pane->height - rect->height) /
+    // pane->height;
+    float fog_v = scroll_v_ratio * (pane->height - rect->height);
+
     rect->width += dx;
     rect->height += dy;
-    rect->view_x_offset = 0;
-    rect->view_y_offset = 0;
 
     GUIRect* resize_rect = ecs_get_gui_rect(pane->resize_rect);
     Transformation* resize_t = ecs_get_transformation(pane->resize_rect);
     resize_t->translation.data[0] = rect->width - resize_rect->width;
     resize_t->translation.data[1] = rect->height - resize_rect->height;
-
     GUIRect* drag_rect = ecs_get_gui_rect(pane->drag_rect);
     drag_rect->width += dx;
 
     float height_ratio = min(1.0, rect->height / pane->height);
-    GUIRect* scroll_v_rect = ecs_get_gui_rect(pane->scroll_v_rect);
+
     scroll_v_rect->height = (rect->height - 3 * HANDLES_SIZE)
                             * height_ratio;
-    Transformation* scroll_v_t = ecs_get_transformation(pane->scroll_v_rect
-    );
     scroll_v_t->translation.data[0] = rect->width - scroll_v_rect->width;
+
     scroll_v_t->translation.data[1] = 1.5 * HANDLES_SIZE;
+    float new_scroll_v_max_shift = rect->height - scroll_v_rect->height
+                                   - 3.0 * HANDLES_SIZE;
+    if (pane->height > rect->height) {
+        float new_scroll_v_shift = new_scroll_v_max_shift * fog_v
+                                   / (pane->height - rect->height);
+        scroll_v_t->translation.data[1] += new_scroll_v_shift;
+        float overshoot = scroll_v_t->translation.data[1]
+                          - new_scroll_v_max_shift - 1.5 * HANDLES_SIZE;
+        if (overshoot > 0) {
+            pane_scroll(pane, 0.0, overshoot);
+        }
+    }
 
     float width_ratio = min(1.0, rect->width / pane->width);
     GUIRect* scroll_h_rect = ecs_get_gui_rect(pane->scroll_h_rect);
@@ -492,43 +578,4 @@ void pane_drag(PaneW* pane, float dx, float dy) {
     Transformation* pane_t = ecs_get_transformation(pane->rect);
     pane_t->translation.data[0] += dx;
     pane_t->translation.data[1] += dy;
-}
-
-void pane_scroll(PaneW* pane, float dx, float dy) {
-    GUIRect* pane_rect = ecs_get_gui_rect(pane->rect);
-
-    // TODO: Refactor these similar pieces
-    if (dx != 0) {
-        GUIRect* rect = ecs_get_gui_rect(pane->scroll_h_rect);
-        Transformation* t = ecs_get_transformation(pane->scroll_h_rect);
-        float pos = t->translation.data[0];
-        pos += dx;
-        pos = min(
-            pos, pane_rect->width - rect->width - 1.5 * HANDLES_SIZE
-        );
-        pos = max(pos, 0 + 0.5 * HANDLES_SIZE);
-        float shift = pos - t->translation.data[0];
-        t->translation.data[0] += shift;
-
-        pane_rect->view_x_offset
-            = -pane->width * (t->translation.data[0] - 0.5 * HANDLES_SIZE)
-              / (pane_rect->width - 2.0 * HANDLES_SIZE);
-    }
-
-    if (dy != 0) {
-        GUIRect* rect = ecs_get_gui_rect(pane->scroll_v_rect);
-        Transformation* t = ecs_get_transformation(pane->scroll_v_rect);
-        float pos = t->translation.data[1];
-        pos += dy;
-        pos = min(
-            pos, pane_rect->height - rect->height - 1.5 * HANDLES_SIZE
-        );
-        pos = max(pos, 0 + 1.5 * HANDLES_SIZE);
-        float shift = pos - t->translation.data[1];
-        t->translation.data[1] += shift;
-
-        pane_rect->view_y_offset
-            = -pane->height * (t->translation.data[1] - 1.5 * HANDLES_SIZE)
-              / (pane_rect->height - 3.0 * HANDLES_SIZE);
-    }
 }
