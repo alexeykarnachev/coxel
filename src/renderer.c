@@ -428,15 +428,15 @@ static void set_uniform_material(GLuint program, Material* material) {
 }
 
 static void apply_parent_pane_scisor(int entity, size_t buffer_height) {
-    int pane_entity = ecs_get_parent_with_tag(entity, GUI_TAG_PANE, 0);
-    if (pane_entity == -1)
-        return;
+    // int pane_entity = ecs_get_parent_with_tag(entity, GUI_TAG_PANE, 0);
+    // if (pane_entity == -1)
+    //     return;
 
-    GUIRect* pane_rect = ecs_get_gui_rect(pane_entity);
-    Transformation* pane_t = ecs_get_transformation(pane_entity);
-    float width = pane_rect->width;
-    float height = pane_rect->height;
-    float x = pane_t->translation.data[0];
-    float y = buffer_height - pane_t->translation.data[1] - height;
-    glScissor(x, y, width, height);
+    // GUIRect* pane_rect = ecs_get_gui_rect(pane_entity);
+    // Transformation* pane_t = ecs_get_transformation(pane_entity);
+    // float width = pane_rect->width;
+    // float height = pane_rect->height;
+    // float x = pane_t->translation.data[0];
+    // float y = buffer_height - pane_t->translation.data[1] - height;
+    // glScissor(x, y, width, height);
 }
