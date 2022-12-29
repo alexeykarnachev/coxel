@@ -542,15 +542,9 @@ void pane_resize(PaneW* pane, float dx, float dy) {
     float y_view_size_new = y_view_size_old + dy;
     float y_handle_size_new = y_view_size_new * min(1.0, y_view_size_new / (pane->height - 3.0 * HANDLES_SIZE));
     float y_fog_bot_size_new = y_fog_bot_size_old - dy;
-
-    float y_fog_top_size_new = y_fog_top_size_old;
-    float overshoot = 0.0;
-    if (y_fog_bot_size_new < 0.0 && y_fog_top_size_old > 0.0) {
-        float overshoot = y_fog_bot_size_new;
-        y_fog_bot_size_new = 0.0;
-        y_fog_top_size_new = max(0.0, y_fog_top_size_new + overshoot);
-    }
-
+    float y_fog_top_size_new = max(0.0, y_fog_top_size_old + min(0.0, y_fog_bot_size_new));
+    float y_fog_top_shrink = y_fog_top_size_old - y_fog_top_size_new; 
+    y_fog_bot_size_new += y_fog_top_shrink;
     float y_fog_size_new = y_fog_top_size_new + y_fog_bot_size_new;
     float y_scroll_range_new = y_view_size_new - y_handle_size_new;
     float y_scroll_top_shift_new = y_fog_size_new != 0.0 ? y_scroll_range_new * (y_fog_top_size_new / y_fog_size_new) : 0.0;
@@ -595,9 +589,10 @@ void pane_resize(PaneW* pane, float dx, float dy) {
     drag_rect->width += dx;
     
     scroll_v_t->translation.data[1] = y_scroll_top_shift_new + 1.5 * HANDLES_SIZE;
+    scroll_v_t->translation.data[0] += dx;
     scroll_v_rect->height = y_handle_size_new;
-    printf("%f\n", overshoot);
-    pane_scroll_view(pane, 0.0, overshoot);
+    printf("%f\n", y_fog_top_shrink);
+    pane_scroll_view(pane, 0.0, y_fog_top_shrink);
 }
 
 void pane_drag(PaneW* pane, float dx, float dy) {
