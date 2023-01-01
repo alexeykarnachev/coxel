@@ -309,7 +309,7 @@ static PaneW* create_test_pane() {
         "test_button_0",
         10,
         10,
-        180,
+        170,
         50,
         24,
         vec4(0.2, 0.2, 0.2, 1.0),
@@ -324,7 +324,7 @@ static PaneW* create_test_pane() {
         "test_button_1",
         10,
         70,
-        180,
+        170,
         50,
         24,
         vec4(0.2, 0.2, 0.2, 1.0),
@@ -339,7 +339,7 @@ static PaneW* create_test_pane() {
         "test_button_2",
         10,
         130,
-        180,
+        170,
         50,
         24,
         vec4(0.2, 0.2, 0.2, 1.0),
@@ -354,7 +354,7 @@ static PaneW* create_test_pane() {
         "Test_0",
         100,
         200,
-        90,
+        80,
         5,
         2,
         22,
@@ -368,7 +368,7 @@ static PaneW* create_test_pane() {
         "Test_1",
         100,
         240,
-        90,
+        80,
         5,
         2,
         22,
@@ -382,7 +382,7 @@ static PaneW* create_test_pane() {
         "Test_2",
         100,
         280,
-        90,
+        80,
         5,
         2,
         22,
@@ -396,7 +396,7 @@ static PaneW* create_test_pane() {
         "LOWER BUTTON",
         10,
         537,
-        180,
+        170,
         50,
         24,
         vec4(0.2, 0.2, 0.2, 1.0),
@@ -457,7 +457,7 @@ void editor_gui_create() {
     create_test_pane();
 }
 
-static void pane_scroll_view(PaneW* pane, float dx, float dy) {
+static void scroll_pane_view(PaneW* pane, float dx, float dy) {
     for (size_t i = 0; i < N_WIDGETS; ++i) {
         GUIWidget widget = WIDGETS[i];
         size_t parent_pane_id = PARENT_PANES[i];
@@ -478,6 +478,29 @@ static void pane_scroll_view(PaneW* pane, float dx, float dy) {
 
         t->translation.data[0] += dx;
         t->translation.data[1] += dy;
+    }
+}
+
+static void resize_pane_widgets(PaneW* pane, float dx) {
+    for (size_t i = 0; i < N_WIDGETS; ++i) {
+        GUIWidget widget = WIDGETS[i];
+        size_t parent_pane_id = PARENT_PANES[i];
+        if (parent_pane_id != pane->id) {
+            continue;
+        }
+
+        GUIRect* r;
+        if (widget.type == GUI_WIDGET_BUTTON) {
+            ButtonW* button = (ButtonW*)widget.pointer;
+            r = ecs_get_gui_rect(button->rect);
+        } else if (widget.type == GUI_WIDGET_INPUT) {
+            InputW* input = (InputW*)widget.pointer;
+            r = ecs_get_gui_rect(input->input_rect);
+        } else {
+            continue;
+        }
+
+        r->width += dx;
     }
 }
 
@@ -518,7 +541,7 @@ void pane_scroll(PaneW* pane, float dx, float dy) {
         }
     }
 
-    pane_scroll_view(pane, x_shift, y_shift);
+    scroll_pane_view(pane, x_shift, y_shift);
 }
 
 void pane_resize(PaneW* pane, float dx, float dy) {
@@ -618,7 +641,9 @@ void pane_resize(PaneW* pane, float dx, float dy) {
     scroll_h_rect->width = x_handle_size_new;
 
     // Move pane content view
-    pane_scroll_view(pane, x_fog_top_shrink, y_fog_top_shrink);
+    scroll_pane_view(pane, x_fog_top_shrink, y_fog_top_shrink);
+    // Adjust resizable widgets size
+    resize_pane_widgets(pane, dx);
 }
 
 void pane_drag(PaneW* pane, float dx, float dy) {
