@@ -8,14 +8,16 @@
 #include "window.h"
 
 static PaneW PANES[16];
-static ButtonW BUTTONS[128];
-static InputW INPUTS[128];
+static ButtonW BUTTONS[64];
+static InputW INPUTS[64];
+static SelectorW SELECTORS[64];
 static GUIWidget WIDGETS[512];
 static size_t PARENT_PANES[512];
 
 static size_t N_PANES = 0;
 static size_t N_BUTTONS = 0;
 static size_t N_INPUTS = 0;
+static size_t N_SELECTORS = 0;
 static size_t N_WIDGETS = 0;
 
 static size_t HANDLES_SIZE = 10;
@@ -23,8 +25,9 @@ static size_t HANDLES_SIZE = 10;
 enum LAYER {
     LAYER_HANDLE,
     LAYER_TEXT,
+    LAYER_SELECTOR,
     LAYER_BUTTON,
-    LAYER_SELECTION,
+    LAYER_TEXT_SELECTION,
     LAYER_CURSOR,
     LAYER_INPUT,
     LAYER_PANE
@@ -88,7 +91,7 @@ static size_t create_text(
 }
 
 /*
-GUI widgets: pane, button, text input, ...
+GUI widgets: pane, button, text input, selector ...
 */
 static PaneW* create_pane(
     size_t x,
@@ -206,7 +209,7 @@ static ButtonW* create_button(
 }
 
 static InputW* create_input(
-    int parent,
+    PaneW* pane,
     char* label,
     size_t x,
     size_t y,
@@ -216,14 +219,14 @@ static InputW* create_input(
     size_t font_size,
     Vec3 text_color,
     Vec4 input_rect_color,
-    Vec4 selection_color,
+    Vec4 text_selection_color,
     Vec4 cursor_color
 ) {
     float input_char_width = GUI_FONT_ASPECT * (float)font_size;
     size_t input_rect_hight = font_size + border_width * 2;
 
     size_t input_rect = create_rect(
-        parent,
+        pane->rect,
         x,
         y,
         LAYER_INPUT,
@@ -252,15 +255,15 @@ static InputW* create_input(
         text_color,
         -1
     );
-    size_t selection_rect = create_rect(
+    size_t text_selection_rect = create_rect(
         input_text,
         0,
         0,
-        LAYER_SELECTION,
+        LAYER_TEXT_SELECTION,
         0,
         font_size,
-        selection_color,
-        GUI_TAG_SELECTION
+        text_selection_color,
+        GUI_TAG_TEXT_SELECTION
     );
     size_t cursor_rect = create_rect(
         input_text,
@@ -278,7 +281,7 @@ static InputW* create_input(
     InputW* input = &INPUTS[N_INPUTS++];
     input->input_rect = input_rect;
     input->cursor_rect = cursor_rect;
-    input->selection_rect = selection_rect;
+    input->text_selection_rect = text_selection_rect;
     input->label_text = label_text;
     input->input_text = input_text;
     input->is_selecting = 0;
@@ -289,6 +292,67 @@ static InputW* create_input(
     widget->type = GUI_WIDGET_INPUT;
     ecs_add_component(input->input_rect, GUI_WIDGET_COMPONENT, widget);
     return input;
+}
+
+static SelectorW* create_selector(
+    PaneW* pane,
+    size_t x,
+    size_t y,
+    size_t width,
+    size_t border_width,
+    size_t height,
+    size_t font_size,
+    char* option_texts[],
+    size_t n_options,
+    Vec4 rect_cold_color,
+    Vec4 rect_hot_color,
+    Vec4 rect_active_color,
+    Vec3 text_cold_color,
+    Vec3 text_hot_color,
+    Vec3 text_active_color
+) {
+    float char_width = GUI_FONT_ASPECT * (float)font_size;
+    size_t text_width = strlen(option_texts[0]) * char_width;
+
+    SelectorW* selector = &SELECTORS[N_SELECTORS++];
+    selector->rect = create_rect(
+        pane->rect,
+        x,
+        y,
+        LAYER_SELECTOR,
+        width,
+        height,
+        rect_cold_color,
+        -1
+    );
+    selector->text = create_text(
+        selector->rect,
+        option_texts[0],
+        border_width,
+        (height - font_size) / 2,
+        LAYER_TEXT,
+        font_size,
+        text_cold_color,
+        -1
+    );
+
+    selector->n_options = n_options;
+    selector->selected_option = 0;
+    // selector->option_rects = option_rects;
+    // selector->option_texts = option_texts;
+
+    selector->text_cold_color = text_cold_color;
+    selector->text_hot_color = text_hot_color;
+    selector->text_active_color = text_active_color;
+    selector->rect_cold_color = rect_cold_color;
+    selector->rect_hot_color = rect_hot_color;
+    selector->rect_active_color = rect_active_color;
+
+    GUIWidget* widget = &WIDGETS[N_WIDGETS++];
+    widget->pointer = selector;
+    widget->type = GUI_WIDGET_SELECTOR;
+    ecs_add_component(selector->rect, GUI_WIDGET_COMPONENT, widget);
+    return selector;
 }
 
 /*
@@ -350,7 +414,7 @@ static PaneW* create_test_pane() {
         vec3(0.2, 0.2, 0.2)
     );
     create_input(
-        pane->rect,
+        pane,
         "Test_0",
         100,
         200,
@@ -364,7 +428,7 @@ static PaneW* create_test_pane() {
         vec4(1.0, 1.0, 1.0, 1.0)
     );
     create_input(
-        pane->rect,
+        pane,
         "Test_1",
         100,
         240,
@@ -378,7 +442,7 @@ static PaneW* create_test_pane() {
         vec4(1.0, 1.0, 1.0, 1.0)
     );
     create_input(
-        pane->rect,
+        pane,
         "Test_2",
         100,
         280,
@@ -391,6 +455,26 @@ static PaneW* create_test_pane() {
         vec4(0.5, 0.2, 0.0, 1.0),
         vec4(1.0, 1.0, 1.0, 1.0)
     );
+
+    char* option_texts[] = {"option_0", "option_1", "optiooooon_2"};
+    create_selector(
+        pane,
+        10,
+        320,
+        170,
+        5,
+        30,
+        22,
+        option_texts,
+        3,
+        vec4(0.2, 0.2, 0.2, 1.0),
+        vec4(0.3, 0.3, 0.3, 1.0),
+        vec4(0.8, 0.8, 0.8, 1.0),
+        vec3(0.8, 0.8, 0.8),
+        vec3(0.8, 0.8, 0.8),
+        vec3(0.2, 0.2, 0.2)
+    );
+
     create_button(
         pane,
         "LOWER BUTTON",
@@ -443,14 +527,14 @@ void input_set_cold_color(InputW* input) {
     if (input == NULL)
         return;
     ecs_disable_component(input->cursor_rect, GUI_RECT_COMPONENT);
-    ecs_disable_component(input->selection_rect, GUI_RECT_COMPONENT);
+    ecs_disable_component(input->text_selection_rect, GUI_RECT_COMPONENT);
 }
 
 void input_set_active_color(InputW* input) {
     if (input == NULL)
         return;
     ecs_enable_component(input->cursor_rect, GUI_RECT_COMPONENT);
-    ecs_enable_component(input->selection_rect, GUI_RECT_COMPONENT);
+    ecs_enable_component(input->text_selection_rect, GUI_RECT_COMPONENT);
 }
 
 void editor_gui_create() {

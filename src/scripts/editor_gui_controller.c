@@ -105,21 +105,22 @@ static void remove_char_in_active_input(EditorGUIControllerArgs* ctx) {
         return;
 
     GUIText* input_text = ecs_get_gui_text(input->input_text);
-    GUIRect* selection_rect = ecs_get_gui_rect(input->selection_rect);
+    GUIRect* text_selection_rect = ecs_get_gui_rect(
+        input->text_selection_rect
+    );
     Transformation* text_transformation = ecs_get_transformation(
         input->input_text
     );
 
-    if (selection_rect->width > 0) {
+    if (text_selection_rect->width > 0) {
         int text_offset = text_transformation->translation.data[0];
-        Transformation* selection_transformation = ecs_get_transformation(
-            input->selection_rect
-        );
-        int x = selection_transformation->translation.data[0]
+        Transformation* text_selection_transformation
+            = ecs_get_transformation(input->text_selection_rect);
+        int x = text_selection_transformation->translation.data[0]
                 / input->glyph_width;
-        int w = selection_rect->width / input->glyph_width;
+        int w = text_selection_rect->width / input->glyph_width;
         place_input_cursor_at(input, x + w);
-        selection_rect->width = 0;
+        text_selection_rect->width = 0;
         for (size_t i = 0; i < w - 1; ++i) {
             remove_char_in_active_input(ctx);
         }
@@ -148,7 +149,7 @@ static void insert_char_in_active_input(
     if (input == NULL)
         return;
 
-    GUIRect* selection_rect = ecs_get_gui_rect(input->selection_rect);
+    GUIRect* selection_rect = ecs_get_gui_rect(input->text_selection_rect);
     if (selection_rect->width > 0) {
         remove_char_in_active_input(ctx);
     }
@@ -193,18 +194,20 @@ static void expand_active_input_selection_to(
     Transformation* cursor_transformation = ecs_get_transformation(
         input->cursor_rect
     );
-    Transformation* selection_transformation = ecs_get_transformation(
-        input->selection_rect
+    Transformation* text_selection_transformation = ecs_get_transformation(
+        input->text_selection_rect
     );
-    GUIRect* selection_rect = ecs_get_gui_rect(input->selection_rect);
+    GUIRect* text_selection_rect = ecs_get_gui_rect(
+        input->text_selection_rect
+    );
     int cursor_loc = cursor_transformation->translation.data[0]
                      / input->glyph_width;
 
     int loc = get_input_char_loc(input, cursor_x);
     float x1 = loc * input->glyph_width;
     float x2 = cursor_transformation->translation.data[0];
-    selection_transformation->translation.data[0] = min(x1, x2);
-    selection_rect->width = max(x1, x2) - min(x1, x2);
+    text_selection_transformation->translation.data[0] = min(x1, x2);
+    text_selection_rect->width = max(x1, x2) - min(x1, x2);
 }
 
 static void heat_up_new_pane(EditorGUIControllerArgs* ctx, PaneW* pane) {

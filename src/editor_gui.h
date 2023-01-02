@@ -6,6 +6,7 @@ typedef enum GUIWidgetType {
     GUI_WIDGET_PANE,
     GUI_WIDGET_BUTTON,
     GUI_WIDGET_INPUT,
+    GUI_WIDGET_SELECTOR,
     GUI_WIDGET_NULL
 } GUIWidgetType;
 
@@ -17,7 +18,7 @@ typedef struct GUIWidget {
 enum GUITag {
     GUI_TAG_PANE = 1 << 0,
     GUI_TAG_CURSOR = 1 << 1,
-    GUI_TAG_SELECTION = 1 << 2,
+    GUI_TAG_TEXT_SELECTION = 1 << 2,
     GUI_TAG_RESIZE = 1 << 3,
     GUI_TAG_DRAG = 1 << 4,
     GUI_TAG_SCROLL_H = 1 << 5,
@@ -52,13 +53,31 @@ typedef struct ButtonW {
 typedef struct InputW {
     size_t input_rect;
     size_t cursor_rect;
-    size_t selection_rect;
+    size_t text_selection_rect;
     size_t label_text;
     size_t input_text;
 
     int is_selecting;
     float glyph_width;
 } InputW;
+
+typedef struct SelectorW {
+    size_t rect;
+    size_t text;
+
+    size_t n_options;
+    size_t selected_option;
+
+    Vec3 text_cold_color;
+    Vec3 text_hot_color;
+    Vec3 text_active_color;
+    Vec4 rect_cold_color;
+    Vec4 rect_hot_color;
+    Vec4 rect_active_color;
+
+    size_t option_rects[16];
+    size_t option_texts[16];
+} SelectorW;
 
 void editor_gui_create();
 void button_set_hot_color(ButtonW* button);
@@ -67,6 +86,9 @@ void button_set_active_color(ButtonW* button);
 void input_set_hot_color(InputW* input);
 void input_set_cold_color(InputW* input);
 void input_set_active_color(InputW* input);
+void selector_set_hot_color(SelectorW* selector);
+void selector_set_cold_color(SelectorW* selector);
+void selector_set_active_color(SelectorW* selector);
 void pane_resize(PaneW* pane, float dx, float dy);
 void pane_drag(PaneW* pane, float dx, float dy);
 void pane_scroll(PaneW* pane, float dx, float dy);
