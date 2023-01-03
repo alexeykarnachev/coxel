@@ -10,22 +10,24 @@
 static PaneW PANES[16];
 static ButtonW BUTTONS[64];
 static InputW INPUTS[64];
-static SelectorW SELECTORS[64];
+static ListW LISTS[64];
+static ButtonListW BUTTON_LISTS[64];
 static GUIWidget WIDGETS[512];
 static size_t PARENT_PANES[512];
 
 static size_t N_PANES = 0;
 static size_t N_BUTTONS = 0;
 static size_t N_INPUTS = 0;
-static size_t N_SELECTORS = 0;
+static size_t N_LISTS = 0;
+static size_t N_BUTTON_LISTS = 0;
 static size_t N_WIDGETS = 0;
 
 static size_t HANDLES_SIZE = 10;
 
 enum LAYER {
+    LAYER_LIST,
     LAYER_HANDLE,
     LAYER_TEXT,
-    LAYER_SELECTOR,
     LAYER_BUTTON,
     LAYER_TEXT_SELECTION,
     LAYER_CURSOR,
@@ -91,7 +93,7 @@ static size_t create_text(
 }
 
 /*
-GUI widgets: pane, button, text input, selector ...
+GUI widgets: pane, button, text input, ...
 */
 static PaneW* create_pane(
     size_t x,
@@ -163,7 +165,7 @@ static PaneW* create_pane(
 }
 
 static ButtonW* create_button(
-    PaneW* pane,
+    size_t parent,
     char* text,
     size_t x,
     size_t y,
@@ -182,7 +184,7 @@ static ButtonW* create_button(
 
     ButtonW* button = &BUTTONS[N_BUTTONS++];
     button->rect = create_rect(
-        pane->rect, x, y, LAYER_BUTTON, width, height, rect_cold_color, -1
+        parent, x, y, LAYER_BUTTON, width, height, rect_cold_color, -1
     );
     button->text = create_text(
         button->rect,
@@ -209,7 +211,7 @@ static ButtonW* create_button(
 }
 
 static InputW* create_input(
-    PaneW* pane,
+    size_t parent,
     char* label,
     size_t x,
     size_t y,
@@ -226,7 +228,7 @@ static InputW* create_input(
     size_t input_rect_hight = font_size + border_width * 2;
 
     size_t input_rect = create_rect(
-        pane->rect,
+        parent,
         x,
         y,
         LAYER_INPUT,
@@ -294,98 +296,126 @@ static InputW* create_input(
     return input;
 }
 
-static SelectorW* create_selector(
-    PaneW* pane,
+static ListW* create_list(
+    size_t parent,
     size_t x,
     size_t y,
     size_t width,
     size_t border_width,
-    size_t height,
     size_t font_size,
-    char* option_texts[],
-    size_t n_options,
+    char* item_texts[],
+    size_t n_items,
     Vec4 rect_cold_color,
     Vec4 rect_hot_color,
-    Vec4 rect_active_color,
     Vec3 text_cold_color,
-    Vec3 text_hot_color,
-    Vec3 text_active_color
+    Vec3 text_hot_color
 ) {
-    float char_width = GUI_FONT_ASPECT * (float)font_size;
-    size_t text_width = strlen(option_texts[0]) * char_width;
-
-    SelectorW* selector = &SELECTORS[N_SELECTORS++];
-    selector->rect = create_rect(
-        pane->rect,
+    ListW* list = &LISTS[N_LISTS++];
+    list->rect = create_rect(
+        parent,
         x,
         y,
-        LAYER_SELECTOR,
+        LAYER_LIST,
         width,
-        height,
-        rect_cold_color,
-        -1
-    );
-    selector->text = create_text(
-        selector->rect,
-        option_texts[0],
-        border_width,
-        (height - font_size) / 2,
-        LAYER_TEXT,
-        font_size,
-        text_cold_color,
-        -1
-    );
-
-    selector->n_options = n_options;
-    selector->selected_option = 0;
-    selector->options_rect = create_rect(
-        selector->rect,
-        0,
-        height,
-        LAYER_SELECTOR,
-        width,
-        font_size * n_options,
+        font_size * n_items,
         rect_cold_color,
         -1
     );
 
-    for (size_t i = 0; i < n_options; ++i) {
-        selector->option_rects[i] = create_rect(
-            selector->options_rect,
+    for (size_t i = 0; i < n_items; ++i) {
+        list->item_rects[i] = create_rect(
+            list->rect,
             0,
             i * font_size,
-            LAYER_SELECTOR,
+            LAYER_LIST,
             width,
             font_size,
             rect_cold_color,
             -1
         );
-        selector->option_texts[i] = create_text(
-            selector->option_rects[i],
-            option_texts[i],
+        list->item_texts[i] = create_text(
+            list->item_rects[i],
+            item_texts[i],
             border_width,
             0.0,
-            LAYER_TEXT,
+            LAYER_LIST,
             font_size,
             text_cold_color,
             -1
         );
     }
 
-    ecs_disable_entity(selector->options_rect);
+    list->n_items = n_items;
+    list->selected_item = 0;
 
-    selector->text_cold_color = text_cold_color;
-    selector->text_hot_color = text_hot_color;
-    selector->text_active_color = text_active_color;
-    selector->rect_cold_color = rect_cold_color;
-    selector->rect_hot_color = rect_hot_color;
-    selector->rect_active_color = rect_active_color;
+    list->text_cold_color = text_cold_color;
+    list->text_hot_color = text_hot_color;
+    list->rect_cold_color = rect_cold_color;
+    list->rect_hot_color = rect_hot_color;
 
     GUIWidget* widget = &WIDGETS[N_WIDGETS++];
-    widget->pointer = selector;
-    widget->type = GUI_WIDGET_SELECTOR;
-    ecs_add_component(selector->rect, GUI_WIDGET_COMPONENT, widget);
-    return selector;
+    widget->pointer = list;
+    widget->type = GUI_WIDGET_LIST;
+    ecs_add_component(list->rect, GUI_WIDGET_COMPONENT, widget);
+    return list;
+}
+
+static ButtonListW* create_button_list(
+    size_t parent,
+    size_t x,
+    size_t y,
+    size_t width,
+    size_t border_width,
+    size_t font_size,
+    char* item_texts[],
+    size_t n_items,
+    Vec4 rect_cold_color,
+    Vec4 rect_hot_color,
+    Vec3 text_cold_color,
+    Vec3 text_hot_color
+) {
+    ButtonW* button = create_button(
+        parent,
+        item_texts[0],
+        x,
+        y,
+        width,
+        font_size,
+        font_size,
+        rect_cold_color,
+        rect_hot_color,
+        rect_hot_color,
+        text_cold_color,
+        text_hot_color,
+        text_hot_color
+    );
+
+    ListW* list = create_list(
+        button->rect,
+        0,
+        font_size,
+        width,
+        border_width,
+        font_size,
+        item_texts,
+        n_items,
+        rect_cold_color,
+        rect_hot_color,
+        text_cold_color,
+        text_hot_color
+    );
+
+    ecs_disable_entity(list->rect);
+
+    ButtonListW* button_list = &BUTTON_LISTS[N_BUTTON_LISTS++];
+    button_list->button = button;
+    button_list->list = list;
+
+    GUIWidget* widget = &WIDGETS[N_WIDGETS++];
+    widget->pointer = button_list;
+    widget->type = GUI_WIDGET_BUTTON_LIST;
+    ecs_add_component(button->rect, GUI_WIDGET_COMPONENT, widget);
+    return button_list;
 }
 
 /*
@@ -402,7 +432,7 @@ static PaneW* create_test_pane() {
     );
 
     create_button(
-        pane,
+        pane->rect,
         "test_button_0",
         10,
         10,
@@ -417,7 +447,7 @@ static PaneW* create_test_pane() {
         vec3(0.2, 0.2, 0.2)
     );
     create_button(
-        pane,
+        pane->rect,
         "test_button_1",
         10,
         70,
@@ -432,7 +462,7 @@ static PaneW* create_test_pane() {
         vec3(0.2, 0.2, 0.2)
     );
     create_button(
-        pane,
+        pane->rect,
         "test_button_2",
         10,
         130,
@@ -447,7 +477,7 @@ static PaneW* create_test_pane() {
         vec3(0.2, 0.2, 0.2)
     );
     create_input(
-        pane,
+        pane->rect,
         "Test_0",
         100,
         200,
@@ -461,7 +491,7 @@ static PaneW* create_test_pane() {
         vec4(1.0, 1.0, 1.0, 1.0)
     );
     create_input(
-        pane,
+        pane->rect,
         "Test_1",
         100,
         240,
@@ -475,7 +505,7 @@ static PaneW* create_test_pane() {
         vec4(1.0, 1.0, 1.0, 1.0)
     );
     create_input(
-        pane,
+        pane->rect,
         "Test_2",
         100,
         280,
@@ -489,27 +519,39 @@ static PaneW* create_test_pane() {
         vec4(1.0, 1.0, 1.0, 1.0)
     );
 
-    char* option_texts[] = {"option_0", "option_1", "optiooooon_2"};
-    create_selector(
-        pane,
+    char* item_texts[] = {"item_0", "item_1", "optiooooon_2"};
+    create_button_list(
+        pane->rect,
         10,
         320,
         170,
         5,
-        30,
         22,
-        option_texts,
+        item_texts,
         3,
         vec4(0.2, 0.2, 0.2, 1.0),
         vec4(0.3, 0.3, 0.3, 1.0),
-        vec4(0.8, 0.8, 0.8, 1.0),
         vec3(0.8, 0.8, 0.8),
+        vec3(0.8, 0.8, 0.8)
+    );
+
+    create_list(
+        pane->rect,
+        10,
+        380,
+        170,
+        5,
+        22,
+        item_texts,
+        3,
+        vec4(0.2, 0.2, 0.2, 1.0),
+        vec4(0.3, 0.3, 0.3, 1.0),
         vec3(0.8, 0.8, 0.8),
-        vec3(0.2, 0.2, 0.2)
+        vec3(0.8, 0.8, 0.8)
     );
 
     create_button(
-        pane,
+        pane->rect,
         "LOWER BUTTON",
         10,
         537,
@@ -545,6 +587,27 @@ void button_set_cold_color(ButtonW* button) {
     text->color = button->text_cold_color;
 }
 
+void list_set_cold_color(ListW* list) {
+    if (list == NULL)
+        return;
+
+    for (size_t i = 0; i < list->n_items; ++i) {
+        GUIRect* rect = ecs_get_gui_rect(list->item_rects[i]);
+        GUIText* text = ecs_get_gui_text(list->item_texts[i]);
+        rect->color = list->rect_cold_color;
+        text->color = list->text_cold_color;
+    }
+}
+
+void list_set_hot_color(ListW* list, int item_idx) {
+    if (list == NULL || item_idx < 0)
+        return;
+    GUIRect* rect = ecs_get_gui_rect(list->item_rects[item_idx]);
+    GUIText* text = ecs_get_gui_text(list->item_texts[item_idx]);
+    rect->color = list->rect_hot_color;
+    text->color = list->text_hot_color;
+}
+
 void button_set_active_color(ButtonW* button) {
     if (button == NULL)
         return;
@@ -552,37 +615,6 @@ void button_set_active_color(ButtonW* button) {
     GUIText* text = ecs_get_gui_text(button->text);
     rect->color = button->rect_active_color;
     text->color = button->text_active_color;
-}
-
-void selector_set_hot_color(SelectorW* selector) {
-    if (selector == NULL)
-        return;
-    GUIRect* rect = ecs_get_gui_rect(selector->rect);
-    GUIText* text = ecs_get_gui_text(selector->text);
-    rect->color = selector->rect_hot_color;
-    text->color = selector->text_hot_color;
-}
-
-void selector_set_cold_color(SelectorW* selector) {
-    if (selector == NULL)
-        return;
-    GUIRect* rect = ecs_get_gui_rect(selector->rect);
-    GUIText* text = ecs_get_gui_text(selector->text);
-    rect->color = selector->rect_cold_color;
-    text->color = selector->text_cold_color;
-
-    ecs_disable_entity(selector->options_rect);
-}
-
-void selector_set_active_color(SelectorW* selector) {
-    if (selector == NULL)
-        return;
-    GUIRect* rect = ecs_get_gui_rect(selector->rect);
-    GUIText* text = ecs_get_gui_text(selector->text);
-    rect->color = selector->rect_active_color;
-    text->color = selector->text_active_color;
-
-    ecs_enable_entity(selector->options_rect);
 }
 
 void input_set_hot_color(InputW* input) {}

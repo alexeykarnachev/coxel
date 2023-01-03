@@ -6,7 +6,8 @@ typedef enum GUIWidgetType {
     GUI_WIDGET_PANE,
     GUI_WIDGET_BUTTON,
     GUI_WIDGET_INPUT,
-    GUI_WIDGET_SELECTOR,
+    GUI_WIDGET_LIST,
+    GUI_WIDGET_BUTTON_LIST,
     GUI_WIDGET_NULL
 } GUIWidgetType;
 
@@ -61,24 +62,27 @@ typedef struct InputW {
     float glyph_width;
 } InputW;
 
-typedef struct SelectorW {
+typedef struct ListW {
     size_t rect;
     size_t text;
 
-    size_t n_options;
-    size_t selected_option;
+    size_t n_items;
+    size_t selected_item;
+    size_t items_rect;
 
     Vec3 text_cold_color;
     Vec3 text_hot_color;
-    Vec3 text_active_color;
     Vec4 rect_cold_color;
     Vec4 rect_hot_color;
-    Vec4 rect_active_color;
 
-    size_t options_rect;
-    size_t option_rects[16];
-    size_t option_texts[16];
-} SelectorW;
+    size_t item_rects[16];
+    size_t item_texts[16];
+} ListW;
+
+typedef struct ButtonListW {
+    ButtonW* button;
+    ListW* list;
+} ButtonListW;
 
 void editor_gui_create();
 void button_set_hot_color(ButtonW* button);
@@ -87,9 +91,8 @@ void button_set_active_color(ButtonW* button);
 void input_set_hot_color(InputW* input);
 void input_set_cold_color(InputW* input);
 void input_set_active_color(InputW* input);
-void selector_set_hot_color(SelectorW* selector);
-void selector_set_cold_color(SelectorW* selector);
-void selector_set_active_color(SelectorW* selector);
+void list_set_cold_color(ListW* list);
+void list_set_hot_color(ListW* list, int item_idx);
 void pane_resize(PaneW* pane, float dx, float dy);
 void pane_drag(PaneW* pane, float dx, float dy);
 void pane_scroll(PaneW* pane, float dx, float dy);
