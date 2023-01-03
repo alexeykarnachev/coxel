@@ -338,8 +338,41 @@ static SelectorW* create_selector(
 
     selector->n_options = n_options;
     selector->selected_option = 0;
-    // selector->option_rects = option_rects;
-    // selector->option_texts = option_texts;
+    selector->options_rect = create_rect(
+        selector->rect,
+        0,
+        height,
+        LAYER_SELECTOR,
+        width,
+        font_size * n_options,
+        rect_cold_color,
+        -1
+    );
+
+    for (size_t i = 0; i < n_options; ++i) {
+        selector->option_rects[i] = create_rect(
+            selector->options_rect,
+            0,
+            i * font_size,
+            LAYER_SELECTOR,
+            width,
+            font_size,
+            rect_cold_color,
+            -1
+        );
+        selector->option_texts[i] = create_text(
+            selector->option_rects[i],
+            option_texts[i],
+            border_width,
+            0.0,
+            LAYER_TEXT,
+            font_size,
+            text_cold_color,
+            -1
+        );
+    }
+
+    ecs_disable_entity(selector->options_rect);
 
     selector->text_cold_color = text_cold_color;
     selector->text_hot_color = text_hot_color;
@@ -519,6 +552,37 @@ void button_set_active_color(ButtonW* button) {
     GUIText* text = ecs_get_gui_text(button->text);
     rect->color = button->rect_active_color;
     text->color = button->text_active_color;
+}
+
+void selector_set_hot_color(SelectorW* selector) {
+    if (selector == NULL)
+        return;
+    GUIRect* rect = ecs_get_gui_rect(selector->rect);
+    GUIText* text = ecs_get_gui_text(selector->text);
+    rect->color = selector->rect_hot_color;
+    text->color = selector->text_hot_color;
+}
+
+void selector_set_cold_color(SelectorW* selector) {
+    if (selector == NULL)
+        return;
+    GUIRect* rect = ecs_get_gui_rect(selector->rect);
+    GUIText* text = ecs_get_gui_text(selector->text);
+    rect->color = selector->rect_cold_color;
+    text->color = selector->text_cold_color;
+
+    ecs_disable_entity(selector->options_rect);
+}
+
+void selector_set_active_color(SelectorW* selector) {
+    if (selector == NULL)
+        return;
+    GUIRect* rect = ecs_get_gui_rect(selector->rect);
+    GUIText* text = ecs_get_gui_text(selector->text);
+    rect->color = selector->rect_active_color;
+    text->color = selector->text_active_color;
+
+    ecs_enable_entity(selector->options_rect);
 }
 
 void input_set_hot_color(InputW* input) {}

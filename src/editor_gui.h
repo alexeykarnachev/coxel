@@ -75,6 +75,7 @@ typedef struct SelectorW {
     Vec4 rect_hot_color;
     Vec4 rect_active_color;
 
+    size_t options_rect;
     size_t option_rects[16];
     size_t option_texts[16];
 } SelectorW;

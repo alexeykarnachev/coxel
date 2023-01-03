@@ -24,6 +24,8 @@ typedef enum COMPONENT_TYPE {
     N_COMPONENT_TYPES
 } COMPONENT_TYPE;
 
+// TODO: Make Entity struct more data-oriented. Transform fields to the
+// separate static arrays in ecs.c
 typedef struct Entity {
     Bitset components;
     int parent_id;
@@ -62,7 +64,10 @@ size_t ecs_create_entity(int parent);
 void ecs_add_component(int entity, COMPONENT_TYPE type, void* ptr);
 void ecs_enable_component(int entity, COMPONENT_TYPE type);
 void ecs_disable_component(int entity, COMPONENT_TYPE type);
+void ecs_enable_entity(int entity);
+void ecs_disable_entity(int entity);
 int ecs_is_component_enabled(int entity, COMPONENT_TYPE type);
+int ecs_is_entity_enabled(int entity);
 int ecs_get_parent_with_component(
     int entity, COMPONENT_TYPE type, int allow_self
 );

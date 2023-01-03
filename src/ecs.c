@@ -4,6 +4,7 @@
 
 void* COMPONENTS[N_COMPONENT_TYPES][MAX_N_ENTITIES];
 static int TAGS[MAX_N_ENTITIES] = {[0 ... MAX_N_ENTITIES - 1] = 0};
+static int IS_DISABLED[MAX_N_ENTITIES] = {[0 ... MAX_N_ENTITIES - 1] = 0};
 
 Entity ENTITIES[MAX_N_ENTITIES];
 size_t N_ENTITIES = 0;
@@ -44,6 +45,10 @@ void ecs_update() {
     N_GUI_TEXT_ENTITIES = 0;
 
     for (size_t entity = 0; entity < N_ENTITIES; ++entity) {
+        if (ecs_is_entity_enabled(entity) != 1) {
+            continue;
+        }
+
         if (ecs_check_if_renderable(entity)) {
             RENDERABLE_ENTITIES[N_RENDERABLE_ENTITIES++] = entity;
         }
@@ -166,6 +171,30 @@ void ecs_disable_component(int entity, COMPONENT_TYPE type) {
     if (entity == -1)
         return;
     bitset_disable_bit(&ENTITIES[entity].components, type);
+}
+
+void ecs_enable_entity(int entity) {
+    if (entity == -1)
+        return;
+    IS_DISABLED[entity] = 0;
+}
+
+void ecs_disable_entity(int entity) {
+    if (entity == -1)
+        return;
+    IS_DISABLED[entity] = 1;
+}
+
+int ecs_is_entity_enabled(int entity) {
+    if (IS_DISABLED[entity] == 1) {
+        return 0;
+    }
+    int parent_id = ENTITIES[entity].parent_id;
+    if (parent_id != -1) {
+        return ecs_is_entity_enabled(parent_id);
+    }
+
+    return 1;
 }
 
 int ecs_is_component_enabled(int entity, COMPONENT_TYPE type) {

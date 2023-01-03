@@ -12,6 +12,8 @@ typedef struct EditorGUIControllerArgs {
     ButtonW* active_button;
     InputW* hot_input;
     InputW* active_input;
+    SelectorW* hot_selector;
+    SelectorW* active_selector;
     PaneW* hot_pane;
     PaneW* active_pane;
 } EditorGUIControllerArgs;

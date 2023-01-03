@@ -28,6 +28,16 @@ static void toggle_current_hot_button(EditorGUIControllerArgs* ctx) {
     }
 }
 
+static void toggle_current_hot_selector(EditorGUIControllerArgs* ctx) {
+    selector_set_cold_color(ctx->active_selector);
+    if (ctx->hot_selector != ctx->active_selector) {
+        selector_set_active_color(ctx->hot_selector);
+        ctx->active_selector = ctx->hot_selector;
+    } else {
+        ctx->active_selector = NULL;
+    }
+}
+
 static void heat_up_new_input(
     EditorGUIControllerArgs* ctx, InputW* input
 ) {
@@ -214,6 +224,18 @@ static void heat_up_new_pane(EditorGUIControllerArgs* ctx, PaneW* pane) {
     ctx->hot_pane = pane;
 }
 
+static void heat_up_new_selector(
+    EditorGUIControllerArgs* ctx, SelectorW* selector
+) {
+    if (ctx->hot_selector != ctx->active_selector) {
+        selector_set_cold_color(ctx->hot_selector);
+    }
+    if (ctx->active_selector != selector) {
+        selector_set_hot_color(selector);
+    }
+    ctx->hot_selector = selector;
+}
+
 static void activate_current_hot_pane(EditorGUIControllerArgs* ctx) {
     ctx->active_pane = ctx->hot_pane;
 
@@ -278,6 +300,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
         // Cool down all widgets
         heat_up_new_button(ctx, NULL);
         heat_up_new_input(ctx, NULL);
+        heat_up_new_selector(ctx, NULL);
         heat_up_new_pane(ctx, NULL);
 
         // Heat up mouse hovered widget
@@ -287,6 +310,8 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
             heat_up_new_input(ctx, (InputW*)hot_widget->pointer);
         } else if (hot_widget->type == GUI_WIDGET_PANE) {
             heat_up_new_pane(ctx, (PaneW*)hot_widget->pointer);
+        } else if (hot_widget->type == GUI_WIDGET_SELECTOR) {
+            heat_up_new_selector(ctx, (SelectorW*)hot_widget->pointer);
         }
     }
 
@@ -304,6 +329,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
         expand_active_input_selection_to(ctx, cursor_x);
     } else if (window_check_if_lmb_released()) {
         toggle_current_hot_button(ctx);
+        toggle_current_hot_selector(ctx);
     } else if (window_check_if_lmb_pressed()) {
         activate_current_hot_pane(ctx);
         activate_current_hot_input(ctx, cursor_x);
@@ -334,6 +360,8 @@ EditorGUIControllerArgs editor_gui_controller_create_default_args(
     args.active_button = NULL;
     args.hot_input = NULL;
     args.active_input = NULL;
+    args.hot_selector = NULL;
+    args.active_selector = NULL;
     args.hot_pane = NULL;
     args.active_pane = NULL;
     return args;
