@@ -218,20 +218,29 @@ static int get_list_item_idx(ListW* list, int cursor_y) {
     if (list == NULL)
         return -1;
     GUIText* text = ecs_get_gui_text(list->item_texts[0]);
-    Transformation* t = ecs_get_transformation(list->rect);
     float font_size = text->font_height;
-    int item_idx = (int
-    )((cursor_y - t->translation.data[1] - 0.5 * font_size) / font_size);
+    float y = ecs_get_world_position(list->rect).data[1];
+    int item_idx = (int)((cursor_y - y - 0.5 * font_size) / font_size);
     return item_idx;
 }
 
 static void heat_up_new_list(EditorGUIControllerArgs* ctx, ListW* list) {
     list_set_cold_color(ctx->hot_list);
-    int cursor_y = (int
-    )((1.0 - INPUT.cursor_y) * ctx->overlay_buffer->height);
+    float y = 1.0 - INPUT.cursor_y;
+    int cursor_y = (int)(y * ctx->overlay_buffer->height);
     int item_idx = get_list_item_idx(list, cursor_y);
     list_set_hot_color(list, item_idx);
     ctx->hot_list = list;
+}
+
+static void heat_up_new_button_list(
+    EditorGUIControllerArgs* ctx, ButtonListW* button_list
+) {
+    if (button_list != NULL) {
+        heat_up_new_button(ctx, button_list->button);
+        heat_up_new_list(ctx, button_list->list);
+    }
+    ctx->hot_button_list = button_list;
 }
 
 static void activate_current_hot_pane(EditorGUIControllerArgs* ctx) {
@@ -302,6 +311,7 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
         heat_up_new_input(ctx, NULL);
         heat_up_new_pane(ctx, NULL);
         heat_up_new_list(ctx, NULL);
+        heat_up_new_button_list(ctx, NULL);
 
         // Heat up mouse hovered widget
         if (hot_widget->type == GUI_WIDGET_BUTTON) {
@@ -312,6 +322,10 @@ static void editor_gui_controller_update(size_t _, void* args_p) {
             heat_up_new_pane(ctx, (PaneW*)hot_widget->pointer);
         } else if (hot_widget->type == GUI_WIDGET_LIST) {
             heat_up_new_list(ctx, (ListW*)hot_widget->pointer);
+        } else if (hot_widget->type == GUI_WIDGET_BUTTON_LIST) {
+            heat_up_new_button_list(
+                ctx, (ButtonListW*)hot_widget->pointer
+            );
         }
     }
 
@@ -362,6 +376,7 @@ EditorGUIControllerArgs editor_gui_controller_create_default_args(
     args.hot_pane = NULL;
     args.active_pane = NULL;
     args.hot_list = NULL;
+    args.hot_button_list = NULL;
     return args;
 }
 

@@ -15,6 +15,7 @@ typedef struct EditorGUIControllerArgs {
     PaneW* hot_pane;
     PaneW* active_pane;
     ListW* hot_list;
+    ButtonListW* hot_button_list;
 } EditorGUIControllerArgs;
 
 EditorGUIControllerArgs editor_gui_controller_create_default_args(
